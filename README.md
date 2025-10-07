@@ -15,7 +15,7 @@ This app solves that problem by centralizing all academic tools and providing on
 | Name | Student ID | Role | 
 |------|-------------|------|
 | **Abdallah Al Homsi** | 34565 | Project Coordinator |
-| **Fawzi Hindi** | 33587 | Learning & Research Lead |
+| **Fowzi Hindi** | 33587 | Learning & Research Lead |
 | **Syeda Manaal Amir** | 33550 | Integration & Repository Lead  |
 | **Abdul Momin Alam** | 33622 | Documentation & Submission Lead  |
 | **Salma Tubail** | 33749 | Presentation & Communication Lead  |
