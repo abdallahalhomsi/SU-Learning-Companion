@@ -23,6 +23,7 @@ This app solves that problem by centralizing all academic tools and providing on
 
 ### Contact  
 For questions or updates about the project, please contact the team via their **Sabancı University emails**.
+Team communication, coordination, and **task assignments are managed through Jira**, ensuring efficient collaboration and workflow tracking.
 
 
 
