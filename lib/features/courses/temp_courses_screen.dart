@@ -5,6 +5,8 @@ import '../../common/repos/courses_repo.dart';
 import '../../data/fakes/fake_courses_repo.dart';
 import '../../common/widgets/app_scaffold.dart';
 
+//TEMPORARY, TO BE DELETED
+
 class CoursesScreen extends StatefulWidget {
   const CoursesScreen({Key? key}) : super(key: key);
 
