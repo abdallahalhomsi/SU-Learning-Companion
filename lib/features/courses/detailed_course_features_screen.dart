@@ -41,8 +41,8 @@ class _DetailedCourseFeaturesScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
+    return AppScaffold(
+      currentIndex: 0,
       appBar: AppBar(
         backgroundColor: const Color(0xFF003366),
         leading: IconButton(
@@ -65,7 +65,7 @@ class _DetailedCourseFeaturesScreenState
           ? const Center(child: Text('Course not found'))
           : Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -75,25 +75,25 @@ class _DetailedCourseFeaturesScreenState
                 label: 'Notes',
                 onTap: () => _showFeatureDialog('Notes'),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
               _buildFeatureButton(
                 icon: Icons.folder,
                 label: 'Resources',
                 onTap: () => _showFeatureDialog('Resources'),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
               _buildFeatureButton(
                 icon: Icons.style,
                 label: 'Flashcards',
                 onTap: () => _showFeatureDialog('Flashcards'),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
               _buildFeatureButton(
                 icon: Icons.assignment,
                 label: 'Homeworks',
                 onTap: () => _showFeatureDialog('Homeworks'),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
               _buildFeatureButton(
                 icon: Icons.quiz,
                 label: 'Exams',
@@ -102,42 +102,6 @@ class _DetailedCourseFeaturesScreenState
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        backgroundColor: const Color(0xFF003366),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white60,
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              context.go('/');
-              break;
-            case 1:
-              context.go('/calendar');
-              break;
-            case 2:
-              context.go('/profile');
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '',
-          ),
-        ],
       ),
     );
   }
@@ -149,31 +113,24 @@ class _DetailedCourseFeaturesScreenState
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
         decoration: BoxDecoration(
           color: const Color(0xFF003366),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios,
+        child: Center(
+          child: Text(
+            label,
+            style: const TextStyle(
               color: Colors.white,
-              size: 16,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
             ),
-          ],
+          ),
         ),
       ),
     );
