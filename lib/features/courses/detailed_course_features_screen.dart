@@ -47,7 +47,9 @@ class _DetailedCourseFeaturesScreenState
         backgroundColor: const Color(0xFF003366),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            context.go('/');
+          },
         ),
         title: Text(
           _course?.name ?? 'Course Name',
@@ -88,16 +90,32 @@ class _DetailedCourseFeaturesScreenState
                 onTap: () => _showFeatureDialog('Flashcards'),
               ),
               const SizedBox(height: 40),
+              // Homeworks button
               _buildFeatureButton(
                 icon: Icons.assignment,
                 label: 'Homeworks',
-                onTap: () => _showFeatureDialog('Homeworks'),
+                onTap: () {
+                  context.go(
+                    '/courses/${widget.courseId}/homeworks',
+                    extra: {
+                      'courseName': _course?.name ?? 'Course',
+                    },
+                  );
+                },
               ),
               const SizedBox(height: 40),
+              // Exams button
               _buildFeatureButton(
                 icon: Icons.quiz,
                 label: 'Exams',
-                onTap: () => _showFeatureDialog('Exams'),
+                onTap: () {
+                  context.go(
+                    '/courses/${widget.courseId}/exams',
+                    extra: {
+                      'courseName': _course?.name ?? 'Course',
+                    },
+                  );
+                },
               ),
             ],
           ),
