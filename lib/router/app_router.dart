@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:su_learning_companion/features/Authentication/welcom.dart';
 import '../features/courses/temp_courses_screen.dart';
 import '../features/courses/add_course_screen.dart';
 import '../features/courses/detailed_course_features_screen.dart';
@@ -12,8 +13,12 @@ import '../features/homeworks/homeworks_form_sheet.dart';
 
 class AppRouter {
   static final router = GoRouter(
-    initialLocation: '/',
+    initialLocation: '/welcome',
     routes: [
+      GoRoute(
+        path: '/welcome',
+        builder: (context, state) => const WelcomeScreen(),
+      ),
       GoRoute(
         path: '/',
         builder: (context, state) => const CoursesScreen(),
