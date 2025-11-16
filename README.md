@@ -10,6 +10,53 @@ SU Learning Companion solves this by bringing all essential academic tools into 
 Students often rely on multiple apps to manage tasks, deadlines, and study plans, which leads to confusion and missed work.  
 This app solves that problem by centralizing all academic tools and providing one organized, simple-to-use system.
 
+### 1. First-time setup (cloning the repo)
+
+```bash
+# Clone the repository
+git clone https://github.com/abdallahalhomsi/SU-Learning-Companion.git
+
+# Download Flutter dependencies
+flutter pub get
+```
+### 2. Running the App
+
+Start an Android emulator or connect a physical device.
+
+In Android Studio, select the device in the top-right device selector.
+
+run in terminal:
+```bash
+flutter run
+```
+
+### 3. Workflow for each team member
+
+```bash
+# 1. Make sure you are on the correct branch (usually main or your feature branch)
+git status
+git branch
+
+# 2. Get the latest changes from GitHub
+git pull origin main
+```
+
+### 4. Committing Changes
+
+```bash
+# See what changed
+git status
+
+# Add the files you modified
+git add .
+
+# Commit with a clear message
+git commit -m "Describe what you implemented"
+
+# Push your changes to GitHub
+git push origin main      # or your feature branch
+```
+
 ### Group Members & Roles  
 
 | Name | Student ID | Role | 
