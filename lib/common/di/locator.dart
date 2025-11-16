@@ -1,13 +1,16 @@
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import '../repos/courses_repo.dart';
-import '../repos/tasks_repo.dart';
 import '../../data/fakes/fake_courses_repo.dart';
-import '../../data/fakes/fake_tasks_repo.dart';
+import '../repos/exams_repo.dart';
+import '../repos/homeworks_repo.dart';
+import '../../data/fakes/fake_exams_repo.dart';
+import '../../data/fakes/fake_homeworks_repo.dart';
 
 List<SingleChildWidget> buildProviders() => [
   Provider<CoursesRepo>(create: (_) => FakeCoursesRepo()),
-  Provider<TasksRepo>(create: (_) => FakeTasksRepo()),
+  Provider<ExamsRepo>(create: (_) => FakeExamsRepo()),
+  Provider<HomeworksRepo>(create: (_) => FakeHomeworksRepo()),
 ];
 
 
