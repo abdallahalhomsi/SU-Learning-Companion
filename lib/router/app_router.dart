@@ -5,6 +5,10 @@ import '../features/courses/add_course_screen.dart';
 import '../features/courses/detailed_course_features_screen.dart';
 import '../features/calendar/calendar_screen.dart';
 import '../common/widgets/app_scaffold.dart';
+import '../features/exams/exams_list_screen.dart';
+import '../features/exams/exams_form_sheet.dart';
+import '../features/homeworks/homeworks_list_screen.dart';
+import '../features/homeworks/homeworks_form_sheet.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -35,6 +39,62 @@ class AppRouter {
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/courses/:courseId/exams',
+        builder: (context, state) {
+          final courseId = state.pathParameters['courseId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+
+          final courseName = extra?['courseName'] as String? ?? 'Course';
+
+          return ExamsListScreen(
+            courseId: courseId,
+            courseName: courseName,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/courses/:courseId/exams/add',
+        builder: (context, state) {
+          final courseId = state.pathParameters['courseId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+
+          final courseName = extra?['courseName'] as String? ?? 'Course';
+
+          return ExamFormScreen(
+            courseId: courseId,
+            courseName: courseName,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/courses/:courseId/homeworks',
+        builder: (context, state) {
+          final courseId = state.pathParameters['courseId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+
+          final courseName = extra?['courseName'] as String? ?? 'Course';
+
+          return HomeworksListScreen(
+            courseId: courseId,
+            courseName: courseName,
+          );
+        },
+      ),
+      GoRoute(
+      path: '/courses/:courseId/homeworks/add',
+      builder: (context, state) {
+      final courseId = state.pathParameters['courseId']!;
+      final extra = state.extra as Map<String, dynamic>?;
+
+      final courseName = extra?['courseName'] as String? ?? 'Course';
+
+      return HomeworkFormScreen(
+      courseId: courseId,
+      courseName: courseName,
+      );
+      },
       ),
     ],
   );
