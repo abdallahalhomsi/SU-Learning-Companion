@@ -4,15 +4,24 @@ import 'router/app_router.dart';
 
 class SUApp extends StatelessWidget {
   const SUApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'SU Learning Companion',
       theme: suLightTheme,
-      routerConfig: appRouter,
+      routerConfig: AppRouter.router,
     );
   }
 }
+
+/// Root widget (MaterialApp.router).
+/// - Applies Theme.
+/// - Uses the central GoRouter config.
+
+/// Root widget (MaterialApp with standard navigation).
+/// - Applies Theme.
+/// - Uses the central AppRouter config.
 
 
 /// Root widget (MaterialApp.router).
