@@ -15,7 +15,7 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: _suBlue,
         elevation: 0,
         centerTitle: true,
-        // TODO: later replace Text with Image.asset for the Sabancı logo
+
         title: const Text('Sabancı Üniversitesi'),
         actions: [
           Padding(

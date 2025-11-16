@@ -112,7 +112,7 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                 ),
               ),
               onPressed: () {
-                // TODO: save note somewhere
+
                 Navigator.pop(context);
               },
               child: const Text('Submit'),
