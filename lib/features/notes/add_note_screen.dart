@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../common/models/course.dart';
+import '../../common/repos/courses_repo.dart';
+import '../../data/fakes/fake_courses_repo.dart';
+import '../../common/widgets/app_scaffold.dart';
+
 
 class AddNoteScreen extends StatefulWidget {
   final String courseName;
