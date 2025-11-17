@@ -52,7 +52,6 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
-        // what is shown in the field (nice format)
         final months = [
           'Jan','Feb','Mar','Apr','May','Jun',
           'Jul','Aug','Sep','Oct','Nov','Dec'
@@ -73,7 +72,6 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       setState(() {
         _selectedTime = picked;
 
-        // what is shown in the field (12-hour with AM/PM)
         int displayHour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
         final minute = picked.minute.toString().padLeft(2, '0');
         final suffix = picked.period == DayPeriod.am ? 'AM' : 'PM';
@@ -84,20 +82,40 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    if (_selectedDate == null || _selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select both date and time')),
+    // 1) validate text fields
+    if (!_formKey.currentState!.validate()) {
+      // smooth hint to user when something is wrong
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Please fix the form'),
+          content: const Text(
+            'Some fields are missing or invalid.\n'
+                'Fields with red text need your attention.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
       return;
     }
 
-    // raw values to STORE in the model
-    // date: keep exactly what user sees in the field (e.g. "10 Dec 2025")
-    final storedDate = _dateController.text.trim();
+    // 2) still make sure date & time were picked (extra safety)
+    if (_selectedDate == null || _selectedTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select both date and time'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
-    // time: STORE 24-hour "HH:mm" so formatter can convert to AM/PM
+    final storedDate = _dateController.text.trim();
     final storedTime =
         '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
 
@@ -158,6 +176,8 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                 ),
                 child: Form(
                   key: _formKey,
+                  // live validation = smoother UX
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: Column(
                     children: [
                       _buildFieldWrapper(
@@ -166,6 +186,10 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Title',
+                            errorStyle: TextStyle(
+                              fontSize: 11,
+                              height: 1.1,
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -184,6 +208,10 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Date...',
+                            errorStyle: TextStyle(
+                              fontSize: 11,
+                              height: 1.1,
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -202,6 +230,10 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Time',
+                            errorStyle: TextStyle(
+                              fontSize: 11,
+                              height: 1.1,
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {

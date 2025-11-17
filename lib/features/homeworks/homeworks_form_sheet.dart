@@ -30,7 +30,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
-  final HomeworksRepo _repo = FakeHomeworksRepo();
+  final HomeworksRepo _homeworksRepo = FakeHomeworksRepo();
 
   @override
   void dispose() {
@@ -52,8 +52,12 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
+        final months = [
+          'Jan','Feb','Mar','Apr','May','Jun',
+          'Jul','Aug','Sep','Oct','Nov','Dec'
+        ];
         _dateController.text =
-        '${picked.day.toString().padLeft(2, '0')} ${_monthName(picked.month)} ${picked.year}';
+        '${picked.day} ${months[picked.month - 1]} ${picked.year}';
       });
     }
   }
@@ -61,52 +65,68 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
   Future<void> _pickTime() async {
     final picked = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: _selectedTime ?? TimeOfDay.now(),
     );
 
     if (picked != null) {
       setState(() {
         _selectedTime = picked;
 
-        // DISPLAY for user:
-        final hour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
+        int displayHour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
         final minute = picked.minute.toString().padLeft(2, '0');
         final suffix = picked.period == DayPeriod.am ? 'AM' : 'PM';
 
-        _timeController.text = '$hour:$minute $suffix';
+        _timeController.text = '$displayHour:$minute $suffix';
       });
     }
   }
 
-  String _monthName(int m) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return months[m - 1];
-  }
-
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    if (_selectedDate == null || _selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select both date and time')),
+    // 1) validate text fields
+    if (!_formKey.currentState!.validate()) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Please fix the form'),
+          content: const Text(
+            'Some fields are missing or invalid.\n'
+                'Fields with red text need your attention.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
       return;
     }
 
-    final storedTime = '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
+    // 2) extra safety for date/time
+    if (_selectedDate == null || _selectedTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select both date and time'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
-    final hw = Homework(
+    final storedDate = _dateController.text.trim();
+    final storedTime =
+        '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
+
+    final homework = Homework(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       courseId: widget.courseId,
       title: _titleController.text.trim(),
-      date: _dateController.text.trim(),     // OK
-      time: storedTime,                      // IMPORTANT FIX
+      date: storedDate,
+      time: storedTime,
     );
 
-    _repo.addHomework(hw);
+    _homeworksRepo.addHomework(homework);
 
     if (!mounted) return;
     context.go(
@@ -155,6 +175,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                 ),
                 child: Form(
                   key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: Column(
                     children: [
                       _buildFieldWrapper(
@@ -163,6 +184,10 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Title',
+                            errorStyle: TextStyle(
+                              fontSize: 11,
+                              height: 1.1,
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -181,7 +206,17 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Date...',
+                            errorStyle: TextStyle(
+                              fontSize: 11,
+                              height: 1.1,
+                            ),
                           ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Date is required';
+                            }
+                            return null;
+                          },
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -193,7 +228,17 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Time',
+                            errorStyle: TextStyle(
+                              fontSize: 11,
+                              height: 1.1,
+                            ),
                           ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Time is required';
+                            }
+                            return null;
+                          },
                         ),
                       ),
                     ],

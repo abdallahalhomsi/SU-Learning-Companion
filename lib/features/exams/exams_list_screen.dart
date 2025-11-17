@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -41,6 +40,10 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
       _exams = items;
       _isLoading = false;
     });
+  }
+  void _removeExam(String examId) {
+    _examsRepo.removeExam(examId);
+    _loadExams(); // refresh UI
   }
 
   @override
@@ -100,27 +103,36 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
                       final formattedTime =
                       DateTimeFormatter.formatRawTime(exam.time);
 
-                      return SizedBox(
-                        height: 40,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // later: open exam details if needed
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF003366),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
+                      return Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF003366),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // TEXT
+                            Padding(
+                              padding: const EdgeInsets.only(left: 12),
+                              child: Text(
+                                '${exam.title}: $formattedDate, $formattedTime',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
-                            padding: EdgeInsets.zero,
-                          ),
-                          child: Text(
-                            '${exam.title}: $formattedDate, $formattedTime',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+
+                            // DELETE BUTTON
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.white),
+                              onPressed: () {
+                                _removeExam(exam.id);
+                              },
                             ),
-                          ),
+                          ],
                         ),
                       );
                     },
