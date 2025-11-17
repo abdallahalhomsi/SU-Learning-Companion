@@ -27,7 +27,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
 
   void _goToNextStep() {
 
-    context.go('/signup-step2');
+    context.go('/signup_2');
   }
 
   void _goBackToLogin() {

@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:su_learning_companion/features/Authentication/sign_in.dart';
 import 'package:su_learning_companion/features/Authentication/sign_up1.dart';
 import 'package:su_learning_companion/features/Authentication/sign_up2.dart';
-import 'package:su_learning_companion/features/Authentication/welcom.dart';
+import 'package:su_learning_companion/features/Authentication/welcome.dart';
 import '../features/courses/temp_courses_screen.dart';
 import '../features/courses/add_course_screen.dart';
 import '../features/courses/detailed_course_features_screen.dart';
@@ -18,23 +18,26 @@ class AppRouter {
   static final router = GoRouter(
     initialLocation: '/welcome',
     routes: [
-      GoRoute(
-        path: '/welcome',
-        builder: (context, state) => const WelcomeScreen(),
-      ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const SignInScreen(),
-      ),
-      GoRoute(
-        path: '/signup',
-        builder: (context, state) => const SignUpStep1Screen(),
-      ),
-      GoRoute(
-        path: '/signup-step2',
-        builder: (context, state) => const SignUpStep2Screen(), // create later
-      ),
-      GoRoute(
+    GoRoute(
+      path: '/welcome',
+      builder: (context, state) => const WelcomeScreen(),
+    ),
+
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const SignInScreen(),
+    ),
+
+    GoRoute(
+      path: '/signup',
+      builder: (context, state) => const SignUpStep1Screen(),
+    ),
+
+    GoRoute(
+      path: '/signup_2',
+      builder: (context, state) => const SignUpStep2Screen(),
+    ),
+    GoRoute(
         path: '/',
         builder: (context, state) => const CoursesScreen(),
       ),
