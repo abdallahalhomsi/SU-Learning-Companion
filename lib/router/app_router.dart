@@ -131,9 +131,6 @@ class AppRouter {
       );
       },
       ),
-            // ------------------------------------------------------------
-      // RESOURCES ROUTES
-      // ------------------------------------------------------------
       GoRoute(
         path: '/courses/:courseId/resources',
         builder: (context, state) {
@@ -171,7 +168,7 @@ class AppRouter {
           final extra = state.extra as Map<String, dynamic>?;
 
           return ResourceDetailsScreen(
-            resource: extra!['resource'],       // Resource object
+            resource: extra!['resource'],
             courseId: courseId,
             courseName: extra['courseName'] ?? 'Course',
           );

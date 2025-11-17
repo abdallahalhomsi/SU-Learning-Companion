@@ -81,7 +81,14 @@ class _DetailedCourseFeaturesScreenState
               _buildFeatureButton(
                 icon: Icons.folder,
                 label: 'Resources',
-                onTap: () => _showFeatureDialog('Resources'),
+                onTap: () {
+                  context.go(
+                    '/courses/${widget.courseId}/resources',
+                    extra: {
+                      'courseName': _course?.name ?? 'Course',
+                    },
+                  );
+                },
               ),
               const SizedBox(height: 40),
               _buildFeatureButton(

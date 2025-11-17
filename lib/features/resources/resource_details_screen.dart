@@ -1,8 +1,11 @@
-// resource_details_screen.dart
+// lib/features/resources/resource_details_screen.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/resource.dart';
-import '../repositories/resources_repo.dart';
+
+import '../../common/models/resource.dart';
+import '../../common/repos/resources_repo.dart';
+import '../../data/fakes/fake_resources_repo.dart';
 
 class ResourceDetailsScreen extends StatefulWidget {
   final Resource resource;
@@ -52,26 +55,50 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
 
     await _repo.updateResource(updated);
 
-    setState(() {
-      _editing = false;
-      _loading = false;
-    });
+    if (!mounted) return;
+    setState(() => _loading = false);
 
-    Navigator.pop(context, true);
+    // back to list, signal "changed"
+    context.pop<bool>(true);
   }
 
   Future<void> _delete() async {
     await _repo.deleteResource(widget.resource.id);
-    if (mounted) Navigator.pop(context, true);
+    if (!mounted) return;
+
+    // back to list, signal "changed"
+    context.pop<bool>(true);
+  }
+
+  Future<void> _openLink() async {
+    final uri = Uri.tryParse(_link.text.trim());
+    if (uri == null) return;
+
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open link')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Resource Details : ${widget.courseName}"),
         backgroundColor: const Color(0xFF004B87),
-        foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          onPressed: () => context.pop(), // just go back
+        ),
+        title: Text(
+          'Resource Details : ${widget.courseName}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
         actions: [
           if (!_editing)
             IconButton(
@@ -83,37 +110,46 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-              padding: const EdgeInsets.all(16),
-              child: ListView(
-                children: [
-                  _field("Title", _title, enabled: _editing),
-                  const SizedBox(height: 12),
-                  _field("Description", _desc, enabled: _editing, maxLines: 4),
-                  const SizedBox(height: 12),
-                  _field("Link", _link, enabled: _editing),
-                  const SizedBox(height: 20),
-
-                  if (_editing)
-                    ElevatedButton(
-                      onPressed: _saveEdit,
-                      style: _btn(),
-                      child: const Text("Save"),
-                    ),
-
-                  if (!_editing)
-                    ElevatedButton(
-                      onPressed: _delete,
-                      style: _btn(),
-                      child: const Text("Delete Resource"),
-                    ),
-                ],
-              ),
+        padding: const EdgeInsets.all(16),
+        child: ListView(
+          children: [
+            _field('Title', _title, enabled: _editing),
+            const SizedBox(height: 12),
+            _field('Description', _desc,
+                enabled: _editing, maxLines: 4),
+            const SizedBox(height: 12),
+            _field('Link', _link, enabled: _editing),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _openLink,
+              style: _buttonStyle(),
+              child: const Text('Open Link'),
             ),
+            const SizedBox(height: 24),
+            if (_editing)
+              ElevatedButton(
+                onPressed: _saveEdit,
+                style: _buttonStyle(),
+                child: const Text('Save'),
+              )
+            else
+              ElevatedButton(
+                onPressed: _delete,
+                style: _buttonStyle(),
+                child: const Text('Delete Resource'),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _field(String label, TextEditingController c,
-      {bool enabled = false, int maxLines = 1}) {
+  Widget _field(
+      String label,
+      TextEditingController c, {
+        bool enabled = false,
+        int maxLines = 1,
+      }) {
     return TextFormField(
       controller: c,
       enabled: enabled,
@@ -127,9 +163,9 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
     );
   }
 
-  ButtonStyle _btn() => ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF004B87),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-      );
+  ButtonStyle _buttonStyle() => ElevatedButton.styleFrom(
+    backgroundColor: const Color(0xFF004B87),
+    foregroundColor: Colors.white,
+    padding: const EdgeInsets.symmetric(vertical: 14),
+  );
 }
