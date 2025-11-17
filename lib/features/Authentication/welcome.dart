@@ -23,10 +23,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         _opacity = 0.0;
       });
 
-      
       await Future.delayed(const Duration(milliseconds: 800));
-
       if (!mounted) return;
+
       context.go('/login');
     });
   }
@@ -34,7 +33,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: AnimatedOpacity(
         duration: const Duration(milliseconds: 800),
         curve: Curves.easeInOut,
@@ -54,10 +52,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              SizedBox(height: 60),
+            children: [
+              const SizedBox(height: 60),
 
-              Text(
+              const Text(
                 'SU LEARNING\nCOMPANION',
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -70,9 +68,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
               ),
 
-              SizedBox(height: 80),
+              const SizedBox(height: 80),
 
-              Text(
+              const Text(
                 'WELCOME',
                 style: TextStyle(
                   fontFamily: 'Roboto',
@@ -81,6 +79,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   letterSpacing: 8,
                   color: Color(0xFFB3F9E6),
                 ),
+              ),
+
+              const SizedBox(height: 20),
+
+              
+              Image.network(
+                'https://upload.wikimedia.org/wikipedia/commons/d/dd/Simple_light_bulb_graphic_white.png',
+                height: 60,
+                width: 60,
+                fit: BoxFit.contain,
               ),
             ],
           ),
