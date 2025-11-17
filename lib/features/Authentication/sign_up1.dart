@@ -9,11 +9,15 @@ class SignUpStep1Screen extends StatefulWidget {
 }
 
 class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
-  final _fullNameController = TextEditingController();
-  final _studentIdController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+  // Controllers
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _studentIdController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
+  // Form key for validation
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -26,6 +30,9 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
   }
 
   void _goToNextStep() {
+    // validate all fields first
+    if (!_formKey.currentState!.validate()) return;
+
     context.go('/signup_2');
   }
 
@@ -63,7 +70,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
 
               const SizedBox(height: 40),
 
-             
+              // Sabancı logo
               Image.asset(
                 'lib/common/assets/sabanci_logo.jpeg',
                 height: 80,
@@ -72,7 +79,6 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
 
               const SizedBox(height: 35),
 
-              
               Expanded(
                 child: Center(
                   child: SingleChildScrollView(
@@ -91,52 +97,110 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                           ),
                         ],
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _label('Full Name'),
-                          _field(_fullNameController),
-                          const SizedBox(height: 14),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _label('Full Name'),
+                            _field(
+                              _fullNameController,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Full name is required';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 14),
 
-                          _label('Student ID'),
-                          _field(_studentIdController),
-                          const SizedBox(height: 14),
+                            _label('Student ID'),
+                            _field(
+                              _studentIdController,
+                              validator: (value) {
+                                final text = value?.trim() ?? '';
+                                if (text.isEmpty) {
+                                  return 'Student ID is required';
+                                }
+                                if (!RegExp(r'^[0-9]+$').hasMatch(text)) {
+                                  return 'Invalid student ID';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 14),
 
-                          _label('Email'),
-                          _field(_emailController),
-                          const SizedBox(height: 14),
+                            _label('Email'),
+                            _field(
+                              _emailController,
+                              validator: (value) {
+                                final email = value?.trim() ?? '';
+                                if (email.isEmpty) {
+                                  return 'Email is required';
+                                }
+                                if (!email.endsWith('@sabanciuniv.edu')) {
+                                  return 'Invalid email';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 14),
 
-                          _label('Password'),
-                          _field(_passwordController, obscure: true),
-                          const SizedBox(height: 14),
+                            _label('Password'),
+                            _field(
+                              _passwordController,
+                              obscure: true,
+                              validator: (value) {
+                                final password = value?.trim() ?? '';
+                                if (password.isEmpty) {
+                                  return 'Password is required';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 14),
 
-                          _label('Confirm Password'),
-                          _field(_confirmPasswordController, obscure: true),
-                          const SizedBox(height: 22),
+                            _label('Confirm Password'),
+                            _field(
+                              _confirmPasswordController,
+                              obscure: true,
+                              validator: (value) {
+                                final confirm = value?.trim() ?? '';
+                                if (confirm.isEmpty) {
+                                  return 'Confirm password is required';
+                                }
+                                if (confirm != _passwordController.text.trim()) {
+                                  return 'Incorrect password';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 22),
 
-                          SizedBox(
-                            width: double.infinity,
-                            height: 40,
-                            child: ElevatedButton(
-                              onPressed: _goToNextStep,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF333333),
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(6),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 40,
+                              child: ElevatedButton(
+                                onPressed: _goToNextStep,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF333333),
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
                                 ),
-                              ),
-                              child: const Text(
-                                'Next',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                                child: const Text(
+                                  'Next',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -162,10 +226,15 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
     );
   }
 
-  Widget _field(TextEditingController controller, {bool obscure = false}) {
-    return TextField(
+  Widget _field(
+    TextEditingController controller, {
+    bool obscure = false,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
       controller: controller,
       obscureText: obscure,
+      validator: validator,
       decoration: InputDecoration(
         isDense: true,
         contentPadding:

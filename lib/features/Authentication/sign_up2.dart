@@ -9,9 +9,11 @@ class SignUpStep2Screen extends StatefulWidget {
 }
 
 class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
-  final _majorController = TextEditingController();
-  final _minorController = TextEditingController();
-  final _departmentController = TextEditingController();
+  final TextEditingController _majorController = TextEditingController();
+  final TextEditingController _minorController = TextEditingController();
+  final TextEditingController _departmentController = TextEditingController();
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -26,6 +28,8 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
   }
 
   void _finishSignUp() {
+    if (!_formKey.currentState!.validate()) return;
+
     context.go('/login');
   }
 
@@ -48,7 +52,6 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
         child: SafeArea(
           child: Column(
             children: [
-              
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
@@ -59,7 +62,6 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
 
               const SizedBox(height: 40),
 
-              
               Image.asset(
                 'lib/common/assets/sabanci_logo.jpeg',
                 height: 80,
@@ -68,7 +70,6 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
 
               const SizedBox(height: 35),
 
-              
               Expanded(
                 child: Center(
                   child: SingleChildScrollView(
@@ -87,44 +88,71 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
                           ),
                         ],
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _label('Major'),
-                          _field(_majorController),
-                          const SizedBox(height: 14),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _label('Major'),
+                            _field(
+                              _majorController,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return "Major is required";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 14),
 
-                          _label('Minor'),
-                          _field(_minorController),
-                          const SizedBox(height: 14),
+                            _label('Minor'),
+                            _field(
+                              _minorController,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return "Minor is required";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 14),
 
-                          _label('Department'),
-                          _field(_departmentController),
-                          const SizedBox(height: 22),
+                            _label('Department'),
+                            _field(
+                              _departmentController,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return "Department is required";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 22),
 
-                          SizedBox(
-                            width: double.infinity,
-                            height: 40,
-                            child: ElevatedButton(
-                              onPressed: _finishSignUp,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF333333),
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(6),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 40,
+                              child: ElevatedButton(
+                                onPressed: _finishSignUp,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF333333),
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
                                 ),
-                              ),
-                              child: const Text(
-                                'Sign Up',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                                child: const Text(
+                                  'Sign Up',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -150,15 +178,18 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
     );
   }
 
-  Widget _field(TextEditingController controller) {
-    return TextField(
+  Widget _field(
+    TextEditingController controller, {
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
       controller: controller,
-      decoration: InputDecoration(
+      validator: validator,
+      decoration: const InputDecoration(
         isDense: true,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.all(Radius.circular(6)),
         ),
       ),
     );
