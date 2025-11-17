@@ -9,7 +9,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // scrollable reminders list
     final List<Map<String, String>> reminders = [
       {'course': 'CS303', 'detail': 'Due Tomorrow'},
       {'course': 'CS300', 'detail': 'Due Today'},
@@ -20,112 +19,126 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFD),
 
-      appBar: AppBar(
-        backgroundColor: _suBlue,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text('Sabancı Üniversitesi'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1F7ACF),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(22),
-                ),
-              ),
-
-              onPressed: () {
-                context.go('/courses/add');
-              },
-              child: const Text('+ ADD COURSE'),
-
-            ),
-          ),
-        ],
-      ),
-
 
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: Column(
+          children: [
 
-              SizedBox(
-                height: 170, // fixed height for the box
-                child: ListView.separated(
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: reminders.length,
-                  itemBuilder: (context, index) {
-                    final reminder = reminders[index];
-                    return Card(
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 40, 16, 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Sabanci Logo
+                  Image.asset(
+                    'assets/sabanci_logo.png',
+                    height: 65,
+                  ),
+
+                  // add courses button
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1F7ACF),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(22),
                       ),
-                      child: ListTile(
-                        leading: const Icon(
-                          Icons.info_outline,
-                          color: Colors.redAccent,
-                        ),
-                        title: Text(reminder['course']!),
-                        subtitle: Text(reminder['detail']!),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () {},
-                        ),
-                      ),
-                    );
-                  },
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // ur courses
-              Container(
-                decoration: BoxDecoration(
-                  color: _suBlueDark,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'YOUR COURSES',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: .6,
-                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
                     ),
-                    const SizedBox(height: 6),
-                    const Divider(color: Colors.white24),
-                    const SizedBox(height: 8),
-
-                    ...['CS310', 'CS300', 'CS306', 'CS303', 'MATH 306'].map(
-                          (code) => _CourseRow(
-                        code: code,
-                        onTap: () {
-
-                        },
-                      ),
+                    onPressed: () {
+                      context.go('/courses/add');
+                    },
+                    child: const Text(
+                      '+ ADD COURSE',
+                      style: TextStyle(color: Colors.white),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+
+
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 12),
+
+                  //scrollable reminders box
+                  SizedBox(
+                    height: 170,
+                    child: ListView.separated(
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: reminders.length,
+                      itemBuilder: (context, index) {
+                        final reminder = reminders[index];
+                        return Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: ListTile(
+                            leading: const Icon(
+                              Icons.info_outline,
+                              color: Colors.redAccent,
+                            ),
+                            title: Text(reminder['course']!),
+                            subtitle: Text(reminder['detail']!),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () {},
+                            ),
+                          ),
+                        );
+                      },
+                      separatorBuilder: (_, __) =>
+                      const SizedBox(height: 8),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // ur courses box
+                  Container(
+                    decoration: BoxDecoration(
+                      color: _suBlueDark,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'YOUR COURSES',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: .6,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Divider(color: Colors.white24),
+                        const SizedBox(height: 8),
+
+                        ...['CS310', 'CS300', 'CS306', 'CS303', 'MATH 306']
+                            .map((code) => _CourseRow(
+                          code: code,
+                          onTap: () {},
+                        )),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
 
-      // nav bar which goes to calender home profile
+      // bottom nav bar
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0, // 0 = home
+        currentIndex: 0,
         backgroundColor: _suBlueDark,
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white70,
@@ -135,14 +148,11 @@ class HomeScreen extends StatelessWidget {
         onTap: (index) {
           switch (index) {
             case 0:
-
               break;
             case 1:
-
               context.go('/calendar');
               break;
             case 2:
-            // go to profile screen
               context.go('/profile');
               break;
           }
@@ -172,11 +182,9 @@ class _CourseRow extends StatelessWidget {
       dense: true,
       contentPadding: EdgeInsets.zero,
       leading: const Icon(Icons.star_border, color: Colors.white),
-      title: Text(
-        code,
-        style: const TextStyle(color: Colors.white),
-      ),
-      trailing: const Icon(Icons.chevron_right, color: Colors.white70),
+      title: Text(code, style: const TextStyle(color: Colors.white)),
+      trailing:
+      const Icon(Icons.chevron_right, color: Colors.white70),
       onTap: onTap,
     );
   }
