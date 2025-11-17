@@ -131,9 +131,55 @@ class AppRouter {
       );
       },
       ),
+            // ------------------------------------------------------------
+      // RESOURCES ROUTES
+      // ------------------------------------------------------------
+      GoRoute(
+        path: '/courses/:courseId/resources',
+        builder: (context, state) {
+          final courseId = state.pathParameters['courseId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+
+          final courseName = extra?['courseName'] as String? ?? 'Course';
+
+          return ResourcesListScreen(
+            courseId: courseId,
+            courseName: courseName,
+          );
+        },
+      ),
+
+      GoRoute(
+        path: '/courses/:courseId/resources/add',
+        builder: (context, state) {
+          final courseId = state.pathParameters['courseId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+
+          final courseName = extra?['courseName'] as String? ?? 'Course';
+
+          return AddResourceScreen(
+            courseId: courseId,
+            courseName: courseName,
+          );
+        },
+      ),
+
+      GoRoute(
+        path: '/courses/:courseId/resources/details',
+        builder: (context, state) {
+          final courseId = state.pathParameters['courseId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+
+          return ResourceDetailsScreen(
+            resource: extra!['resource'],       // Resource object
+            courseId: courseId,
+            courseName: extra['courseName'] ?? 'Course',
+          );
+        },
+      ),
     ],
   );
-}
+} 
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
