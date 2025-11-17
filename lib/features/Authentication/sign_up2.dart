@@ -22,12 +22,11 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
   }
 
   void _goBackToStep1() {
-    context.go('/signup'); 
+    context.go('/signup');
   }
 
   void _finishSignUp() {
-   
-    context.go('/login'); 
+    context.go('/login');
   }
 
   @override
@@ -58,33 +57,13 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
                 ),
               ),
 
-              const SizedBox(height: 80),
+              const SizedBox(height: 40),
 
               
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF003366),
-                  borderRadius: BorderRadius.circular(6),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.25),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: const Text(
-                  'Sabancı\nÜniversitesi',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    height: 1.2,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+              Image.asset(
+                'lib/common/assets/sabanci_logo.jpeg',
+                height: 80,
+                fit: BoxFit.contain,
               ),
 
               const SizedBox(height: 35),
