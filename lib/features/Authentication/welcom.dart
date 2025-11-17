@@ -13,10 +13,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void initState() {
     super.initState();
 
-    // After 3 seconds, go to the login route
+    
     Future.delayed(const Duration(seconds: 3), () {
       if (!mounted) return;
-      context.go('/login'); // same style as your CalendarScreen
+      context.go('/login');   
     });
   }
 
@@ -32,8 +32,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF0C6AC5), // top blue
-              Color(0xFF00345A), // bottom blue
+              Color(0xFF0C6AC5),
+              Color(0xFF00345A),
             ],
           ),
         ),
@@ -41,23 +41,31 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
             SizedBox(height: 60),
+
+            // Main title
             Text(
               'SU LEARNING\nCOMPANION',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 3,
+                fontFamily: 'Roboto',
+                fontSize: 34,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 4.5,
+                height: 1.1,
                 color: Colors.white,
               ),
             ),
+
             SizedBox(height: 80),
+
+            // Subtitle
             Text(
               'WELCOME',
               style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 6,
+                fontFamily: 'Roboto',
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 8,
                 color: Color(0xFFB3F9E6),
               ),
             ),
