@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'notes_topic_screen.dart';
 import 'add_note_screen.dart';
 
+
 class NotesListScreen extends StatelessWidget {
   final String courseName;
   const NotesListScreen({super.key, required this.courseName});
