@@ -57,14 +57,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   color: const Color(0xFF003366),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
-                  'Sabancı\nÜniversitesi',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    height: 1.2,
-                    fontWeight: FontWeight.w500,
+                child: Image(image:   AssetImage('assets/images/sabanci_logo.jpeg')
                   ),
                 ),
               ),
