@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'theme/theme.dart';
 import 'router/app_router.dart';
 
+
+
 class SUApp extends StatelessWidget {
   const SUApp({super.key});
 
@@ -9,7 +11,7 @@ class SUApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'SU Learning Companion',
-      theme: suLightTheme,
+      theme: suLightThemeAndFonts,
       routerConfig: AppRouter.router,
     );
   }

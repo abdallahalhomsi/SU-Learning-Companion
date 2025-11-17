@@ -59,7 +59,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 'SU LEARNING\nCOMPANION',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: 'Roboto',
+                  fontFamily: 'SplashFont',   // Orbitron
                   fontSize: 34,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 4.5,
@@ -73,9 +73,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               const Text(
                 'WELCOME',
                 style: TextStyle(
-                  fontFamily: 'Roboto',
+                  fontFamily: 'SplashFont',   // also Orbitron
                   fontSize: 28,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w700,
                   letterSpacing: 8,
                   color: Color(0xFFB3F9E6),
                 ),
