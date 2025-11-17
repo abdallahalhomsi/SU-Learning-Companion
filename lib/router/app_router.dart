@@ -13,6 +13,9 @@ import '../features/exams/exams_list_screen.dart';
 import '../features/exams/exams_form_sheet.dart';
 import '../features/homeworks/homeworks_list_screen.dart';
 import '../features/homeworks/homeworks_form_sheet.dart';
+import '../features/resources/resources_list_screen.dart';
+import '../features/resources/add_resource_screen.dart';
+import '../features/resources/resource_details_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
