@@ -28,7 +28,27 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
   }
 
   void _finishSignUp() {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Please fix the form'),
+          content: const Text(
+            'Some fields are missing or invalid.\n'
+            'Fields with red text need your attention.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
 
     context.go('/login');
   }

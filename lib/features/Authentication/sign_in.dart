@@ -22,10 +22,29 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   void _submit() {
-    // Run all validators
-    if (!_formKey.currentState!.validate()) return;
+   
+    if (!_formKey.currentState!.validate()) {
+      
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Please fix the form'),
+          content: const Text(
+            'Some fields are missing or invalid.\n'
+            'Fields with red text need your attention.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
 
-    // If everything is valid, go to home page
+    
     context.go('/');
   }
 

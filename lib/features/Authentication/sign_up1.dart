@@ -9,14 +9,14 @@ class SignUpStep1Screen extends StatefulWidget {
 }
 
 class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
-  // Controllers
+ 
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _studentIdController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
-  // Form key for validation
+ 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
@@ -30,8 +30,27 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
   }
 
   void _goToNextStep() {
-    // validate all fields first
-    if (!_formKey.currentState!.validate()) return;
+    
+    if (!_formKey.currentState!.validate()) {
+      
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Please fix the form'),
+          content: const Text(
+            'Some fields are missing or invalid.\n'
+            'Fields with red text need your attention.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
 
     context.go('/signup_2');
   }
@@ -59,7 +78,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Back arrow
+              
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
@@ -70,7 +89,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
 
               const SizedBox(height: 40),
 
-              // Sabancı logo
+              
               Image.asset(
                 'lib/common/assets/sabanci_logo.jpeg',
                 height: 80,
@@ -235,12 +254,11 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
       controller: controller,
       obscureText: obscure,
       validator: validator,
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         isDense: true,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.all(Radius.circular(6)),
         ),
       ),
     );
