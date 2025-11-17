@@ -94,7 +94,11 @@ class _DetailedCourseFeaturesScreenState
               _buildFeatureButton(
                 icon: Icons.style,
                 label: 'Flashcards',
-                onTap: () => _showFeatureDialog('Flashcards'),
+                onTap: () {
+                  context.go(
+                    '/flashcards',
+                  );
+                },
               ),
               const SizedBox(height: 40),
               // Homeworks button

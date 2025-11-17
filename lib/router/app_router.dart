@@ -21,7 +21,7 @@ import '../features/flashcards/flashcard_form_sheet_question.dart';
 import '../features/flashcards/flashcards_questions_screen.dart';
 import '../features/flashcards/flashcards_solution.dart';
 import '../features/flashcards/flashcards_topics.dart';
-
+import '../features/Profile/profile_screen.dart';
 class AppRouter {
   static final router = GoRouter(
     initialLocation: '/welcome',
@@ -225,61 +225,4 @@ class AppRouter {
       ),
     ],
   );
-}
-
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF003366),
-        title: const Text(
-          'Profile',
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true,
-      ),
-      body: const Center(
-        child: Text('Profile Screen - Coming Soon'),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2,
-        backgroundColor: const Color(0xFF003366),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white60,
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              context.go('/');
-              break;
-            case 1:
-              context.go('/calendar');
-              break;
-            case 2:
-            // Already on profile
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '',
-          ),
-        ],
-      ),
-    );
-  }
 }
