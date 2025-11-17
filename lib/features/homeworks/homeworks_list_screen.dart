@@ -68,31 +68,50 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: ListView.separated(
+                child: homeworks.isEmpty
+                    ? const Center(
+                  child: Text(
+                    'No homeworks yet',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                )
+                    : ListView.separated(
                   itemCount: homeworks.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final hw = homeworks[index];
-                    return GestureDetector(
-                      onLongPress: () => _removeHomework(hw.id),
-                      child: Container(
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF003366),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          // optional: time as well
-                          '${hw.title}: '
-                              '${DateTimeFormatter.formatRawDate(hw.date)}, '
-                              '${DateTimeFormatter.formatRawTime(hw.time)}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+
+                    return Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF003366),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 12),
+                            child: Text(
+                              '${hw.title}: '
+                                  '${DateTimeFormatter.formatRawDate(hw.date)}, '
+                                  '${DateTimeFormatter.formatRawTime(hw.time)}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
-                        ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.white),
+                            onPressed: () => _removeHomework(hw.id),
+                          ),
+                        ],
                       ),
                     );
                   },
