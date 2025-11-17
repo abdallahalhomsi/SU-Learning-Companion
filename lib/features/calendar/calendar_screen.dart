@@ -17,11 +17,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
   final CoursesRepo _coursesRepo = FakeCoursesRepo();
   List<CourseEvent> _allEvents = [];
   bool _isLoading = true;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _loadEvents();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadEvents() async {
@@ -47,8 +54,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
+    return AppScaffold(
+      currentIndex: 1,
       appBar: AppBar(
         backgroundColor: const Color(0xFF003366),
         title: const Text(
@@ -64,51 +71,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            // Show 6 months
-            ..._buildMonthCalendars(),
-            const SizedBox(height: 20),
-          ],
+          : Theme(
+        data: Theme.of(context).copyWith(
+          scrollbarTheme: const ScrollbarThemeData(
+            thumbColor: WidgetStatePropertyAll(Color(0xFF003366)),
+            thickness: WidgetStatePropertyAll(6.0),
+            radius: Radius.circular(10),
+          ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1,
-        backgroundColor: const Color(0xFF003366),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white60,
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              context.go('/');
-              break;
-            case 1:
-            // Already on calendar
-              break;
-            case 2:
-              context.go('/profile');
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '',
+        child: Scrollbar(
+          controller: _scrollController,
+          thumbVisibility: true,
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                // Show 6 months
+                ..._buildMonthCalendars(),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '',
-          ),
-        ],
+        ),
       ),
     );
   }
