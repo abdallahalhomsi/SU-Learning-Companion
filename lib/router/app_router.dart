@@ -25,8 +25,17 @@ class AppRouter {
 
     GoRoute(
       path: '/login',
-      builder: (context, state) => const SignInScreen(),
+      pageBuilder: (context, state) {
+        return CustomTransitionPage(
+          transitionDuration: const Duration(milliseconds: 600),
+          child: const SignInScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        );
+      },
     ),
+
 
     GoRoute(
       path: '/signup',
