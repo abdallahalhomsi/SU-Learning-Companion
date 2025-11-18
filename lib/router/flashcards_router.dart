@@ -1,5 +1,4 @@
-
-// This file makes up the components of the Notes Router,
+// This file makes up the components of the Flashcards Router,
 // which defines the navigation for the Flashcards feature of the app.
 // It includes routes for listing flashcard topics, viewing questions and solutions,
 // and adding new flashcard groups and questions.
