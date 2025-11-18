@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_spacing.dart';
+
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -18,7 +21,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     Future.delayed(const Duration(seconds: 3), () async {
       if (!mounted) return;
 
-      
       setState(() {
         _opacity = 0.0;
       });
@@ -45,7 +47,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFF0C6AC5),
+                Color(0xFF0C6AC5), // custom splash gradient (not from system)
                 Color(0xFF00345A),
               ],
             ),
@@ -55,11 +57,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             children: [
               const SizedBox(height: 60),
 
+              // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+              //    SPLASH TITLE (Orbitron ONLY here)
+              // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
               const Text(
                 'SU LEARNING\nCOMPANION',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: 'SplashFont',   // Orbitron
+                  fontFamily: 'SplashFont', // Orbitron-Bold
                   fontSize: 34,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 4.5,
@@ -73,7 +78,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               const Text(
                 'WELCOME',
                 style: TextStyle(
-                  fontFamily: 'SplashFont',   // also Orbitron
+                  fontFamily: 'SplashFont',
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 8,
@@ -83,13 +88,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
               const SizedBox(height: 20),
 
-              
+              // Icon
               Image.network(
                 'https://upload.wikimedia.org/wikipedia/commons/d/dd/Simple_light_bulb_graphic_white.png',
                 height: 60,
                 width: 60,
                 fit: BoxFit.contain,
               ),
+
+              const SizedBox(height: AppSpacing.gapMedium),
             ],
           ),
         ),
