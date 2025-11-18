@@ -10,6 +10,34 @@ SU Learning Companion solves this by bringing all essential academic tools into 
 Students often rely on multiple apps to manage tasks, deadlines, and study plans, which leads to confusion and missed work.  
 This app solves that problem by centralizing all academic tools and providing one organized, simple-to-use system.
 
+## How We Met the Key Requirements
+
+| Requirement | How We Fulfill It |
+|-------------|--------------------|
+| **Named Routes** | All screens use named/structured routes via `GoRouter`, defined in `AppRouter` and all features routers, etc.). Initial route is `/welcome`. |
+| **Utility Classes** | Centralized styling using utility files: `app_colors.dart`, `app_text_styles.dart`, `app_spacing.dart` , `data_formatters.dart` — used consistently across all features. |
+| **Images (Asset + Network)** | Used asset image (`sabanci_logo.jpeg`) in HomeScreen and network image in welcome screens. |
+| **Custom Font** | External fonts (Poppins, Orbitron) added via `pubspec.yaml` and applied globally using `fontFamily: 'AppFont'`. |
+| **Card & List + Delete** | `ExamsListScreen`, `HomeworksListScreen`, `ResourcesListScreen`, `NotesListScreen`, and `FlashcardsListScreen` use **Card widgets** linked to model classes, with delete functionality (dynamic list update). |
+| **Form Validation + AlertDialog** | Multiple forms (Exams, Homeworks, Notes, Flashcards, Resources, Signup, Login) use **Form + TextFormField validators**, show **inline error text**, and display **AlertDialog if invalid**. |
+| **Responsiveness** | Scrollable layouts using `SingleChildScrollView`, `Expanded`, and `Flexible` ensure proper behavior across device sizes and orientations. |
+
+
+## 🧭 Basic Navigation Flow
+
+1. **Welcome Screen** → Login or Sign Up  
+2. After login → **Home Screen**  
+   - View courses, reminders, add a course  
+   - Bottom navigation: **Home – Calendar – Profile**  
+3. Open any course (click on any course) → **Course Details Screen**  
+   - Access features: Exams, Homeworks, Notes, Resources, Flashcards  
+4. Each feature supports:
+   - List view (Card/ListTile)
+   - Add new item (form with validation + AlertDialog)
+   - Delete/edit (where applicable)  
+5. **Calendar Screen** shows cross-course deadlines/events  
+6. **Profile Screen** shows user info + Logout
+    
 ### 1. First-time setup (cloning the repo)
 
 ```bash
