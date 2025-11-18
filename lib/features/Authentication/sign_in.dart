@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:su_learning_companion/data/fakes/fake_login.dart';
-
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -24,8 +22,9 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   void _submit() {
-    
+   
     if (!_formKey.currentState!.validate()) {
+      
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -45,34 +44,7 @@ class _SignInScreenState extends State<SignInScreen> {
       return;
     }
 
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
     
-    final bool ok = fakeLogin(email, password);
-
-    if (!ok) {
-      
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Login failed'),
-          content: const Text(
-            'Invalid email or password.\n'
-            'Make sure you have a valid account.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-   
     context.go('/');
   }
 
@@ -105,6 +77,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 40),
+
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
@@ -177,6 +150,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
+
                         const Text(
                           'Password',
                           style: TextStyle(
@@ -227,6 +201,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           },
                         ),
                         const SizedBox(height: 24),
+
                         SizedBox(
                           height: 44,
                           child: ElevatedButton(
@@ -248,6 +223,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
+
                         Align(
                           alignment: Alignment.centerLeft,
                           child: GestureDetector(
