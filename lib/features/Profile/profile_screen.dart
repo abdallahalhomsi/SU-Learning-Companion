@@ -176,7 +176,7 @@ class ProfileScreen extends StatelessWidget {
 
           switch (index) {
             case 0:
-              context.go('/');
+              context.go('/home');
               break;
             case 1:
               context.go('/calendar');

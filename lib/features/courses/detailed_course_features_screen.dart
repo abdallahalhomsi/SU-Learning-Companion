@@ -48,7 +48,7 @@ class _DetailedCourseFeaturesScreenState
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
           onPressed: () {
-            context.go('/');
+            context.go('/home');
           },
         ),
         title: Text(

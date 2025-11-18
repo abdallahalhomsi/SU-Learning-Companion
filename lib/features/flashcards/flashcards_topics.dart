@@ -49,7 +49,7 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
             } else if (widget.courseId != null) {
               context.go('/courses/detail/${widget.courseId}');
             } else {
-              context.go('/');
+              context.go('/home');
             }
           },
         ),
