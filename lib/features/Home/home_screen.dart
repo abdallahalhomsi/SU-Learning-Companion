@@ -4,188 +4,233 @@ import 'package:go_router/go_router.dart';
 import '../../common/models/course.dart';
 import '../../common/repos/courses_repo.dart';
 import '../../data/fakes/fake_courses_repo.dart';
-import '../../common/widgets/app_scaffold.dart';
 
-class DetailedCourseFeaturesScreen extends StatefulWidget {
-  final String courseId;
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
-  const DetailedCourseFeaturesScreen({
-    Key? key,
-    required this.courseId,
-  }) : super(key: key);
-
-  @override
-  State<DetailedCourseFeaturesScreen> createState() =>
-      _DetailedCourseFeaturesScreenState();
-}
-
-class _DetailedCourseFeaturesScreenState
-    extends State<DetailedCourseFeaturesScreen> {
-  final CoursesRepo _coursesRepo = FakeCoursesRepo();
-  Course? _course;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadCourse();
-  }
-
-  Future<void> _loadCourse() async {
-    setState(() => _isLoading = true);
-    final course = await _coursesRepo.getCourseById(widget.courseId);
-    setState(() {
-      _course = course;
-      _isLoading = false;
-    });
-  }
+  static const _suBlueDark = Color(0xFF0D3B66);
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      currentIndex: 0,
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF003366),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-          onPressed: () {
-            context.go('/home');
-          },
-        ),
-        title: Text(
-          _course?.name ?? 'Course Name',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _course == null
-              ? const Center(child: Text('Course not found'))
-              : Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 40,
-                      vertical: 60,
+    final List<Map<String, String>> reminders = [
+      {'course': 'CS301', 'detail': 'Due Tomorrow'},
+      {'course': 'CS306', 'detail': 'Due Today'},
+      {'course': 'CS306', 'detail': 'Due Next Week'},
+      {'course': 'CS310', 'detail': 'Due Friday'},
+    ];
+
+    final CoursesRepo coursesRepo = FakeCoursesRepo();
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFD),
+
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Top bar with logo + add course button
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // smaller logo + a bit lower
+                  SizedBox(
+                    height: 55,
+                    child: Image.asset(
+                      'lib/common/assets/sabanci_logo.jpeg',
+                      fit: BoxFit.contain,
                     ),
+                  ),
+                  const Spacer(),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1F7ACF),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                    ),
+                    onPressed: () {
+                      context.go('/courses/add');
+                    },
+                    child: const Text(
+                      '+ ADD COURSE',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Main content
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Reminders list
+                  SizedBox(
+                    height: 170,
+                    child: Scrollbar(
+                      thumbVisibility: true,
+                      thickness: 6,
+                      radius: const Radius.circular(12),
+                      child: ListView.separated(
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: reminders.length,
+                        itemBuilder: (context, index) {
+                          final reminder = reminders[index];
+                          return Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: ListTile(
+                              leading: const Icon(
+                                Icons.info_outline,
+                                color: Colors.redAccent,
+                              ),
+                              title: Text(reminder['course']!),
+                              subtitle: Text(reminder['detail']!),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () {},
+                              ),
+                            ),
+                          );
+                        },
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      ),
+                    ),
+                  ),
+
+                  // more spacing between reminders and "YOUR COURSES"
+                  const SizedBox(height: 32),
+
+                  // "YOUR COURSES" section (from FakeCoursesRepo)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: _suBlueDark,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildFeatureButton(
-                          icon: Icons.note,
-                          label: 'Notes',
-                          onTap: () => _showFeatureDialog('Notes'),
+                        const Text(
+                          'YOUR COURSES',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: .6,
+                          ),
                         ),
-                        const SizedBox(height: 40),
-                        _buildFeatureButton(
-                          icon: Icons.folder,
-                          label: 'Resources',
-                          onTap: () {
-                            context.go(
-                              '/courses/${widget.courseId}/resources',
-                              extra: {
-                                'courseName': _course?.name ?? 'Course',
-                              },
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 40),
-                        _buildFeatureButton(
-                          icon: Icons.style,
-                          label: 'Flashcards',
-                          onTap: () {
-                            context.push(
-                              '/flashcards',
-                              extra: {
-                                'courseId': widget.courseId,
-                                'courseName': _course?.name ?? 'Course',
-                              },
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 40),
-                        _buildFeatureButton(
-                          icon: Icons.assignment,
-                          label: 'Homeworks',
-                          onTap: () {
-                            context.go(
-                              '/courses/${widget.courseId}/homeworks',
-                              extra: {
-                                'courseName': _course?.name ?? 'Course',
-                              },
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 40),
-                        _buildFeatureButton(
-                          icon: Icons.quiz,
-                          label: 'Exams',
-                          onTap: () {
-                            context.go(
-                              '/courses/${widget.courseId}/exams',
-                              extra: {
-                                'courseName': _course?.name ?? 'Course',
-                              },
+                        const SizedBox(height: 6),
+                        const Divider(color: Colors.white24),
+                        const SizedBox(height: 8),
+
+                        FutureBuilder<List<Course>>(
+                          future: coursesRepo.getCourses(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              );
+                            }
+
+                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                              return const Text(
+                                'No courses yet',
+                                style: TextStyle(color: Colors.white70),
+                              );
+                            }
+
+                            final courses = snapshot.data!;
+
+                            return Column(
+                              children: courses.map((course) {
+                                return _CourseRow(
+                                  code: course.code,
+                                  onTap: () {
+                                    context.go(
+                                      '/courses/detail/${course.id}',
+                                    );
+                                  },
+                                );
+                              }).toList(),
                             );
                           },
                         ),
                       ],
                     ),
                   ),
-                ),
-    );
-  }
-
-  Widget _buildFeatureButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-        decoration: BoxDecoration(
-          color: const Color(0xFF003366),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.3,
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
-    );
-  }
 
-  void _showFeatureDialog(String feature) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(feature),
-        content: Text(
-          '$feature feature for ${_course?.name}\n\nComing soon!',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => context.pop(),
-            child: const Text('OK'),
-          ),
+      // Bottom navigation bar
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 0,
+        backgroundColor: _suBlueDark,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white70,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        type: BottomNavigationBarType.fixed,
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              break;
+            case 1:
+              context.go('/calendar');
+              break;
+            case 2:
+              context.go('/profile');
+              break;
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
         ],
       ),
+    );
+  }
+}
+
+class _CourseRow extends StatelessWidget {
+  final String code;
+  final VoidCallback onTap;
+
+  const _CourseRow({
+    required this.code,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      leading: const Icon(Icons.star_border, color: Colors.white),
+      title: Text(
+        code,
+        style: const TextStyle(color: Colors.white),
+      ),
+      trailing: const Icon(Icons.chevron_right, color: Colors.white70),
+      onTap: onTap,
     );
   }
 }

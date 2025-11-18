@@ -3,11 +3,11 @@ import '../../common/models/course.dart';
 import '../../common/repos/courses_repo.dart';
 
 class FakeCoursesRepo implements CoursesRepo {
-  // Separate storage for user courses and events
+  // User's current courses (IDs are numeric to match other features)
   final List<Course> _userCourses = [
     Course(
       id: '1',
-      code: 'CS 301',
+      code: 'CS 310',
       name: 'Mobile App Development',
       term: 'Fall 2025',
       instructor: 'Prof. Saima Gul',
@@ -21,7 +21,24 @@ class FakeCoursesRepo implements CoursesRepo {
       instructor: 'Prof. Cemal Yilmaz',
       createdAt: DateTime(2025, 9, 1),
     ),
+    Course(
+      id: '3',
+      code: 'CS 306',
+      name: 'Database Systems',
+      term: 'Fall 2025',
+      instructor: 'Dr. Williams',
+      createdAt: DateTime(2025, 9, 1),
+    ),
+    Course(
+      id: '4',
+      code: 'CS 301',
+      name: 'Algorithms',
+      term: 'Fall 2025',
+      instructor: 'Prof. Saima Gul',
+      createdAt: DateTime(2025, 9, 1),
+    ),
   ];
+
 
   // Store events separately since they're not part of Course model
   final List<CourseEvent> _events = [
