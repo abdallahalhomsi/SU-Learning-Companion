@@ -75,7 +75,11 @@ class _DetailedCourseFeaturesScreenState
               _buildFeatureButton(
                 icon: Icons.note,
                 label: 'Notes',
-                onTap: () => _showFeatureDialog('Notes'),
+                onTap: () {
+                  context.go(
+                    '/courses/:courseId/notes',
+                  );
+                },
               ),
               const SizedBox(height: 40),
               _buildFeatureButton(
