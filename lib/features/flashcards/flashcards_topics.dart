@@ -3,27 +3,40 @@ import 'package:go_router/go_router.dart';
 import '../../common/widgets/app_scaffold.dart';
 
 class FlashcardsTopicsScreen extends StatefulWidget {
-  const FlashcardsTopicsScreen({super.key});
+  final String? courseId;
+  final String courseName;
+
+  const FlashcardsTopicsScreen({
+    super.key,
+    this.courseId,
+    this.courseName = 'Course Name',
+  });
 
   @override
-  State<FlashcardsTopicsScreen> createState() =>
-      _FlashcardsTopicsScreenState();
+  State<FlashcardsTopicsScreen> createState() => _FlashcardsTopicsScreenState();
 }
 
 class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
-  final List<_FlashcardGroup> _groups = [
-    const _FlashcardGroup(title: 'Chapter X', difficulty: 'Difficulty'),
-    const _FlashcardGroup(title: 'Lecture Slides Y', difficulty: 'Difficulty'),
-    const _FlashcardGroup(title: 'Quiz 1', difficulty: 'Difficulty'),
-    const _FlashcardGroup(title: 'Midterm Topics', difficulty: 'Difficulty'),
+  // Static list for persistence
+  static final List<_FlashcardGroup> _groups = [
+    _FlashcardGroup(title: 'Chapter X', difficulty: 'Easy'),
+    _FlashcardGroup(title: 'Lecture Slides Y', difficulty: 'Medium'),
+    _FlashcardGroup(title: 'Quiz 1', difficulty: 'Hard'),
   ];
+
+  //Immediate Delete (No Confirmation Dialog)
+  void _deleteGroup(int index) {
+    setState(() {
+      _groups.removeAt(index);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     const Color primaryBlue = Color(0xFF003366);
 
     return AppScaffold(
-      currentIndex: 0, // course-related tab
+      currentIndex: 0,
       appBar: AppBar(
         backgroundColor: primaryBlue,
         centerTitle: true,
@@ -31,12 +44,18 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            context.pop();
+            if (context.canPop()) {
+              context.pop();
+            } else if (widget.courseId != null) {
+              context.go('/courses/detail/${widget.courseId}');
+            } else {
+              context.go('/');
+            }
           },
         ),
-        title: const Text(
-          'Flash Cards : Course Name',
-          style: TextStyle(
+        title: Text(
+          'Flash Cards : ${widget.courseName}',
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
@@ -53,7 +72,9 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: ListView.separated(
+                child: _groups.isEmpty
+                    ? const Center(child: Text("No flashcard groups yet."))
+                    : ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: _groups.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -67,6 +88,7 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
                           extra: group.title,
                         );
                       },
+                      onDelete: () => _deleteGroup(index),
                     );
                   },
                 ),
@@ -77,20 +99,16 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  // wait for new group data from form screen
-                  final result =
-                  await context.push<Map<String, String>>(
+                  final result = await context.push<Map<String, String>>(
                     '/flashcards/groups/add',
                   );
 
-                  if (result != null &&
-                      result['title'] != null &&
-                      result['difficulty'] != null) {
+                  if (result != null) {
                     setState(() {
                       _groups.add(
                         _FlashcardGroup(
-                          title: result['title']!,
-                          difficulty: result['difficulty']!,
+                          title: result['title'] ?? 'New Group',
+                          difficulty: result['difficulty'] ?? 'Easy',
                         ),
                       );
                     });
@@ -123,45 +141,52 @@ class _FlashcardGroup {
   final String title;
   final String difficulty;
 
-  const _FlashcardGroup({
-    required this.title,
-    required this.difficulty,
-  });
+  _FlashcardGroup({required this.title, required this.difficulty});
 }
 
 class _GroupButton extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
+  final VoidCallback onDelete;
 
   const _GroupButton({
     required this.title,
     required this.onTap,
+    required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
     const Color primaryBlue = Color(0xFF003366);
 
-    return SizedBox(
-      width: double.infinity,
+    return Container(
       height: 48,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryBlue,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+      decoration: BoxDecoration(
+        color: primaryBlue,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: onTap,
+              child: Center(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
           ),
-          elevation: 2,
-        ),
-        child: Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.white),
+            onPressed: onDelete,
           ),
-          textAlign: TextAlign.center,
-        ),
+        ],
       ),
     );
   }
