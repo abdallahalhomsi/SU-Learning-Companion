@@ -12,7 +12,9 @@ class FlashcardFormSheetQuestion extends StatefulWidget {
 
 class _FlashcardFormSheetQuestionState
     extends State<FlashcardFormSheetQuestion> {
-  final TextEditingController _titleController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+
   final TextEditingController _questionController = TextEditingController();
   final TextEditingController _answerController = TextEditingController();
 
@@ -20,31 +22,39 @@ class _FlashcardFormSheetQuestionState
 
   @override
   void dispose() {
-    _titleController.dispose();
     _questionController.dispose();
     _answerController.dispose();
     super.dispose();
   }
 
   void _submit() {
-    final titleText = _titleController.text.trim();
-    final questionText = _questionController.text.trim();
-    final answerText = _answerController.text.trim();
+    bool formValid = _formKey.currentState!.validate();
+    bool difficultyValid = true;
 
-    if (questionText.isEmpty || answerText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in question and answer')),
+    if (!formValid || !difficultyValid) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Please fix the form'),
+          content: const Text(
+            'Some fields are missing or invalid.\n'
+                'Fields with red text need your attention.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
       return;
     }
 
-    final cardTitle =
-    titleText.isEmpty ? questionText : titleText; // what shows on card
 
     Navigator.of(context).pop(<String, String>{
-      'title': cardTitle,
-      'solution': answerText,
-      // difficulty is optional for now
+      'question': _questionController.text.trim(),
+      'solution': _answerController.text.trim(),
     });
   }
 
@@ -71,7 +81,7 @@ class _FlashcardFormSheetQuestionState
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         child: Column(
           children: [
             Expanded(
@@ -79,82 +89,82 @@ class _FlashcardFormSheetQuestionState
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                 child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      _InputBox(
-                        child: TextField(
-                          controller: _titleController,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Title',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _InputBox(
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            isExpanded: true,
-                            hint: const Text('Select Difficulty'),
-                            value: _selectedDifficulty,
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'Easy',
-                                child: Text('Easy'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'Medium',
-                                child: Text('Medium'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'Hard',
-                                child: Text('Hard'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedDifficulty = value;
-                              });
+                  child: Form(
+                    key: _formKey,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    child: Column(
+                      children: [
+
+
+                        // Question Field
+                        _buildFieldWrapper(
+                          height: 80,
+                          child: TextFormField(
+                            controller: _questionController,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Question',
+                              errorStyle: TextStyle(fontSize: 11, height: 1.1),
+                            ),
+                            maxLines: 3,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Question is required';
+                              }
+                              return null;
                             },
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      _InputBox(
-                        child: TextField(
-                          controller: _questionController,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Question 1...',
+                        const SizedBox(height: 12),
+
+                        // Difficulty Dropdown
+                        _buildFieldWrapper(
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              hint: const Text('Select Difficulty'),
+                              value: _selectedDifficulty,
+                              items: const [
+                                DropdownMenuItem(value: 'Easy', child: Text('Easy')),
+                                DropdownMenuItem(value: 'Medium', child: Text('Medium')),
+                                DropdownMenuItem(value: 'Hard', child: Text('Hard')),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedDifficulty = value;
+                                });
+                              },
+                            ),
                           ),
-                          maxLines: 2,
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      _InputBox(
-                        child: TextField(
-                          controller: _answerController,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Answer 1...',
+                        const SizedBox(height: 12),
+
+                        // Answer Field
+                        _buildFieldWrapper(
+                          height: 100,
+                          child: TextFormField(
+                            controller: _answerController,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Answer...',
+                              errorStyle: TextStyle(fontSize: 11, height: 1.1),
+                            ),
+                            maxLines: 4,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Answer is required';
+                              }
+                              return null;
+                            },
                           ),
-                          maxLines: 3,
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        '+ Add more',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -162,19 +172,20 @@ class _FlashcardFormSheetQuestionState
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
+              height: 46,
               child: ElevatedButton(
                 onPressed: _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryBlue,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                 ),
                 child: const Text(
                   'Submit',
                   style: TextStyle(
                     color: Colors.white,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -185,23 +196,16 @@ class _FlashcardFormSheetQuestionState
       ),
     );
   }
-}
 
-class _InputBox extends StatelessWidget {
-  final Widget child;
-
-  const _InputBox({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildFieldWrapper({required Widget child, double height = 44}) {
     return Container(
-      height: 52,
-      alignment: Alignment.center,
+      height: height,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF2F2F2),
-        borderRadius: BorderRadius.circular(8),
+        color: const Color(0xFFE0E0E0),
+        borderRadius: BorderRadius.circular(6),
       ),
+      alignment: Alignment.centerLeft,
       child: child,
     );
   }
