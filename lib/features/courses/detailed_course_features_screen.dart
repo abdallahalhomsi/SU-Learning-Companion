@@ -91,17 +91,24 @@ class _DetailedCourseFeaturesScreenState
                 },
               ),
               const SizedBox(height: 40),
+
               _buildFeatureButton(
                 icon: Icons.style,
                 label: 'Flashcards',
                 onTap: () {
-                  context.go(
+                  // Use push to keep history, pass ID for safety
+                  context.push(
                     '/flashcards',
+                    extra: {
+                      'courseId': widget.courseId,
+                      'courseName': _course?.name ?? 'Course',
+                    },
                   );
                 },
               ),
+
+
               const SizedBox(height: 40),
-              // Homeworks button
               _buildFeatureButton(
                 icon: Icons.assignment,
                 label: 'Homeworks',
@@ -115,7 +122,6 @@ class _DetailedCourseFeaturesScreenState
                 },
               ),
               const SizedBox(height: 40),
-              // Exams button
               _buildFeatureButton(
                 icon: Icons.quiz,
                 label: 'Exams',
