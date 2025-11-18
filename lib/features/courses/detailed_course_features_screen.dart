@@ -77,7 +77,10 @@ class _DetailedCourseFeaturesScreenState
                 label: 'Notes',
                 onTap: () {
                   context.go(
-                    '/courses/:courseId/notes',
+                    '/courses/${widget.courseId}/notes',
+                    extra: {
+                      'courseName': _course?.name ?? 'Course',
+                    },
                   );
                 },
               ),

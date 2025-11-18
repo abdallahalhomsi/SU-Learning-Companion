@@ -16,6 +16,7 @@ class NotesRouter {
         final courseName = extra?['courseName'] ?? 'Course';
 
         return NotesListScreen(
+          courseId: courseId,
           courseName: courseName,
         );
       },

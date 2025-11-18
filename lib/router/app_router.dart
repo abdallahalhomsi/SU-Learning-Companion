@@ -137,12 +137,13 @@ class AppRouter {
 
           final courseName = extra?['courseName'] as String? ?? 'Course';
 
-          // If later you need courseId, add it to NotesListScreen as a param
           return NotesListScreen(
+            courseId: courseId,
             courseName: courseName,
           );
         },
       ),
+
 
       // HOMEWORKS
       GoRoute(

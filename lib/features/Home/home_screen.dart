@@ -45,7 +45,7 @@ class HomeScreen extends StatelessWidget {
                   const Spacer(),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1F7ACF),
+                      backgroundColor: _suBlueDark,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(22),
                       ),

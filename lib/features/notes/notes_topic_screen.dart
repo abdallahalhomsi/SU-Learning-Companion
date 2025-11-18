@@ -1,32 +1,41 @@
 import 'package:flutter/material.dart';
 
+import '../../common/widgets/app_scaffold.dart';
+import '../../common/models/notes.dart';
+
 class NotesTopicScreen extends StatelessWidget {
   final String courseName;
-  final String topicName;
+  final Note note;
 
   const NotesTopicScreen({
     super.key,
     required this.courseName,
-    required this.topicName,
+    required this.note,
   });
 
-  static const _barBlue = Color(0xFF155FA0);
+  static const _barBlue = Color(0xFF003366);
 
   @override
   Widget build(BuildContext context) {
-    final controller = TextEditingController(
-      text: 'Here are my notes for $topicName...',
-    );
+    final controller = TextEditingController(text: note.content);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFD),
+    return AppScaffold(
+      currentIndex: 0,
       appBar: AppBar(
         backgroundColor: _barBlue,
-        title: Text('$courseName: $topicName'),
+        title: Text(
+          '$courseName: ${note.title}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -38,7 +47,6 @@ class NotesTopicScreen extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              // Lined paper background
               CustomPaint(
                 painter: _LinedPaperPainter(
                   lineColor: const Color(0xFFCBD5E1),
@@ -47,16 +55,12 @@ class NotesTopicScreen extends StatelessWidget {
                 ),
                 size: Size.infinite,
               ),
-
-              // Text on top
               TextField(
                 controller: controller,
                 maxLines: null,
                 keyboardType: TextInputType.multiline,
                 textAlignVertical: TextAlignVertical.top,
-                style: const TextStyle(
-                  height: 1.4, // spreads lines a bit
-                ),
+                style: const TextStyle(height: 1.4),
                 decoration: const InputDecoration(
                   hintText: 'Write your notes...',
                   border: InputBorder.none,
@@ -66,16 +70,6 @@ class NotesTopicScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1,
-        onTap: (_) {},
-        selectedItemColor: _barBlue,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.event_note), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
-        ],
       ),
     );
   }
