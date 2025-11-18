@@ -6,7 +6,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // later you can get these from a real user model
+
     const String studentName = 'John Doe';
     const String studentId = '11111';
     const String email = 'johndoe@sabanciuniv.edu';
@@ -14,24 +14,24 @@ class ProfileScreen extends StatelessWidget {
     const String minor = 'Business Analytics';
     const String department = 'FENS';
 
-    // use same blue as calendar + bottom nav
+    //  same blue as app
     const Color primaryBlue = Color(0xFF003366);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F9),
-        appBar: AppBar(
-          backgroundColor: primaryBlue,
-          centerTitle: true,
-          elevation: 0,
-          title: const Text(
-            'PROFILE',
-            style: TextStyle(
-              color: Colors.white,        // force white text
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.5,
-            ),
+      appBar: AppBar(
+        backgroundColor: primaryBlue,
+        centerTitle: true,
+        elevation: 0,
+        title: const Text(
+          'PROFILE',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.5,
           ),
         ),
+      ),
 
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -123,8 +123,10 @@ class ProfileScreen extends StatelessWidget {
                                       ),
                                       TextButton(
                                         onPressed: () {
+                                          // Close the dialog first
                                           Navigator.of(context).pop();
-                                          // TODO: navigate to login or clear session
+                                          // Navigate back to the Sign In page
+                                          context.go('/login');
                                         },
                                         child: const Text('Log Out'),
                                       ),
