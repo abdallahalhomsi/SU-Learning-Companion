@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../common/widgets/app_scaffold.dart';
 
 class FlashcardsQuestionsScreen extends StatefulWidget {
-  final String groupTitle; // e.g. "Chapter X"
+  final String groupTitle;
 
   const FlashcardsQuestionsScreen({
     super.key,
@@ -15,25 +15,33 @@ class FlashcardsQuestionsScreen extends StatefulWidget {
       _FlashcardsQuestionsScreenState();
 }
 
-class _FlashcardsQuestionsScreenState
-    extends State<FlashcardsQuestionsScreen> {
-  final List<_FlashcardQuestion> _questions = [
-    const _FlashcardQuestion(
-      title: 'Card 1: Define xyz based on abc',
-      solution:
-      'Solution for Card 1: xyz is based on abc because ... (sample text).',
-    ),
-    const _FlashcardQuestion(
-      title: 'Card 2: Define xyz based on abc',
-      solution:
-      'Solution for Card 2: xyz is based on abc because ... (sample text).',
-    ),
-    const _FlashcardQuestion(
-      title: 'Card 3: Define xyz based on abc',
-      solution:
-      'Solution for Card 3: xyz is based on abc because ... (sample text).',
-    ),
-  ];
+class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
+
+  static final Map<String, List<_FlashCard>> _storage = {
+    'Chapter X': [
+      _FlashCard(
+        question: 'Define xyz based on abc',
+        answer: 'Solution: xyz is based on abc because...',
+      ),
+      _FlashCard(
+        question: 'What is the powerhouse of the cell?',
+        answer: 'Mitochondria',
+      ),
+    ],
+  };
+
+  List<_FlashCard> get _currentCards {
+    if (!_storage.containsKey(widget.groupTitle)) {
+      _storage[widget.groupTitle] = [];
+    }
+    return _storage[widget.groupTitle]!;
+  }
+
+  void _deleteCard(int index) {
+    setState(() {
+      _currentCards.removeAt(index);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +54,7 @@ class _FlashcardsQuestionsScreenState
         centerTitle: true,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -54,6 +62,7 @@ class _FlashcardsQuestionsScreenState
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
+            fontSize: 18,
           ),
         ),
       ),
@@ -62,24 +71,34 @@ class _FlashcardsQuestionsScreenState
         child: Column(
           children: [
             Expanded(
-              child: ListView.separated(
-                itemCount: _questions.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final q = _questions[index];
-                  return _QuestionCard(
-                    title: q.title,
-                    onTap: () {
-                      context.push(
-                        '/flashcards/solution',
-                        extra: {
-                          'title': q.title,
-                          'solution': q.solution,
-                        },
-                      );
-                    },
-                  );
-                },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: _currentCards.isEmpty
+                    ? const Center(child: Text("No cards created yet."))
+                    : ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _currentCards.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    return _CardItem(
+                      question: _currentCards[index].question,
+                      onTap: () {
+                        // FIX: Pass the actual question as the 'title'
+                        context.push(
+                          '/flashcards/solution',
+                          extra: {
+                            'title': _currentCards[index].question,
+                            'solution': _currentCards[index].answer,
+                          },
+                        );
+                      },
+                      onDelete: () => _deleteCard(index),
+                    );
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -87,19 +106,17 @@ class _FlashcardsQuestionsScreenState
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  final result =
-                  await context.push<Map<String, String>>(
+                  final result = await context.push<Map<String, String>>(
                     '/flashcards/create',
                   );
 
-                  if (result != null && result['title'] != null) {
+                  if (result != null) {
                     setState(() {
-                      _questions.add(
-                        _FlashcardQuestion(
-                          title: result['title']!,
-                          solution: result['solution'] ?? '',
-                        ),
-                      );
+                      //Add new card using just question and solution
+                      _currentCards.add(_FlashCard(
+                        question: result['question'] ?? 'New Question',
+                        answer: result['solution'] ?? 'New Answer',
+                      ));
                     });
                   }
                 },
@@ -126,62 +143,59 @@ class _FlashcardsQuestionsScreenState
   }
 }
 
-class _FlashcardQuestion {
-  final String title;
-  final String solution;
+class _FlashCard {
+  final String question;
+  final String answer;
 
-  const _FlashcardQuestion({
-    required this.title,
-    required this.solution,
-  });
+  _FlashCard({required this.question, required this.answer});
 }
 
-class _QuestionCard extends StatelessWidget {
-  final String title;
+class _CardItem extends StatelessWidget {
+  final String question;
   final VoidCallback onTap;
+  final VoidCallback onDelete;
 
-  const _QuestionCard({
-    required this.title,
+  const _CardItem({
+    required this.question,
     required this.onTap,
+    required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
     const Color primaryBlue = Color(0xFF003366);
 
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryBlue,
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+    return Container(
+      constraints: const BoxConstraints(minHeight: 60),
+      decoration: BoxDecoration(
+        color: primaryBlue,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Center(
+                  child: Text(
+                    question,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ),
           ),
-          elevation: 2,
-        ),
-        child: Column(
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Tap to reveal answer',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 12,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.white),
+            onPressed: onDelete,
+          ),
+        ],
       ),
     );
   }
