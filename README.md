@@ -10,6 +10,22 @@ SU Learning Companion solves this by bringing all essential academic tools into 
 Students often rely on multiple apps to manage tasks, deadlines, and study plans, which leads to confusion and missed work.  
 This app solves that problem by centralizing all academic tools and providing one organized, simple-to-use system.
 
+## Team Contribution
+
+Each member contributed significantly, developing **more than 3–4 screens** and working across multiple features:
+
+| Member | Main Feature Contributions |
+|--------|----------------------------|
+| **Abdallah Al Homsi** | Exams, Homeworks |
+| **Fowzi Hindi** | Flashcards, Profile |
+| **Syeda Manaal Amir** | Calendar, Detailed Course Page |
+| **Abdul Momin Alam** | Home Page, Notes |
+| **Salma Tubail** | Resources, Add Course Page |
+| **Rand M O Khaled** | Welcome / Splash Screen, Login, Sign Up |
+
+All contributions, code changes, and cross-feature collaboration **can be verified in the GitHub commit history**, showing that each member worked across multiple parts of the application — not only on their assigned screens. Meaning that the Main Feature Contribution is not the only thing each member contributed in as there are various parts of the project in which we all contributed to.
+
+
 ## How We Met the Key Requirements
 
 | Requirement | How We Fulfill It |
