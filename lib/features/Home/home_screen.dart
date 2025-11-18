@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  static const _suBlue = Color(0xFF155FA0);
   static const _suBlueDark = Color(0xFF0D3B66);
 
   @override
@@ -19,24 +18,19 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFD),
 
-
       body: SingleChildScrollView(
         child: Column(
           children: [
-
             Container(
               color: Colors.white,
               padding: const EdgeInsets.fromLTRB(16, 40, 16, 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Sabanci Logo
                   Image.asset(
                     'assets/sabanci_logo.png',
-                    height: 65,
+                    height: 75,
                   ),
-
-                  // add courses button
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1F7ACF),
@@ -58,7 +52,6 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
-
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
               child: Column(
@@ -66,7 +59,6 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   const SizedBox(height: 12),
 
-                  //scrollable reminders box
                   SizedBox(
                     height: 170,
                     child: ListView.separated(
@@ -99,7 +91,6 @@ class HomeScreen extends StatelessWidget {
 
                   const SizedBox(height: 20),
 
-                  // ur courses box
                   Container(
                     decoration: BoxDecoration(
                       color: _suBlueDark,
@@ -122,10 +113,14 @@ class HomeScreen extends StatelessWidget {
                         const SizedBox(height: 8),
 
                         ...['CS310', 'CS300', 'CS306', 'CS303', 'MATH 306']
-                            .map((code) => _CourseRow(
-                          code: code,
-                          onTap: () {},
-                        )),
+                            .map(
+                              (code) => _CourseRow(
+                            code: code,
+                            onTap: () {
+                              context.go('/courses/detail/$code');
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -136,7 +131,6 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
 
-      // bottom nav bar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         backgroundColor: _suBlueDark,
@@ -182,9 +176,11 @@ class _CourseRow extends StatelessWidget {
       dense: true,
       contentPadding: EdgeInsets.zero,
       leading: const Icon(Icons.star_border, color: Colors.white),
-      title: Text(code, style: const TextStyle(color: Colors.white)),
-      trailing:
-      const Icon(Icons.chevron_right, color: Colors.white70),
+      title: Text(
+        code,
+        style: const TextStyle(color: Colors.white),
+      ),
+      trailing: const Icon(Icons.chevron_right, color: Colors.white70),
       onTap: onTap,
     );
   }
