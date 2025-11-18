@@ -28,7 +28,7 @@ class HomeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Image.asset(
-                    'assets/sabanci_logo.png',
+                    'lib/common/assets/sabanci_logo.jpeg',
                     height: 75,
                   ),
                   ElevatedButton(

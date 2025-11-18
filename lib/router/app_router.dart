@@ -4,7 +4,6 @@ import 'package:su_learning_companion/features/Authentication/sign_in.dart';
 import 'package:su_learning_companion/features/Authentication/sign_up1.dart';
 import 'package:su_learning_companion/features/Authentication/sign_up2.dart';
 import 'package:su_learning_companion/features/Authentication/welcome.dart';
-import '../features/courses/temp_courses_screen.dart';
 import '../features/courses/add_course_screen.dart';
 import '../features/courses/detailed_course_features_screen.dart';
 import '../features/calendar/calendar_screen.dart';
@@ -58,11 +57,6 @@ class AppRouter {
         builder: (context, state) => const SignUpStep2Screen(),
       ),
       GoRoute(
-        path: '/',
-        builder: (context, state) => const CoursesScreen(),
-      ),
-
-      GoRoute(
         path: '/home',
         builder: (context, state) => const HomeScreen(),
       ),
@@ -70,16 +64,6 @@ class AppRouter {
       GoRoute(
         path: '/courses/add',
         builder: (context, state) => const AddCourseScreen(),
-      ),
-      GoRoute(
-        path: '/courses/detail/:courseId',
-        builder: (context, state) {
-          final courseId = state.pathParameters['courseId'];
-          if (courseId == null) {
-            return const CoursesScreen();
-          }
-          return DetailedCourseFeaturesScreen(courseId: courseId);
-        },
       ),
       GoRoute(
         path: '/calendar',
