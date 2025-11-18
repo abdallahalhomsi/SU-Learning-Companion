@@ -212,9 +212,18 @@ class AppRouter {
       ),
 
       // FLASHCARDS ROUTES
+
       GoRoute(
         path: '/flashcards',
-        builder: (context, state) => const FlashcardsTopicsScreen(),
+        builder: (context, state) {
+          // Retrieve the data passed from DetailedCourseFeaturesScreen
+          final extra = state.extra as Map<String, dynamic>?;
+
+          return FlashcardsTopicsScreen(
+            courseId: extra?['courseId'],
+            courseName: extra?['courseName'] ?? 'Course Name',
+          );
+        },
       ),
       GoRoute(
         path: '/flashcards/questions',
