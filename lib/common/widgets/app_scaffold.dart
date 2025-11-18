@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-///Reusable scaffold widget with bottom navigation bar
+///Reusable scaffold widget with bottom navigation bar (home, calendar, profile)
 class AppScaffold extends StatelessWidget {
   final Widget body;
   final int currentIndex;

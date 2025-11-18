@@ -1,6 +1,9 @@
+// This file makes up the components of the Exams Form Screen,
+// Which displays a list a form for the user to enter an exam for a specific course.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/exam.dart';
 import '../../common/repos/exams_repo.dart';

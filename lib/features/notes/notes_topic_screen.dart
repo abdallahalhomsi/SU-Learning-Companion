@@ -1,7 +1,13 @@
+// This file makes up the components of the Notes Topic Screen,
+// Which displays the specific written notes of the user.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
 import 'package:flutter/material.dart';
-
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/notes.dart';
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_text_styles.dart';
+import '../../common/utils/app_spacing.dart';
 
 class NotesTopicScreen extends StatelessWidget {
   final String courseName;
@@ -13,8 +19,6 @@ class NotesTopicScreen extends StatelessWidget {
     required this.note,
   });
 
-  static const _barBlue = Color(0xFF003366);
-
   @override
   Widget build(BuildContext context) {
     final controller = TextEditingController(text: note.content);
@@ -22,28 +26,35 @@ class NotesTopicScreen extends StatelessWidget {
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
-        backgroundColor: _barBlue,
+        backgroundColor: AppColors.primaryBlue,
         title: Text(
           '$courseName: ${note.title}',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTextStyles.appBarTitle,
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.textOnPrimary,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.screen,
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.cardBackground,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: const Color(0xFFE5EAF1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Stack(
             children: [
@@ -60,7 +71,10 @@ class NotesTopicScreen extends StatelessWidget {
                 maxLines: null,
                 keyboardType: TextInputType.multiline,
                 textAlignVertical: TextAlignVertical.top,
-                style: const TextStyle(height: 1.4),
+                style: const TextStyle(
+                  height: 1.4,
+                  color: AppColors.textPrimary,
+                ),
                 decoration: const InputDecoration(
                   hintText: 'Write your notes...',
                   border: InputBorder.none,

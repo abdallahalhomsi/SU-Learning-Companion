@@ -1,6 +1,12 @@
+// This file makes up the components of the Flashcards Questions Screen,
+// Which displays a list of flashcard questions for a specific group.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../common/widgets/app_scaffold.dart';
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_text_styles.dart';
 
 class FlashcardsQuestionsScreen extends StatefulWidget {
   final String groupTitle;
@@ -16,7 +22,6 @@ class FlashcardsQuestionsScreen extends StatefulWidget {
 }
 
 class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
-
   static final Map<String, List<_FlashCard>> _storage = {
     'Chapter X': [
       _FlashCard(
@@ -31,9 +36,7 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
   };
 
   List<_FlashCard> get _currentCards {
-    if (!_storage.containsKey(widget.groupTitle)) {
-      _storage[widget.groupTitle] = [];
-    }
+    _storage.putIfAbsent(widget.groupTitle, () => []);
     return _storage[widget.groupTitle]!;
   }
 
@@ -45,25 +48,20 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryBlue = Color(0xFF003366);
-
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
-        backgroundColor: primaryBlue,
+        backgroundColor: AppColors.primaryBlue,
         centerTitle: true,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios, size: 20),
+          color: AppColors.textOnPrimary,
           onPressed: () => context.pop(),
         ),
         title: Text(
-          'Flash Cards : ${widget.groupTitle}',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
+          'Flashcards: ${widget.groupTitle}',
+          style: AppTextStyles.appBarTitle,
         ),
       ),
       body: Padding(
@@ -73,25 +71,31 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: _currentCards.isEmpty
-                    ? const Center(child: Text("No cards created yet."))
+                    ? const Center(
+                  child: Text(
+                    'No cards created yet.',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                )
                     : ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: _currentCards.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, __) =>
+                  const SizedBox(height: 12),
                   itemBuilder: (context, index) {
+                    final card = _currentCards[index];
                     return _CardItem(
-                      question: _currentCards[index].question,
+                      question: card.question,
                       onTap: () {
-                        // FIX: Pass the actual question as the 'title'
                         context.push(
                           '/flashcards/solution',
                           extra: {
-                            'title': _currentCards[index].question,
-                            'solution': _currentCards[index].answer,
+                            'title': card.question,
+                            'solution': card.answer,
                           },
                         );
                       },
@@ -112,16 +116,17 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
 
                   if (result != null) {
                     setState(() {
-                      //Add new card using just question and solution
-                      _currentCards.add(_FlashCard(
-                        question: result['question'] ?? 'New Question',
-                        answer: result['solution'] ?? 'New Answer',
-                      ));
+                      _currentCards.add(
+                        _FlashCard(
+                          question: result['question'] ?? 'New Question',
+                          answer: result['solution'] ?? 'New Answer',
+                        ),
+                      );
                     });
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue,
+                  backgroundColor: AppColors.primaryBlue,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -129,10 +134,7 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
                 ),
                 child: const Text(
                   '+ Create Flash Card',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.primaryButton,
                 ),
               ),
             ),
@@ -147,7 +149,10 @@ class _FlashCard {
   final String question;
   final String answer;
 
-  _FlashCard({required this.question, required this.answer});
+  _FlashCard({
+    required this.question,
+    required this.answer,
+  });
 }
 
 class _CardItem extends StatelessWidget {
@@ -163,12 +168,10 @@ class _CardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryBlue = Color(0xFF003366);
-
     return Container(
       constraints: const BoxConstraints(minHeight: 60),
       decoration: BoxDecoration(
-        color: primaryBlue,
+        color: AppColors.primaryBlue,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -177,12 +180,12 @@ class _CardItem extends StatelessWidget {
             child: InkWell(
               onTap: onTap,
               child: Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(12),
                 child: Center(
                   child: Text(
                     question,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                     textAlign: TextAlign.center,
@@ -192,7 +195,7 @@ class _CardItem extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.delete, color: Colors.white),
+            icon: const Icon(Icons.delete, color: AppColors.textOnPrimary),
             onPressed: onDelete,
           ),
         ],

@@ -1,14 +1,18 @@
+// This file makes up the components of the Home Screen,
+// Which displays the main page of the app, courses registred, and an add course feature.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../common/models/course.dart';
 import '../../common/repos/courses_repo.dart';
 import '../../data/fakes/fake_courses_repo.dart';
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_text_styles.dart';
+import '../../common/utils/app_spacing.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  static const _suBlueDark = Color(0xFF0D3B66);
 
   @override
   Widget build(BuildContext context) {
@@ -22,19 +26,17 @@ class HomeScreen extends StatelessWidget {
     final CoursesRepo coursesRepo = FakeCoursesRepo();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFD),
+      backgroundColor: AppColors.scaffoldBackground,
 
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Top bar with logo + add course button
             Container(
-              color: Colors.white,
+              color: AppColors.cardBackground,
               padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // smaller logo + a bit lower
                   SizedBox(
                     height: 55,
                     child: Image.asset(
@@ -45,7 +47,7 @@ class HomeScreen extends StatelessWidget {
                   const Spacer(),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _suBlueDark,
+                      backgroundColor: AppColors.primaryBlue,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(22),
                       ),
@@ -59,20 +61,18 @@ class HomeScreen extends StatelessWidget {
                     },
                     child: const Text(
                       '+ ADD COURSE',
-                      style: TextStyle(color: Colors.white),
+                      style: AppTextStyles.primaryButton,
                     ),
                   ),
                 ],
               ),
             ),
 
-            // Main content
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Reminders list
                   SizedBox(
                     height: 170,
                     child: Scrollbar(
@@ -93,7 +93,12 @@ class HomeScreen extends StatelessWidget {
                                 Icons.info_outline,
                                 color: Colors.redAccent,
                               ),
-                              title: Text(reminder['course']!),
+                              title: Text(
+                                reminder['course']!,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                               subtitle: Text(reminder['detail']!),
                               trailing: IconButton(
                                 icon: const Icon(Icons.close),
@@ -102,18 +107,17 @@ class HomeScreen extends StatelessWidget {
                             ),
                           );
                         },
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        separatorBuilder: (_, __) =>
+                        const SizedBox(height: AppSpacing.gapSmall),
                       ),
                     ),
                   ),
 
-                  // more spacing between reminders and "YOUR COURSES"
                   const SizedBox(height: 32),
 
-                  // "YOUR COURSES" section (from FakeCoursesRepo)
                   Container(
                     decoration: BoxDecoration(
-                      color: _suBlueDark,
+                      color: AppColors.primaryBlue,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
@@ -123,14 +127,15 @@ class HomeScreen extends StatelessWidget {
                         const Text(
                           'YOUR COURSES',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textOnPrimary,
                             fontWeight: FontWeight.w600,
                             letterSpacing: .6,
+                            fontSize: 14,
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: AppSpacing.gapSmall),
                         const Divider(color: Colors.white24),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.gapSmall),
 
                         FutureBuilder<List<Course>>(
                           future: coursesRepo.getCourses(),
@@ -179,11 +184,10 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
 
-      // Bottom navigation bar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
-        backgroundColor: _suBlueDark,
-        selectedItemColor: Colors.white,
+        backgroundColor: AppColors.primaryBlue,
+        selectedItemColor: AppColors.textOnPrimary,
         unselectedItemColor: Colors.white70,
         showSelectedLabels: false,
         showUnselectedLabels: false,
@@ -224,12 +228,16 @@ class _CourseRow extends StatelessWidget {
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.star_border, color: Colors.white),
+      leading: const Icon(Icons.star_border, color: AppColors.textOnPrimary),
       title: Text(
         code,
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(
+          color: AppColors.textOnPrimary,
+          fontWeight: FontWeight.w500,
+        ),
       ),
-      trailing: const Icon(Icons.chevron_right, color: Colors.white70),
+      trailing:
+      const Icon(Icons.chevron_right, color: Colors.white70),
       onTap: onTap,
     );
   }

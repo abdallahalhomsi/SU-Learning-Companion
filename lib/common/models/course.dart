@@ -1,3 +1,7 @@
+// This file defines the data models for Course and Calendar.
+// These models are used throughout the application to represent courses and their associated events.
+
+
 class Course {
   final String id, code, name, term;
   final String? instructor;
@@ -89,7 +93,3 @@ extension CourseEventTypeExtension on CourseEventType {
   }
 }
 
-/// Data model: Course.
-/// - No Flutter imports.
-/// - toMap/fromMap for storage.
-/// Future: add fields if needed (section, room).

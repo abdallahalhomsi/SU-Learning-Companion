@@ -1,9 +1,15 @@
+// This file makes up the components of the Add Notes Screen,
+// Which displays the form for the user to add a new note for a specific course.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
 import 'package:flutter/material.dart';
-
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/notes.dart';
 import '../../common/repos/notes_repo.dart';
 import '../../data/fakes/fake_notes_repo.dart';
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_text_styles.dart';
+import '../../common/utils/app_spacing.dart';
 
 class AddNoteScreen extends StatefulWidget {
   final String courseId;
@@ -20,8 +26,6 @@ class AddNoteScreen extends StatefulWidget {
 }
 
 class _AddNoteScreenState extends State<AddNoteScreen> {
-  static const _barBlue = Color(0xFF003366);
-
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _title = TextEditingController();
   final TextEditingController _body = TextEditingController();
@@ -39,7 +43,6 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
     final isValid = _formKey.currentState!.validate();
 
     if (!isValid) {
-      // Same dialog style as exams / homeworks
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -63,14 +66,14 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       courseId: widget.courseId,
       title: _title.text.trim(),
-      content: _body.text, // body can be empty, that is allowed
+      content: _body.text,
       createdAt: DateTime.now(),
     );
 
     _notesRepo.addNote(note);
 
     if (!mounted) return;
-    Navigator.pop(context, true); // tell caller something was added
+    Navigator.pop(context, true);
   }
 
   @override
@@ -78,17 +81,17 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
-        backgroundColor: _barBlue,
+        backgroundColor: AppColors.primaryBlue,
         title: Text(
           'Add Note - ${widget.courseName}',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTextStyles.appBarTitle,
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.textOnPrimary,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -99,14 +102,17 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
             child: Form(
               key: _formKey,
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: AppSpacing.screen,
                 children: [
-                  // Title field (required)
                   TextFormField(
                     controller: _title,
                     decoration: InputDecoration(
                       labelText: 'Title',
-                      fillColor: const Color(0xFFF2F4F7),
+                      labelStyle: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 14,
+                      ),
+                      fillColor: AppColors.inputGrey.withOpacity(0.25),
                       filled: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -117,18 +123,26 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                         vertical: 12,
                       ),
                     ),
-                    validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Title is required' : null,
+                    validator: (v) => v == null || v.trim().isEmpty
+                        ? 'Title is required'
+                        : null,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.gapMedium),
 
-                  // Lined note area (body not required)
+
                   Container(
                     height: 420,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.cardBackground,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: const Color(0xFFE5EAF1)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Stack(
                       children: [
@@ -145,11 +159,16 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                           maxLines: null,
                           keyboardType: TextInputType.multiline,
                           textAlignVertical: TextAlignVertical.top,
-                          style: const TextStyle(height: 1.4),
+                          style: const TextStyle(
+                            height: 1.4,
+                            fontSize: 14,
+                            color: AppColors.textPrimary,
+                          ),
                           decoration: const InputDecoration(
                             hintText: 'Write your note...',
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.fromLTRB(16, 10, 16, 16),
+                            contentPadding:
+                            EdgeInsets.fromLTRB(16, 10, 16, 16),
                           ),
                         ),
                       ],
@@ -160,20 +179,23 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
             ),
           ),
 
-          // Full-width blue Submit bar
+
           SizedBox(
             height: 48,
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: _barBlue,
-                foregroundColor: Colors.white,
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: AppColors.textOnPrimary,
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.zero,
                 ),
               ),
               onPressed: _submit,
-              child: const Text('Submit'),
+              child: const Text(
+                'Submit',
+                style: AppTextStyles.primaryButton,
+              ),
             ),
           ),
         ],
@@ -202,7 +224,7 @@ class _LinedPaperPainter extends CustomPainter {
     double y = topOffset;
     while (y < size.height) {
       canvas.drawLine(
-        Offset(12, y),
+        const Offset(12, 0) + Offset(0, y),
         Offset(size.width - 12, y),
         paint,
       );

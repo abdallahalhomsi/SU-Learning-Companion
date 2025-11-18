@@ -1,3 +1,5 @@
+// This abstract class defines the contract for a repository that manages resources.
+// It provides methods for retrieving, adding, updating, and removing resources.
 import '../models/resource.dart';
 
 abstract class ResourcesRepo {

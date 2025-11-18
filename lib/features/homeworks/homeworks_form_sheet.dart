@@ -1,10 +1,16 @@
+// This file makes up the components of the Add Homeworks Screen,
+// Which displays a form for the user to add a homework for a specific course.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/homework.dart';
 import '../../common/repos/homeworks_repo.dart';
 import '../../data/fakes/fake_homeworks_repo.dart';
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_text_styles.dart';
+import '../../common/utils/app_spacing.dart';
 
 class HomeworkFormScreen extends StatefulWidget {
   final String courseId;
@@ -53,8 +59,8 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
       setState(() {
         _selectedDate = picked;
         final months = [
-          'Jan','Feb','Mar','Apr','May','Jun',
-          'Jul','Aug','Sep','Oct','Nov','Dec'
+          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
         ];
         _dateController.text =
         '${picked.day} ${months[picked.month - 1]} ${picked.year}';
@@ -72,7 +78,8 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
       setState(() {
         _selectedTime = picked;
 
-        int displayHour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
+        int displayHour =
+        picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
         final minute = picked.minute.toString().padLeft(2, '0');
         final suffix = picked.period == DayPeriod.am ? 'AM' : 'PM';
 
@@ -82,7 +89,6 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
   }
 
   Future<void> _submit() async {
-    // 1) validate text fields
     if (!_formKey.currentState!.validate()) {
       showDialog(
         context: context,
@@ -103,7 +109,6 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
       return;
     }
 
-    // 2) extra safety for date/time
     if (_selectedDate == null || _selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -140,9 +145,10 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF003366),
+        backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios,
+              color: AppColors.textOnPrimary, size: 20),
           onPressed: () {
             context.go(
               '/courses/${widget.courseId}/homeworks',
@@ -152,11 +158,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
         ),
         title: const Text(
           'Add Homework',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTextStyles.appBarTitle,
         ),
         centerTitle: true,
       ),
@@ -167,10 +169,9 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
             Expanded(
               child: Container(
                 width: double.infinity,
-                padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                padding: AppSpacing.card,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Form(
@@ -184,10 +185,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Title',
-                            errorStyle: TextStyle(
-                              fontSize: 11,
-                              height: 1.1,
-                            ),
+                            errorStyle: AppTextStyles.errorText,
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -197,7 +195,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           },
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.gapSmall),
                       _buildFieldWrapper(
                         child: TextFormField(
                           controller: _dateController,
@@ -206,10 +204,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Date...',
-                            errorStyle: TextStyle(
-                              fontSize: 11,
-                              height: 1.1,
-                            ),
+                            errorStyle: AppTextStyles.errorText,
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -219,7 +214,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           },
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.gapSmall),
                       _buildFieldWrapper(
                         child: TextFormField(
                           controller: _timeController,
@@ -228,10 +223,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Time',
-                            errorStyle: TextStyle(
-                              fontSize: 11,
-                              height: 1.1,
-                            ),
+                            errorStyle: AppTextStyles.errorText,
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -246,13 +238,13 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.gapMedium),
             SizedBox(
               width: double.infinity,
               height: 46,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF003366),
+                  backgroundColor: AppColors.primaryBlue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
@@ -260,11 +252,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                 onPressed: _submit,
                 child: const Text(
                   'Submit',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.primaryButton,
                 ),
               ),
             ),
@@ -279,7 +267,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFE0E0E0),
+        color: AppColors.inputGrey,
         borderRadius: BorderRadius.circular(6),
       ),
       alignment: Alignment.centerLeft,

@@ -1,6 +1,12 @@
+// This file makes up the components of the Flashcards Formsheet Questions Screen
+// Which displays a form for creating new questions inside a topic
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../common/widgets/app_scaffold.dart';
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_text_styles.dart';
 
 class FlashcardFormSheetQuestion extends StatefulWidget {
   const FlashcardFormSheetQuestion({super.key});
@@ -13,7 +19,6 @@ class FlashcardFormSheetQuestion extends StatefulWidget {
 class _FlashcardFormSheetQuestionState
     extends State<FlashcardFormSheetQuestion> {
   final _formKey = GlobalKey<FormState>();
-
 
   final TextEditingController _questionController = TextEditingController();
   final TextEditingController _answerController = TextEditingController();
@@ -28,56 +33,56 @@ class _FlashcardFormSheetQuestionState
   }
 
   void _submit() {
-    bool formValid = _formKey.currentState!.validate();
-    bool difficultyValid = true;
+    final formValid = _formKey.currentState!.validate();
+    final difficultyValid = _selectedDifficulty != null;
 
     if (!formValid || !difficultyValid) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Please fix the form'),
-          content: const Text(
-            'Some fields are missing or invalid.\n'
-                'Fields with red text need your attention.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+      _showErrorDialog();
       return;
     }
-
 
     Navigator.of(context).pop(<String, String>{
       'question': _questionController.text.trim(),
       'solution': _answerController.text.trim(),
+      'difficulty': _selectedDifficulty!,
     });
+  }
+
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Please fix the form'),
+        content: const Text(
+          'Some fields are missing or invalid.\n'
+              'Fields with red text need your attention.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryBlue = Color(0xFF003366);
-
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
-        backgroundColor: primaryBlue,
+        backgroundColor: AppColors.primaryBlue,
         centerTitle: true,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios, size: 20),
+          color: AppColors.textOnPrimary,
           onPressed: () => context.pop(),
         ),
         title: const Text(
-          'Create Flash Card:',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+          'Create Flashcard',
+          style: AppTextStyles.appBarTitle,
         ),
       ),
       body: Padding(
@@ -88,29 +93,27 @@ class _FlashcardFormSheetQuestionState
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                 child: SingleChildScrollView(
                   child: Form(
                     key: _formKey,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     child: Column(
                       children: [
-
-
-                        // Question Field
                         _buildFieldWrapper(
                           height: 80,
                           child: TextFormField(
                             controller: _questionController,
+                            maxLines: 3,
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               hintText: 'Question',
-                              errorStyle: TextStyle(fontSize: 11, height: 1.1),
+                              errorStyle: AppTextStyles.errorText,
                             ),
-                            maxLines: 3,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Question is required';
@@ -121,7 +124,6 @@ class _FlashcardFormSheetQuestionState
                         ),
                         const SizedBox(height: 12),
 
-                        // Difficulty Dropdown
                         _buildFieldWrapper(
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
@@ -129,9 +131,12 @@ class _FlashcardFormSheetQuestionState
                               hint: const Text('Select Difficulty'),
                               value: _selectedDifficulty,
                               items: const [
-                                DropdownMenuItem(value: 'Easy', child: Text('Easy')),
-                                DropdownMenuItem(value: 'Medium', child: Text('Medium')),
-                                DropdownMenuItem(value: 'Hard', child: Text('Hard')),
+                                DropdownMenuItem(
+                                    value: 'Easy', child: Text('Easy')),
+                                DropdownMenuItem(
+                                    value: 'Medium', child: Text('Medium')),
+                                DropdownMenuItem(
+                                    value: 'Hard', child: Text('Hard')),
                               ],
                               onChanged: (value) {
                                 setState(() {
@@ -143,17 +148,16 @@ class _FlashcardFormSheetQuestionState
                         ),
                         const SizedBox(height: 12),
 
-                        // Answer Field
                         _buildFieldWrapper(
                           height: 100,
                           child: TextFormField(
                             controller: _answerController,
+                            maxLines: 4,
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               hintText: 'Answer...',
-                              errorStyle: TextStyle(fontSize: 11, height: 1.1),
+                              errorStyle: AppTextStyles.errorText,
                             ),
-                            maxLines: 4,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Answer is required';
@@ -176,18 +180,14 @@ class _FlashcardFormSheetQuestionState
               child: ElevatedButton(
                 onPressed: _submit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue,
+                  backgroundColor: AppColors.primaryBlue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
                 ),
                 child: const Text(
                   'Submit',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.primaryButton,
                 ),
               ),
             ),
@@ -202,7 +202,7 @@ class _FlashcardFormSheetQuestionState
       height: height,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFE0E0E0),
+        color: AppColors.inputGrey,
         borderRadius: BorderRadius.circular(6),
       ),
       alignment: Alignment.centerLeft,

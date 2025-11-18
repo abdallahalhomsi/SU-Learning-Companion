@@ -1,6 +1,13 @@
+// This file makes up the components of the Flashcards Topics Screen,
+// Which displays a list of flashcard groups for a specific course.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../common/widgets/app_scaffold.dart';
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_text_styles.dart';
+import '../../common/utils/app_spacing.dart';
 
 class FlashcardsTopicsScreen extends StatefulWidget {
   final String? courseId;
@@ -17,14 +24,12 @@ class FlashcardsTopicsScreen extends StatefulWidget {
 }
 
 class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
-  // Static list for persistence
   static final List<_FlashcardGroup> _groups = [
     _FlashcardGroup(title: 'Chapter X', difficulty: 'Easy'),
     _FlashcardGroup(title: 'Lecture Slides Y', difficulty: 'Medium'),
     _FlashcardGroup(title: 'Quiz 1', difficulty: 'Hard'),
   ];
 
-  //Immediate Delete (No Confirmation Dialog)
   void _deleteGroup(int index) {
     setState(() {
       _groups.removeAt(index);
@@ -33,16 +38,15 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryBlue = Color(0xFF003366);
-
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
-        backgroundColor: primaryBlue,
+        backgroundColor: AppColors.primaryBlue,
         centerTitle: true,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios, size: 20),
+          color: AppColors.textOnPrimary,
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -55,29 +59,35 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
         ),
         title: Text(
           'Flash Cards : ${widget.courseName}',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-          ),
+          style: AppTextStyles.appBarTitle,
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        padding: AppSpacing.screen,
         child: Column(
           children: [
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE5EAF1)),
                 ),
                 child: _groups.isEmpty
-                    ? const Center(child: Text("No flashcard groups yet."))
+                    ? const Center(
+                  child: Text(
+                    'No flashcard groups yet.',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                    ),
+                  ),
+                )
                     : ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: _groups.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.gapMedium),
                   itemBuilder: (context, index) {
                     final group = _groups[index];
                     return _GroupButton(
@@ -94,7 +104,7 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.gapMedium),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -115,7 +125,7 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue,
+                  backgroundColor: AppColors.primaryBlue,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -123,10 +133,7 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
                 ),
                 child: const Text(
                   '+ Add Flash Card Group',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.primaryButton,
                 ),
               ),
             ),
@@ -157,12 +164,10 @@ class _GroupButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryBlue = Color(0xFF003366);
-
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: primaryBlue,
+        color: AppColors.primaryBlue,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -173,17 +178,14 @@ class _GroupButton extends StatelessWidget {
               child: Center(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.listButton,
                   textAlign: TextAlign.center,
                 ),
               ),
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.delete, color: Colors.white),
+            icon: const Icon(Icons.delete, color: AppColors.textOnPrimary),
             onPressed: onDelete,
           ),
         ],

@@ -1,6 +1,12 @@
+// This file makes up the components of the Flashcards FormSheet Groups Screen
+// Which displays a form for creating new groups inside a topic
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../common/widgets/app_scaffold.dart';
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_text_styles.dart';
 
 class FlashcardFormSheetGroup extends StatefulWidget {
   const FlashcardFormSheetGroup({super.key});
@@ -22,19 +28,11 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
   }
 
   void _submit() {
-    // Validate Text Fields
-    if (!_formKey.currentState!.validate()) {
+    if (!_formKey.currentState!.validate() || _selectedDifficulty == null) {
       _showErrorDialog();
       return;
     }
 
-    // Validate Dropdown (Manual check for group difficulty)
-    if (_selectedDifficulty == null) {
-      _showErrorDialog();
-      return;
-    }
-
-    // return data to previous screen
     Navigator.of(context).pop(<String, String>{
       'title': _titleController.text.trim(),
       'difficulty': _selectedDifficulty!,
@@ -62,24 +60,20 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryBlue = Color(0xFF003366);
-
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
-        backgroundColor: primaryBlue,
+        backgroundColor: AppColors.primaryBlue,
         centerTitle: true,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios, size: 20),
+          color: AppColors.textOnPrimary,
           onPressed: () => context.pop(),
         ),
         title: const Text(
-          'Add Flash Card Group:',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+          'Add Flashcard Group',
+          style: AppTextStyles.appBarTitle,
         ),
       ),
       body: Padding(
@@ -90,10 +84,11 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                 child: Form(
                   key: _formKey,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -105,7 +100,7 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Title',
-                            errorStyle: TextStyle(fontSize: 11, height: 1.1),
+                            errorStyle: AppTextStyles.errorText,
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -156,18 +151,14 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
               child: ElevatedButton(
                 onPressed: _submit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue,
+                  backgroundColor: AppColors.primaryBlue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
                 ),
                 child: const Text(
                   'Submit',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.primaryButton,
                 ),
               ),
             ),
@@ -182,7 +173,7 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFE0E0E0),
+        color: AppColors.inputGrey,
         borderRadius: BorderRadius.circular(6),
       ),
       alignment: Alignment.centerLeft,

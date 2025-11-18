@@ -1,3 +1,7 @@
+/// Provider wiring (service locator).
+/// - Chooses which repo implementations the app uses.
+/// Currently: Fake repos -> in-memory dev data.
+/// Future: flip to Firebase repos with one change here.
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import '../repos/courses_repo.dart';
@@ -14,7 +18,3 @@ List<SingleChildWidget> buildProviders() => [
 ];
 
 
-/// Provider wiring (service locator).
-/// - Chooses which repo implementations the app uses.
-/// Currently: Fake repos -> in-memory dev data.
-/// Future: flip to Firebase repos with one change here.

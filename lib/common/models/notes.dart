@@ -1,3 +1,5 @@
+// This file defines the data models for Notes.
+// These models are used throughout the application to represent Notes.
 class Note {
   final String id;
   final String courseId;

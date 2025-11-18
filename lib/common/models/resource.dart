@@ -1,3 +1,5 @@
+// This file defines the data models for Resources.
+// These models are used throughout the application to represent Resources.
 class Resource {
   final String id;
   final String courseId;

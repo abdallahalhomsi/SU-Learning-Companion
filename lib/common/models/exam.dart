@@ -1,3 +1,5 @@
+// This file defines the data models for Exams
+// These models are used throughout the application to represent exams
 class Exam {
   final String id;        // unique per exam
   final String courseId;  // which course it belongs to

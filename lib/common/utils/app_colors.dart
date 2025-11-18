@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  AppColors._(); // private constructor – no instances
+  AppColors._();
 
   // Brand / primary
   static const Color primaryBlue = Color(0xFF003366);

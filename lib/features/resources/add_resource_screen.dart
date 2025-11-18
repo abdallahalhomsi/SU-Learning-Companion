@@ -1,10 +1,16 @@
-// lib/features/resources/add_resource_screen.dart
+// This file makes up the components of the Add Resources Screen,
+// Which displays a form in order to add new resources to the course.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../common/models/resource.dart';
 import '../../common/repos/resources_repo.dart';
 import '../../data/fakes/fake_resources_repo.dart';
+import '../../common/widgets/app_scaffold.dart';
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_text_styles.dart';
+import '../../common/utils/app_spacing.dart';
 
 class AddResourceScreen extends StatefulWidget {
   final String courseId;
@@ -13,7 +19,7 @@ class AddResourceScreen extends StatefulWidget {
   const AddResourceScreen({
     Key? key,
     required this.courseId,
-    this.courseName = 'Course Name',
+    required this.courseName,
   }) : super(key: key);
 
   @override
@@ -39,8 +45,7 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
   }
 
   Future<void> _submit() async {
-    final isValid = _formKey.currentState!.validate();
-    if (!isValid) {
+    if (!_formKey.currentState!.validate()) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -74,31 +79,28 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
     await _resourcesRepo.addResource(resource);
 
     if (!mounted) return;
-    // return to list and signal "added = true"
     context.pop<bool>(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppScaffold(
+      currentIndex: 0,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF004B87),
+        backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-          onPressed: () => context.pop(), // just go back
+          icon: const Icon(Icons.arrow_back_ios,
+              color: AppColors.textOnPrimary, size: 20),
+          onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Add Resource',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+        title: Text(
+          'Add Resource - ${widget.courseName}',
+          style: AppTextStyles.appBarTitle,
         ),
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.screen,
         child: Form(
           key: _formKey,
           child: Column(
@@ -109,7 +111,7 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
                 v == null || v.trim().isEmpty ? 'Enter title' : null,
                 decoration: _fieldDecoration('Title'),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.gapMedium),
               TextFormField(
                 controller: _desc,
                 maxLines: 4,
@@ -117,7 +119,7 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
                 v == null || v.trim().isEmpty ? 'Enter description' : null,
                 decoration: _fieldDecoration('Description'),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.gapMedium),
               TextFormField(
                 controller: _link,
                 validator: (v) =>
@@ -127,10 +129,20 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
               const Spacer(),
               SizedBox(
                 width: double.infinity,
+                height: 46,
                 child: ElevatedButton(
-                  style: _buttonStyle(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryBlue,
+                    foregroundColor: AppColors.textOnPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                   onPressed: _isSubmitting ? null : _submit,
-                  child: const Text('Submit'),
+                  child: Text(
+                    'Submit',
+                    style: AppTextStyles.primaryButton,
+                  ),
                 ),
               ),
             ],
@@ -142,14 +154,11 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
 
   InputDecoration _fieldDecoration(String label) => InputDecoration(
     labelText: label,
+    labelStyle: const TextStyle(color: Colors.black54),
     filled: true,
     fillColor: Colors.white,
-    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-  );
-
-  ButtonStyle _buttonStyle() => ElevatedButton.styleFrom(
-    backgroundColor: const Color(0xFF004B87),
-    foregroundColor: Colors.white,
-    padding: const EdgeInsets.symmetric(vertical: 14),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+    ),
   );
 }

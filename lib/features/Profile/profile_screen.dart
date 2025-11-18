@@ -1,5 +1,14 @@
+// This file makes up the components of the Profile Screen,
+// Which displays the information the user registered with and can log out.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../common/widgets/app_scaffold.dart';
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_text_styles.dart';
+import '../../common/utils/app_spacing.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -14,27 +23,19 @@ class ProfileScreen extends StatelessWidget {
     const String minor = 'Business Analytics';
     const String department = 'FENS';
 
-    //  same blue as app
-    const Color primaryBlue = Color(0xFF003366);
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F5F9),
+    return AppScaffold(
+      currentIndex: 2,
       appBar: AppBar(
-        backgroundColor: primaryBlue,
+        backgroundColor: AppColors.primaryBlue,
         centerTitle: true,
         elevation: 0,
         title: const Text(
           'PROFILE',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.5,
-          ),
+          style: AppTextStyles.appBarTitle,
         ),
       ),
-
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.screen,
         child: Column(
           children: [
             Expanded(
@@ -45,7 +46,7 @@ class ProfileScreen extends StatelessWidget {
                     vertical: 32,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.cardBackground,
                     borderRadius: BorderRadius.circular(32),
                     boxShadow: [
                       BoxShadow(
@@ -66,40 +67,34 @@ class ProfileScreen extends StatelessWidget {
                               .titleLarge
                               ?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: primaryBlue,
+                            color: AppColors.primaryBlue,
                           ),
                         ),
                       ),
                       const SizedBox(height: 24),
-                      _InfoLine(
+                      const _InfoLine(
                         label: 'Name',
                         value: studentName,
-                        highlightColor: primaryBlue,
                       ),
-                      _InfoLine(
+                      const _InfoLine(
                         label: 'Student ID',
                         value: studentId,
-                        highlightColor: primaryBlue,
                       ),
-                      _InfoLine(
+                      const _InfoLine(
                         label: 'Email',
                         value: email,
-                        highlightColor: primaryBlue,
                       ),
-                      _InfoLine(
+                      const _InfoLine(
                         label: 'Major',
                         value: major,
-                        highlightColor: primaryBlue,
                       ),
-                      _InfoLine(
+                      const _InfoLine(
                         label: 'Minor',
                         value: minor,
-                        highlightColor: primaryBlue,
                       ),
-                      _InfoLine(
+                      const _InfoLine(
                         label: 'Department',
                         value: department,
-                        highlightColor: primaryBlue,
                       ),
                       const SizedBox(height: 32),
                       Center(
@@ -123,9 +118,7 @@ class ProfileScreen extends StatelessWidget {
                                       ),
                                       TextButton(
                                         onPressed: () {
-                                          // Close the dialog first
                                           Navigator.of(context).pop();
-                                          // Navigate back to the Sign In page
                                           context.go('/login');
                                         },
                                         child: const Text('Log Out'),
@@ -136,20 +129,17 @@ class ProfileScreen extends StatelessWidget {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFE74C3C),
-                              padding:
-                              const EdgeInsets.symmetric(vertical: 14),
+                              backgroundColor: AppColors.errorRed,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(24),
                               ),
                             ),
                             child: const Text(
                               'Log out',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
+                              style: AppTextStyles.primaryButton,
                             ),
                           ),
                         ),
@@ -159,47 +149,9 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.gapSmall),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2, // 0 = home, 1 = calendar, 2 = profile
-        backgroundColor: primaryBlue,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white60,
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        onTap: (index) {
-          if (index == 2) return;
-
-          switch (index) {
-            case 0:
-              context.go('/home');
-              break;
-            case 1:
-              context.go('/calendar');
-              break;
-            case 2:
-              context.go('/profile');
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '',
-          ),
-        ],
       ),
     );
   }
@@ -208,35 +160,33 @@ class ProfileScreen extends StatelessWidget {
 class _InfoLine extends StatelessWidget {
   final String label;
   final String value;
-  final Color highlightColor;
 
   const _InfoLine({
     required this.label,
     required this.value,
-    required this.highlightColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final baseStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
+      height: 1.4,
+      color: AppColors.textPrimary,
+    );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: RichText(
         text: TextSpan(
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            height: 1.4,
-            color: Colors.black,
-          ),
+          style: baseStyle,
           children: [
             TextSpan(
               text: '$label: ',
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.w700,
-                color: highlightColor,
+                color: AppColors.primaryBlue,
               ),
             ),
-            TextSpan(
-              text: value,
-            ),
+            TextSpan(text: value),
           ],
         ),
       ),

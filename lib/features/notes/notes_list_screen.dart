@@ -1,10 +1,16 @@
+// This file makes up the components of the Notes List Screen,
+// Which displays a list of notes for a specific course.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/notes.dart';
 import '../../common/repos/notes_repo.dart';
 import '../../data/fakes/fake_notes_repo.dart';
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_text_styles.dart';
+import '../../common/utils/app_spacing.dart';
 
 import 'notes_topic_screen.dart';
 import 'add_note_screen.dart';
@@ -24,8 +30,6 @@ class NotesListScreen extends StatefulWidget {
 }
 
 class _NotesListScreenState extends State<NotesListScreen> {
-  static const _barBlue = Color(0xFF003366);
-
   final NotesRepo _notesRepo = FakeNotesRepo();
   List<Note> _notes = [];
   bool _isLoading = true;
@@ -77,7 +81,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
             },
             child: const Text(
               'Delete',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: AppColors.errorRed),
             ),
           ),
         ],
@@ -90,34 +94,40 @@ class _NotesListScreenState extends State<NotesListScreen> {
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
-        backgroundColor: _barBlue,
+        backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.textOnPrimary,
+            size: 20,
+          ),
           onPressed: () {
-            // EXACTLY like exams/homeworks: go back to detailed course
             context.go('/courses/detail/${widget.courseId}');
           },
         ),
         title: Text(
           'Notes: ${widget.courseName}',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTextStyles.appBarTitle,
         ),
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+        padding: AppSpacing.screen,
         child: Column(
           children: [
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: const Color(0xFFE5EAF1)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 padding: const EdgeInsets.all(12),
                 child: _isLoading
@@ -126,31 +136,37 @@ class _NotesListScreenState extends State<NotesListScreen> {
                     ? const Center(
                   child: Text(
                     'No notes yet',
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(
+                      color: Colors.black54,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 )
                     : ListView.separated(
                   itemCount: _notes.length,
                   separatorBuilder: (_, __) =>
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppSpacing.gapMedium),
                   itemBuilder: (context, i) {
                     final note = _notes[i];
                     return SizedBox(
                       height: 44,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: _barBlue,
+                          color: AppColors.primaryBlue,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: ListTile(
                           dense: true,
                           contentPadding:
                           const EdgeInsets.symmetric(
-                              horizontal: 12),
+                            horizontal: 12,
+                          ),
                           title: Text(
                             note.title,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textOnPrimary,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -172,14 +188,14 @@ class _NotesListScreenState extends State<NotesListScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.gapMedium),
             SizedBox(
               height: 46,
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _barBlue,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.primaryBlue,
+                  foregroundColor: AppColors.textOnPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -201,10 +217,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                 },
                 child: const Text(
                   '+ Add Note',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.primaryButton,
                 ),
               ),
             ),

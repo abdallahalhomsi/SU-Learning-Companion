@@ -1,6 +1,9 @@
+// This file makes up the components of the Exams List Screen,
+// Which displays a list of exams for a specific course.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/date_time_formatter.dart';
 import '../../common/models/exam.dart';

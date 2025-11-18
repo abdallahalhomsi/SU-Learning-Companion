@@ -1,3 +1,5 @@
+// This file defines the data models for Homeworks.
+// These models are used throughout the application to represent Homeworks.
 class Homework {
   final String id;
   final String courseId;
