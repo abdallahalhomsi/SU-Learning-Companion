@@ -23,7 +23,7 @@ This app solves that problem by centralizing all academic tools and providing on
 | **Responsiveness** | Scrollable layouts using `SingleChildScrollView`, `Expanded`, and `Flexible` ensure proper behavior across device sizes and orientations. |
 
 
-## 🧭 Basic Navigation Flow
+## Basic Navigation Flow
 
 1. **Welcome Screen** → Login or Sign Up  
 2. After login → **Home Screen**  
