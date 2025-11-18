@@ -18,6 +18,7 @@ import '../features/resources/add_resource_screen.dart';
 import '../features/resources/resource_details_screen.dart';
 import '../features/flashcards/flashcard_form_sheet_group.dart';
 import '../features/flashcards/flashcard_form_sheet_question.dart';
+import '../features/Home/home_screen.dart';
 import '../features/flashcards/flashcards_questions_screen.dart';
 import '../features/flashcards/flashcards_solution.dart';
 import '../features/flashcards/flashcards_topics.dart';
@@ -58,6 +59,12 @@ class AppRouter {
         path: '/',
         builder: (context, state) => const CoursesScreen(),
       ),
+
+      GoRoute(
+        path: '/home',
+        builder: (context, state) => const HomeScreen(),
+      ),
+
       GoRoute(
         path: '/courses/add',
         builder: (context, state) => const AddCourseScreen(),
