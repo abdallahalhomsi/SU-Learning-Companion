@@ -165,7 +165,9 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-          onPressed: () => context.pop(),
+            onPressed: () {
+              context.go('/home');
+            },
         ),
       ),
       body: Padding(
