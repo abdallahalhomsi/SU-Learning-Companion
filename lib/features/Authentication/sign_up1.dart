@@ -1,5 +1,13 @@
+// This file makes up the components of the Sign Up Step 1 Screen,
+// which collects user information such as Full Name, Student ID, Email, and Password.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:su_learning_companion/common/utils/app_colors.dart';
+import 'package:su_learning_companion/common/utils/app_spacing.dart';
+import 'package:su_learning_companion/common/utils/app_text_styles.dart';
 
 class SignUpStep1Screen extends StatefulWidget {
   const SignUpStep1Screen({super.key});
@@ -9,14 +17,13 @@ class SignUpStep1Screen extends StatefulWidget {
 }
 
 class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
- 
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _studentIdController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
- 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
@@ -30,9 +37,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
   }
 
   void _goToNextStep() {
-    
     if (!_formKey.currentState!.validate()) {
-      
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -59,8 +64,40 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
     context.go('/login');
   }
 
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      isDense: true,
+      hintText: hint,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      filled: true,
+      fillColor: Colors.white,
+      border: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(6)),
+        borderSide: BorderSide(color: AppColors.inputGrey),
+      ),
+      enabledBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(6)),
+        borderSide: BorderSide(color: AppColors.inputGrey),
+      ),
+      focusedBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(6)),
+        borderSide: BorderSide(
+          color: AppColors.primaryBlue,
+          width: 1.5,
+        ),
+      ),
+      errorStyle: AppTextStyles.errorText,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final labelStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          fontSize: 14,
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w500,
+        );
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -70,26 +107,24 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF0C6AC5),
-              Color(0xFF00345A),
+              AppColors.primaryBlue,
+              Color(0xFF001F4F),
             ],
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
-              
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
                   onPressed: _goBackToLogin,
-                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
                 ),
               ),
 
               const SizedBox(height: 40),
 
-              
               Image.asset(
                 'lib/common/assets/sabanci_logo.jpeg',
                 height: 80,
@@ -103,10 +138,10 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                   child: SingleChildScrollView(
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 24),
-                      padding: const EdgeInsets.all(20),
+                      padding: AppSpacing.card,
                       constraints: const BoxConstraints(maxWidth: 380),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.cardBackground,
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
@@ -121,9 +156,11 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _label('Full Name'),
+                            _label('Full Name', labelStyle),
+                            const SizedBox(height: AppSpacing.gapSmall),
                             _field(
-                              _fullNameController,
+                              controller: _fullNameController,
+                              hint: 'Full Name',
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Full name is required';
@@ -131,11 +168,13 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 14),
+                            const SizedBox(height: AppSpacing.gapMedium),
 
-                            _label('Student ID'),
+                            _label('Student ID', labelStyle),
+                            const SizedBox(height: AppSpacing.gapSmall),
                             _field(
-                              _studentIdController,
+                              controller: _studentIdController,
+                              hint: 'Student ID',
                               validator: (value) {
                                 final text = value?.trim() ?? '';
                                 if (text.isEmpty) {
@@ -147,11 +186,13 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 14),
+                            const SizedBox(height: AppSpacing.gapMedium),
 
-                            _label('Email'),
+                            _label('Email', labelStyle),
+                            const SizedBox(height: AppSpacing.gapSmall),
                             _field(
-                              _emailController,
+                              controller: _emailController,
+                              hint: 'email@sabanciuniv.edu',
                               validator: (value) {
                                 final email = value?.trim() ?? '';
                                 if (email.isEmpty) {
@@ -163,11 +204,13 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 14),
+                            const SizedBox(height: AppSpacing.gapMedium),
 
-                            _label('Password'),
+                            _label('Password', labelStyle),
+                            const SizedBox(height: AppSpacing.gapSmall),
                             _field(
-                              _passwordController,
+                              controller: _passwordController,
+                              hint: 'Password',
                               obscure: true,
                               validator: (value) {
                                 final password = value?.trim() ?? '';
@@ -177,32 +220,36 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 14),
+                            const SizedBox(height: AppSpacing.gapMedium),
 
-                            _label('Confirm Password'),
+                            _label('Confirm Password', labelStyle),
+                            const SizedBox(height: AppSpacing.gapSmall),
                             _field(
-                              _confirmPasswordController,
+                              controller: _confirmPasswordController,
+                              hint: 'Confirm Password',
                               obscure: true,
                               validator: (value) {
                                 final confirm = value?.trim() ?? '';
                                 if (confirm.isEmpty) {
                                   return 'Confirm password is required';
                                 }
-                                if (confirm != _passwordController.text.trim()) {
+                                if (confirm !=
+                                    _passwordController.text.trim()) {
                                   return 'Incorrect password';
                                 }
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 22),
+                            const SizedBox(height: AppSpacing.gapMedium * 2),
 
                             SizedBox(
                               width: double.infinity,
-                              height: 40,
+                              height: 44,
                               child: ElevatedButton(
                                 onPressed: _goToNextStep,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF333333),
+                                  backgroundColor: AppColors.primaryBlue,
+                                  foregroundColor: AppColors.textOnPrimary,
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(6),
@@ -210,11 +257,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                                 ),
                                 child: const Text(
                                   'Next',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                  style: AppTextStyles.primaryButton,
                                 ),
                               ),
                             ),
@@ -226,7 +269,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.gapMedium),
             ],
           ),
         ),
@@ -234,19 +277,13 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
     );
   }
 
-  Widget _label(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontSize: 14,
-        color: Colors.black87,
-        fontWeight: FontWeight.w500,
-      ),
-    );
+  Widget _label(String text, TextStyle? style) {
+    return Text(text, style: style);
   }
 
-  Widget _field(
-    TextEditingController controller, {
+  Widget _field({
+    required TextEditingController controller,
+    required String hint,
     bool obscure = false,
     String? Function(String?)? validator,
   }) {
@@ -254,13 +291,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
       controller: controller,
       obscureText: obscure,
       validator: validator,
-      decoration: const InputDecoration(
-        isDense: true,
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(6)),
-        ),
-      ),
+      decoration: _inputDecoration(hint),
     );
   }
 }

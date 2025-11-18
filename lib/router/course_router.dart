@@ -1,3 +1,7 @@
+// This file makes up the components of the Course Router,
+// which defines the navigation for the Course feature of the app.
+// It includes routes for adding a course and viewing detailed course features.
+
 import 'package:flutter/material.dart';
 import '../features/courses/add_course_screen.dart';
 import '../features/courses/detailed_course_features_screen.dart';
@@ -41,5 +45,3 @@ class CourseRouter {
   }
 }
 
-/// Routes for Courses feature.
-/// - List page now; later add '/courses/:id' detail.

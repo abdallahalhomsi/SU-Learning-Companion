@@ -1,6 +1,9 @@
-// lib/router/resources_router.dart
-import 'package:flutter/material.dart';
+// This file makes up the components of the Resources Router,
+// which defines the navigation for the Resources feature of the app.
+// It includes routes for listing resources, adding a new resource, and viewing resource details.
 
+
+import 'package:flutter/material.dart';
 import '../features/resources/resources_list_screen.dart';
 import '../features/resources/add_resource_screen.dart';
 import '../features/resources/resource_details_screen.dart';

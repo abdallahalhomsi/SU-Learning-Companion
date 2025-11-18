@@ -1,3 +1,6 @@
+// This file makes up the components of the Calendar Router,
+// which defines the navigation for the Calendar feature of the app.
+
 import 'package:flutter/material.dart';
 import '../features/calendar/calendar_screen.dart';
 

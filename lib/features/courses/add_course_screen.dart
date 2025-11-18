@@ -1,5 +1,15 @@
+// This file makes up the components of the Add Course screen where users can search
+// for courses and add them to their list.
+// It includes a search bar and allows users to view search results.(no database integration yet)
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
+
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:su_learning_companion/common/utils/app_colors.dart';
+import 'package:su_learning_companion/common/utils/app_spacing.dart';
+import 'package:su_learning_companion/common/utils/app_text_styles.dart';
 import '../../common/models/course.dart';
 import '../../common/repos/courses_repo.dart';
 import '../../data/fakes/fake_courses_repo.dart';
@@ -46,7 +56,6 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         _isLoading = false;
       });
 
-      // Show results in drawer
       if (mounted) {
         _showResultsDrawer();
       }
@@ -68,24 +77,21 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.75,
         decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           children: [
-            // Drawer handle
+            const SizedBox(height: 12),
+            
             Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: Colors.grey[400],
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            // Header
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -93,11 +99,10 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                 children: [
                   Text(
                     'Search Results (${_searchResults.length})',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF003366),
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryBlue,
+                        ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -107,26 +112,23 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               ),
             ),
             const Divider(height: 1),
-            // Results list
             Expanded(
               child: _searchResults.isEmpty
-                  ? const Center(
-                child: Text(
-                  'No courses found',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
-                ),
-              )
+                  ? Center(
+                      child: Text(
+                        'No courses found',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: Colors.grey),
+                      ),
+                    )
                   : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _searchResults.length,
-                itemBuilder: (context, index) {
-                  final course = _searchResults[index];
-                  return _buildCourseCard(course);
-                },
-              ),
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, i) =>
+                          _buildCourseCard(_searchResults[i]),
+                    ),
             ),
           ],
         ),
@@ -136,62 +138,74 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
 
   Future<void> _addCourse(Course course) async {
     await _coursesRepo.addCourse(course);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${course.name} added successfully!'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      Navigator.pop(context); // Close drawer
-    }
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${course.name} added successfully!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    Navigator.pop(context); 
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
+    return AppScaffold(
+      currentIndex: 0, 
+
       appBar: AppBar(
-        backgroundColor: const Color(0xFF003366),
+        backgroundColor: AppColors.primaryBlue,
+        centerTitle: true,
         title: const Text(
           'Add Course',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTextStyles.appBarTitle,
         ),
-        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-            onPressed: () {
-              context.go('/home');
-            },
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.textOnPrimary,
+            size: 20,
+          ),
+          onPressed: () => context.go('/home'),
         ),
       ),
+
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: AppSpacing.screen,
         child: Column(
           children: [
             TextField(
               controller: _searchController,
+              style: Theme.of(context).textTheme.bodyMedium,
               decoration: InputDecoration(
                 hintText: 'Search Course...',
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF003366)),
+                hintStyle: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Colors.grey),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: AppColors.primaryBlue,
+                ),
                 suffixIcon: _isLoading
                     ? const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                )
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
                     : IconButton(
-                  icon: const Icon(Icons.search, color: Color(0xFF003366)),
-                  onPressed: _isLoading ? null : _searchCourses,
-                ),
+                        icon: const Icon(
+                          Icons.search,
+                          color: AppColors.primaryBlue,
+                        ),
+                        onPressed: _searchCourses,
+                      ),
                 filled: true,
                 fillColor: const Color(0xFFE8F0F8),
                 border: OutlineInputBorder(
@@ -205,143 +219,99 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               ),
               onSubmitted: (_) => _searchCourses(),
             ),
+
             const Spacer(),
-            const Text(
+
+            Text(
               'Enter course name or code to search',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey,
+                  ),
             ),
+
             const SizedBox(height: 100),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        backgroundColor: const Color(0xFF003366),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white60,
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              context.go('/home');
-              break;
-            case 1:
-              context.go('/calendar');
-              break;
-            case 2:
-              context.go('/profile');
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '',
-          ),
-        ],
       ),
     );
   }
 
   Widget _buildCourseCard(Course course) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      margin: const EdgeInsets.only(bottom: AppSpacing.gapMedium),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: AppSpacing.card,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        course.name,
-                        style: const TextStyle(
-                          fontSize: 16,
+           
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    course.name,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF003366),
+                          color: AppColors.primaryBlue,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        course.code,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        course.term,
-                        style: const TextStyle(
-                          fontSize: 13,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    course.code,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: Colors.grey[700]),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    course.term,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.grey,
                           fontStyle: FontStyle.italic,
                         ),
-                      ),
-                    ],
                   ),
-                ),
-                ElevatedButton(
-                  onPressed: () => _addCourse(course),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF003366),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                  if (course.instructor != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.person,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          course.instructor!,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: Colors.grey[700]),
+                        ),
+                      ],
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                  ),
-                  child: const Text(
-                    'Add',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-            if (course.instructor != null) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.person,
-                    size: 16,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    course.instructor!,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
+                  ],
                 ],
               ),
-            ],
+            ),
+
+            
+            ElevatedButton(
+              onPressed: () => _addCourse(course),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: AppColors.textOnPrimary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: const Text('Add'),
+            ),
           ],
         ),
       ),

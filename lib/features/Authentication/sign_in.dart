@@ -1,6 +1,10 @@
+// This file makes up the components of the Sign In Screen,
+// which allows users to input their email and password to sign in.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:su_learning_companion/common/utils/app_colors.dart';
 import 'package:su_learning_companion/common/utils/app_spacing.dart';
 import 'package:su_learning_companion/common/utils/app_text_styles.dart';
@@ -112,7 +116,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 const SizedBox(height: AppSpacing.gapMedium * 2),
 
-                // Card
+                
                 Container(
                   width: double.infinity,
                   padding: AppSpacing.card,

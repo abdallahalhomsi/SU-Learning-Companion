@@ -1,6 +1,10 @@
+// This file makes up the components of the Welcome Screen(splash screen),
+// which displays the app name and a welcome message with a light bulb icon.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used.
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_spacing.dart';
 
@@ -47,7 +51,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFF0C6AC5), // custom splash gradient (not from system)
+                Color(0xFF0C6AC5), 
                 Color(0xFF00345A),
               ],
             ),
@@ -57,14 +61,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             children: [
               const SizedBox(height: 60),
 
-              // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-              //    SPLASH TITLE (Orbitron ONLY here)
-              // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        
               const Text(
                 'SU LEARNING\nCOMPANION',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: 'SplashFont', // Orbitron-Bold
+                  fontFamily: 'SplashFont', 
                   fontSize: 34,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 4.5,
@@ -88,7 +90,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
               const SizedBox(height: 20),
 
-              // Icon
+              
               Image.network(
                 'https://upload.wikimedia.org/wikipedia/commons/d/dd/Simple_light_bulb_graphic_white.png',
                 height: 60,

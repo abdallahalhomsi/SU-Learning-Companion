@@ -1,3 +1,7 @@
+// This file makes up the components of the Notes Router,
+// which defines the navigation for the Notes feature of the app.
+// It includes the main route for the Notes List Screen.
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 

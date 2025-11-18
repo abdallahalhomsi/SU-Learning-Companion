@@ -1,3 +1,9 @@
+// This file makes up the components of the App Router,
+// which defines the navigation structure of the app using GoRouter.
+// It includes routes for authentication, home, courses, calendar, profile,
+// exams, homeworks, resources, and flashcards.
+
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -70,7 +76,7 @@ class AppRouter {
         builder: (context, state) => const HomeScreen(),
       ),
 
-      // COURSE DETAIL (this is the one you were missing)
+      // COURSE DETAIL 
       GoRoute(
         path: '/courses/detail/:courseId',
         builder: (context, state) {

@@ -1,5 +1,15 @@
+// This file makes up the components of the Detailed Course Features Screen,
+// Which provides navigation to various features related to a specific course.
+// The features include Notes, Resources, Flashcards, Homeworks, and Exams.
+// Uses of Utility classes for consistent styling and spacing across the app.
+// Custom fonts are being used. 
+
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:su_learning_companion/common/utils/app_colors.dart';
+import 'package:su_learning_companion/common/utils/app_spacing.dart';
+import 'package:su_learning_companion/common/utils/app_text_styles.dart';
 import '../../common/models/course.dart';
 import '../../common/repos/courses_repo.dart';
 import '../../data/fakes/fake_courses_repo.dart';
@@ -42,109 +52,117 @@ class _DetailedCourseFeaturesScreenState
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      currentIndex: 0,
+      currentIndex: 0, 
       appBar: AppBar(
-        backgroundColor: const Color(0xFF003366),
+        backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.textOnPrimary,
+            size: 20,
+          ),
           onPressed: () {
             context.go('/home');
           },
         ),
+        centerTitle: true,
         title: Text(
           _course?.name ?? 'Course Name',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTextStyles.appBarTitle,
         ),
-        centerTitle: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _course == null
-          ? const Center(child: Text('Course not found'))
-          : Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildFeatureButton(
-                icon: Icons.note,
-                label: 'Notes',
-                onTap: () {
-                  context.go(
-                    '/courses/${widget.courseId}/notes',
-                    extra: {
-                      'courseName': _course?.name ?? 'Course',
-                    },
-                  );
-                },
-              ),
-              const SizedBox(height: 40),
-              _buildFeatureButton(
-                icon: Icons.folder,
-                label: 'Resources',
-                onTap: () {
-                  context.go(
-                    '/courses/${widget.courseId}/resources',
-                    extra: {
-                      'courseName': _course?.name ?? 'Course',
-                    },
-                  );
-                },
-              ),
-              const SizedBox(height: 40),
+              ? Center(
+                  child: Text(
+                    'Course not found',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                )
+              : Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 40,
+                      vertical: 60,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildFeatureButton(
+                          icon: Icons.note,
+                          label: 'Notes',
+                          onTap: () {
+                            context.go(
+                              '/courses/${widget.courseId}/notes',
+                              extra: {
+                                'courseName': _course?.name ?? 'Course',
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.gapMedium * 3),
 
-              _buildFeatureButton(
-                icon: Icons.style,
-                label: 'Flashcards',
-                onTap: () {
-                  // Use push to keep history, pass ID for safety
-                  context.push(
-                    '/flashcards',
-                    extra: {
-                      'courseId': widget.courseId,
-                      'courseName': _course?.name ?? 'Course',
-                    },
-                  );
-                },
-              ),
+                        _buildFeatureButton(
+                          icon: Icons.folder,
+                          label: 'Resources',
+                          onTap: () {
+                            context.go(
+                              '/courses/${widget.courseId}/resources',
+                              extra: {
+                                'courseName': _course?.name ?? 'Course',
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.gapMedium * 3),
 
+                        _buildFeatureButton(
+                          icon: Icons.style,
+                          label: 'Flashcards',
+                          onTap: () {
+                            context.push(
+                              '/flashcards',
+                              extra: {
+                                'courseId': widget.courseId,
+                                'courseName': _course?.name ?? 'Course',
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.gapMedium * 3),
 
-              const SizedBox(height: 40),
-              _buildFeatureButton(
-                icon: Icons.assignment,
-                label: 'Homeworks',
-                onTap: () {
-                  context.go(
-                    '/courses/${widget.courseId}/homeworks',
-                    extra: {
-                      'courseName': _course?.name ?? 'Course',
-                    },
-                  );
-                },
-              ),
-              const SizedBox(height: 40),
-              _buildFeatureButton(
-                icon: Icons.quiz,
-                label: 'Exams',
-                onTap: () {
-                  context.go(
-                    '/courses/${widget.courseId}/exams',
-                    extra: {
-                      'courseName': _course?.name ?? 'Course',
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
+                        _buildFeatureButton(
+                          icon: Icons.assignment,
+                          label: 'Homeworks',
+                          onTap: () {
+                            context.go(
+                              '/courses/${widget.courseId}/homeworks',
+                              extra: {
+                                'courseName': _course?.name ?? 'Course',
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.gapMedium * 3),
+
+                        _buildFeatureButton(
+                          icon: Icons.quiz,
+                          label: 'Exams',
+                          onTap: () {
+                            context.go(
+                              '/courses/${widget.courseId}/exams',
+                              extra: {
+                                'courseName': _course?.name ?? 'Course',
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
     );
   }
 
@@ -160,19 +178,23 @@ class _DetailedCourseFeaturesScreenState
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
         decoration: BoxDecoration(
-          color: const Color(0xFF003366),
+          color: AppColors.primaryBlue,
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Center(
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.3,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: AppColors.textOnPrimary),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: AppTextStyles.listButton.copyWith(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -183,7 +205,9 @@ class _DetailedCourseFeaturesScreenState
       context: context,
       builder: (context) => AlertDialog(
         title: Text(feature),
-        content: Text('$feature feature for ${_course?.name}\n\nComing soon!'),
+        content: Text(
+          '$feature feature for ${_course?.name}\n\nComing soon!',
+        ),
         actions: [
           TextButton(
             onPressed: () => context.pop(),
