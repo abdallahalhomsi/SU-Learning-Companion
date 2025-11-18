@@ -144,7 +144,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               return 'Email is required';
                             }
                             if (!email.endsWith('@sabanciuniv.edu')) {
-                              return 'Invalid email';
+                              return 'Invalid email, must end with @sabanciuniv.edu';
                             }
                             return null;
                           },

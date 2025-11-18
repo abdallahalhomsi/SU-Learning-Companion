@@ -158,7 +158,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                                   return 'Email is required';
                                 }
                                 if (!email.endsWith('@sabanciuniv.edu')) {
-                                  return 'Invalid email';
+                                  return 'Invalid email, must end with @sabanciuniv.edu';
                                 }
                                 return null;
                               },
