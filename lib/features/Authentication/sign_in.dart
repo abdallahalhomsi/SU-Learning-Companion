@@ -45,7 +45,7 @@ class _SignInScreenState extends State<SignInScreen> {
     }
 
     
-    context.go('/');
+    context.go('/home');
   }
 
   @override
