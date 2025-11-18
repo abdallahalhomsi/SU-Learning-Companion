@@ -5,6 +5,9 @@ import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/exam.dart';
 import '../../common/repos/exams_repo.dart';
 import '../../data/fakes/fake_exams_repo.dart';
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_spacing.dart';
+import '../../common/utils/app_text_styles.dart';
 
 class ExamFormScreen extends StatefulWidget {
   final String courseId;
@@ -53,8 +56,18 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       setState(() {
         _selectedDate = picked;
         final months = [
-          'Jan','Feb','Mar','Apr','May','Jun',
-          'Jul','Aug','Sep','Oct','Nov','Dec'
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec'
         ];
         _dateController.text =
         '${picked.day} ${months[picked.month - 1]} ${picked.year}';
@@ -82,9 +95,8 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
   }
 
   Future<void> _submit() async {
-    // 1) validate text fields
     if (!_formKey.currentState!.validate()) {
-      // smooth hint to user when something is wrong
+      // same alert dialog style as before
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -104,7 +116,6 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       return;
     }
 
-    // 2) still make sure date & time were picked (extra safety)
     if (_selectedDate == null || _selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -141,9 +152,10 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF003366),
+        backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios,
+              color: AppColors.textOnPrimary, size: 20),
           onPressed: () {
             context.go(
               '/courses/${widget.courseId}/exams',
@@ -153,30 +165,24 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
         ),
         title: const Text(
           'Add Exam',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTextStyles.appBarTitle,
         ),
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        padding: AppSpacing.screen,
         child: Column(
           children: [
             Expanded(
               child: Container(
                 width: double.infinity,
-                padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                padding: AppSpacing.card,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Form(
                   key: _formKey,
-                  // live validation = smoother UX
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: Column(
                     children: [
@@ -186,10 +192,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Title',
-                            errorStyle: TextStyle(
-                              fontSize: 11,
-                              height: 1.1,
-                            ),
+                            errorStyle: AppTextStyles.errorText,
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -199,7 +202,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           },
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.gapSmall),
                       _buildFieldWrapper(
                         child: TextFormField(
                           controller: _dateController,
@@ -208,10 +211,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Date...',
-                            errorStyle: TextStyle(
-                              fontSize: 11,
-                              height: 1.1,
-                            ),
+                            errorStyle: AppTextStyles.errorText,
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -221,7 +221,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           },
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.gapSmall),
                       _buildFieldWrapper(
                         child: TextFormField(
                           controller: _timeController,
@@ -230,10 +230,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Time',
-                            errorStyle: TextStyle(
-                              fontSize: 11,
-                              height: 1.1,
-                            ),
+                            errorStyle: AppTextStyles.errorText,
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -248,13 +245,13 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.gapMedium),
             SizedBox(
               width: double.infinity,
               height: 46,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF003366),
+                  backgroundColor: AppColors.primaryBlue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
@@ -262,11 +259,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                 onPressed: _submit,
                 child: const Text(
                   'Submit',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.primaryButton,
                 ),
               ),
             ),
@@ -281,7 +274,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFE0E0E0),
+        color: AppColors.inputGrey,
         borderRadius: BorderRadius.circular(6),
       ),
       alignment: Alignment.centerLeft,
