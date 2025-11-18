@@ -11,6 +11,7 @@ class FlashcardFormSheetGroup extends StatefulWidget {
 }
 
 class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   String? _selectedDifficulty;
 
@@ -21,21 +22,42 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
   }
 
   void _submit() {
-    final title = _titleController.text.trim();
-    final difficulty = _selectedDifficulty;
+    // Validate Text Fields
+    if (!_formKey.currentState!.validate()) {
+      _showErrorDialog();
+      return;
+    }
 
-    if (title.isEmpty || difficulty == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in title and difficulty')),
-      );
+    // Validate Dropdown (Manual check for group difficulty)
+    if (_selectedDifficulty == null) {
+      _showErrorDialog();
       return;
     }
 
     // return data to previous screen
     Navigator.of(context).pop(<String, String>{
-      'title': title,
-      'difficulty': difficulty,
+      'title': _titleController.text.trim(),
+      'difficulty': _selectedDifficulty!,
     });
+  }
+
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Please fix the form'),
+        content: const Text(
+          'Some fields are missing or invalid.\n'
+              'Fields with red text need your attention.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -61,7 +83,7 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         child: Column(
           children: [
             Expanded(
@@ -69,70 +91,81 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                child: Column(
-                  children: [
-                    _InputBox(
-                      child: TextField(
-                        controller: _titleController,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Title',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _InputBox(
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          hint: const Text('Select Difficulty'),
-                          value: _selectedDifficulty,
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'Easy',
-                              child: Text('Easy'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Medium',
-                              child: Text('Medium'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Hard',
-                              child: Text('Hard'),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedDifficulty = value;
-                            });
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                child: Form(
+                  key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: Column(
+                    children: [
+                      _buildFieldWrapper(
+                        child: TextFormField(
+                          controller: _titleController,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            hintText: 'Title',
+                            errorStyle: TextStyle(fontSize: 11, height: 1.1),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Title is required';
+                            }
+                            return null;
                           },
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      _buildFieldWrapper(
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            isExpanded: true,
+                            hint: const Text('Select Difficulty'),
+                            value: _selectedDifficulty,
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'Easy',
+                                child: Text('Easy'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Medium',
+                                child: Text('Medium'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Hard',
+                                child: Text('Hard'),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedDifficulty = value;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
+              height: 46,
               child: ElevatedButton(
                 onPressed: _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryBlue,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                 ),
                 child: const Text(
                   'Submit',
                   style: TextStyle(
                     color: Colors.white,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -143,23 +176,16 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
       ),
     );
   }
-}
 
-class _InputBox extends StatelessWidget {
-  final Widget child;
-
-  const _InputBox({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildFieldWrapper({required Widget child}) {
     return Container(
-      height: 52,
-      alignment: Alignment.center,
+      height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF2F2F2),
-        borderRadius: BorderRadius.circular(8),
+        color: const Color(0xFFE0E0E0),
+        borderRadius: BorderRadius.circular(6),
       ),
+      alignment: Alignment.centerLeft,
       child: child,
     );
   }
