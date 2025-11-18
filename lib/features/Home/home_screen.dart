@@ -1,191 +1,191 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+import '../../common/models/course.dart';
+import '../../common/repos/courses_repo.dart';
+import '../../data/fakes/fake_courses_repo.dart';
+import '../../common/widgets/app_scaffold.dart';
 
-  static const _suBlueDark = Color(0xFF0D3B66);
+class DetailedCourseFeaturesScreen extends StatefulWidget {
+  final String courseId;
+
+  const DetailedCourseFeaturesScreen({
+    Key? key,
+    required this.courseId,
+  }) : super(key: key);
+
+  @override
+  State<DetailedCourseFeaturesScreen> createState() =>
+      _DetailedCourseFeaturesScreenState();
+}
+
+class _DetailedCourseFeaturesScreenState
+    extends State<DetailedCourseFeaturesScreen> {
+  final CoursesRepo _coursesRepo = FakeCoursesRepo();
+  Course? _course;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCourse();
+  }
+
+  Future<void> _loadCourse() async {
+    setState(() => _isLoading = true);
+    final course = await _coursesRepo.getCourseById(widget.courseId);
+    setState(() {
+      _course = course;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> reminders = [
-      {'course': 'CS303', 'detail': 'Due Tomorrow'},
-      {'course': 'CS300', 'detail': 'Due Today'},
-      {'course': 'CS306', 'detail': 'Due Next Week'},
-      {'course': 'CS310', 'detail': 'Due Friday'},
-    ];
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFD),
-
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.fromLTRB(16, 40, 16, 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Image.asset(
-                    'lib/common/assets/sabanci_logo.jpeg',
-                    height: 75,
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1F7ACF),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
+    return AppScaffold(
+      currentIndex: 0,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF003366),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          onPressed: () {
+            context.go('/home');
+          },
+        ),
+        title: Text(
+          _course?.name ?? 'Course Name',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _course == null
+              ? const Center(child: Text('Course not found'))
+              : Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 40,
+                      vertical: 60,
                     ),
-                    onPressed: () {
-                      context.go('/courses/add');
-                    },
-                    child: const Text(
-                      '+ ADD COURSE',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-
-                  SizedBox(
-                    height: 170,
-                    child: Scrollbar(
-                      thumbVisibility: true,         // Shows scrollbar always (helpful for UX)
-                      thickness: 6,                  // Optional: makes scrollbar more visible
-                      radius: const Radius.circular(12),
-                      child: ListView.separated(
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: reminders.length,
-                        itemBuilder: (context, index) {
-                          final reminder = reminders[index];
-                          return Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: ListTile(
-                              leading: const Icon(
-                                Icons.info_outline,
-                                color: Colors.redAccent,
-                              ),
-                              title: Text(reminder['course']!),
-                              subtitle: Text(reminder['detail']!),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.close),
-                                onPressed: () {},
-                              ),
-                            ),
-                          );
-                        },
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      color: _suBlueDark,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.all(16),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Text(
-                          'YOUR COURSES',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: .6,
-                          ),
+                        _buildFeatureButton(
+                          icon: Icons.note,
+                          label: 'Notes',
+                          onTap: () => _showFeatureDialog('Notes'),
                         ),
-                        const SizedBox(height: 6),
-                        const Divider(color: Colors.white24),
-                        const SizedBox(height: 8),
-
-                        ...['CS310', 'CS300', 'CS306', 'CS303', 'MATH 306']
-                            .map(
-                              (code) => _CourseRow(
-                            code: code,
-                            onTap: () {
-                              context.go('/courses/detail/$code');
-                            },
-                          ),
+                        const SizedBox(height: 40),
+                        _buildFeatureButton(
+                          icon: Icons.folder,
+                          label: 'Resources',
+                          onTap: () {
+                            context.go(
+                              '/courses/${widget.courseId}/resources',
+                              extra: {
+                                'courseName': _course?.name ?? 'Course',
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 40),
+                        _buildFeatureButton(
+                          icon: Icons.style,
+                          label: 'Flashcards',
+                          onTap: () {
+                            context.push(
+                              '/flashcards',
+                              extra: {
+                                'courseId': widget.courseId,
+                                'courseName': _course?.name ?? 'Course',
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 40),
+                        _buildFeatureButton(
+                          icon: Icons.assignment,
+                          label: 'Homeworks',
+                          onTap: () {
+                            context.go(
+                              '/courses/${widget.courseId}/homeworks',
+                              extra: {
+                                'courseName': _course?.name ?? 'Course',
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 40),
+                        _buildFeatureButton(
+                          icon: Icons.quiz,
+                          label: 'Exams',
+                          onTap: () {
+                            context.go(
+                              '/courses/${widget.courseId}/exams',
+                              extra: {
+                                'courseName': _course?.name ?? 'Course',
+                              },
+                            );
+                          },
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+                ),
+    );
+  }
 
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        backgroundColor: _suBlueDark,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white70,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              break;
-            case 1:
-              context.go('/calendar');
-              break;
-            case 2:
-              context.go('/profile');
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
-        ],
+  Widget _buildFeatureButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+        decoration: BoxDecoration(
+          color: const Color(0xFF003366),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ),
       ),
     );
   }
-}
 
-class _CourseRow extends StatelessWidget {
-  final String code;
-  final VoidCallback onTap;
-
-  const _CourseRow({
-    required this.code,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.star_border, color: Colors.white),
-      title: Text(
-        code,
-        style: const TextStyle(color: Colors.white),
+  void _showFeatureDialog(String feature) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(feature),
+        content: Text(
+          '$feature feature for ${_course?.name}\n\nComing soon!',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
-      trailing: const Icon(Icons.chevron_right, color: Colors.white70),
-      onTap: onTap,
     );
   }
 }
