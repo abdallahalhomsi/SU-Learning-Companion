@@ -61,31 +61,35 @@ class HomeScreen extends StatelessWidget {
 
                   SizedBox(
                     height: 170,
-                    child: ListView.separated(
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: reminders.length,
-                      itemBuilder: (context, index) {
-                        final reminder = reminders[index];
-                        return Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: ListTile(
-                            leading: const Icon(
-                              Icons.info_outline,
-                              color: Colors.redAccent,
+                    child: Scrollbar(
+                      thumbVisibility: true,         // Shows scrollbar always (helpful for UX)
+                      thickness: 6,                  // Optional: makes scrollbar more visible
+                      radius: const Radius.circular(12),
+                      child: ListView.separated(
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: reminders.length,
+                        itemBuilder: (context, index) {
+                          final reminder = reminders[index];
+                          return Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                            title: Text(reminder['course']!),
-                            subtitle: Text(reminder['detail']!),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () {},
+                            child: ListTile(
+                              leading: const Icon(
+                                Icons.info_outline,
+                                color: Colors.redAccent,
+                              ),
+                              title: Text(reminder['course']!),
+                              subtitle: Text(reminder['detail']!),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () {},
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                      separatorBuilder: (_, __) =>
-                      const SizedBox(height: 8),
+                          );
+                        },
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      ),
                     ),
                   ),
 
