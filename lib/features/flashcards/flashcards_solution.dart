@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../../common/widgets/app_scaffold.dart';
 
 class FlashcardSolutionScreen extends StatelessWidget {
-  final String cardTitle;     // e.g. "Card 1: Define xyz based on abc"
-  final String solutionText;  // full solution text to show
+  final String cardTitle;   // This will hold the Question
+  final String solutionText; // This holds the Answer
 
   const FlashcardSolutionScreen({
     super.key,
@@ -17,17 +17,17 @@ class FlashcardSolutionScreen extends StatelessWidget {
     const Color primaryBlue = Color(0xFF003366);
 
     return AppScaffold(
-      currentIndex: 0, // same as other course / flashcard pages
+      currentIndex: 0,
       appBar: AppBar(
         backgroundColor: primaryBlue,
         centerTitle: true,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => context.pop(),
         ),
         title: const Text(
-          'Solution Card X',
+          'Solution Card',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -35,52 +35,57 @@ class FlashcardSolutionScreen extends StatelessWidget {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Top card with the question text
-            SizedBox(
+            Container(
               width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              padding: const EdgeInsets.all(20),
+              constraints: const BoxConstraints(minHeight: 80),
+              decoration: BoxDecoration(
+                color: primaryBlue,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
-                  elevation: 2,
-                ),
+                ],
+              ),
+              child: Center(
                 child: Text(
-                  cardTitle,
+                  cardTitle, // The Question Text
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // Large light-grey solution area
             Expanded(
               child: Container(
                 width: double.infinity,
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF2F2F2),
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                 child: SingleChildScrollView(
-                  child: Text(
-                    solutionText,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.black87,
-                      height: 1.4,
+                  child: Center(
+                    child: Text(
+                      solutionText,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                        height: 1.5,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
