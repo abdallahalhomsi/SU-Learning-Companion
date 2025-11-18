@@ -23,6 +23,8 @@ import '../features/flashcards/flashcards_questions_screen.dart';
 import '../features/flashcards/flashcards_solution.dart';
 import '../features/flashcards/flashcards_topics.dart';
 import '../features/Profile/profile_screen.dart';
+import '../features/notes/notes_list_screen.dart';
+
 class AppRouter {
   static final router = GoRouter(
     initialLocation: '/welcome',
@@ -116,6 +118,22 @@ class AppRouter {
           );
         },
       ),
+
+      GoRoute(
+        path: '/courses/:courseId/notes',
+        builder: (context, state) {
+          final courseId = state.pathParameters['courseId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+
+          // If your NotesListScreen needs the course name, we pass it via extra
+          final courseName = extra?['courseName'] as String? ?? 'Course';
+
+          return NotesListScreen(
+            courseName: courseName,
+          );
+        },
+      ),
+
       GoRoute(
         path: '/courses/:courseId/homeworks',
         builder: (context, state) {
