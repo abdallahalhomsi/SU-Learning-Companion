@@ -1,7 +1,8 @@
-// This file makes up the components of the Home Screen,
-// Which displays the main page of the app, courses registred, and an add course feature.
+// This file makes up the components of the Home Screen, // Which displays the main page of the app,
+// courses registred, and an add course feature.
 // Uses of Utility classes for consistent styling and spacing across the app.
 // Custom fonts are being used.
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../common/models/course.dart';
@@ -31,6 +32,7 @@ class HomeScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
+
             Container(
               color: AppColors.cardBackground,
               padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
@@ -68,11 +70,13 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
+
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  //scrollable reminders box
                   SizedBox(
                     height: 170,
                     child: Scrollbar(
@@ -115,6 +119,7 @@ class HomeScreen extends StatelessWidget {
 
                   const SizedBox(height: 32),
 
+                  // ur courses box
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.primaryBlue,
@@ -165,8 +170,36 @@ class HomeScreen extends StatelessWidget {
                                 return _CourseRow(
                                   code: course.code,
                                   onTap: () {
-                                    context.go(
-                                      '/courses/detail/${course.id}',
+                                    context.go('/courses/detail/${course.id}');
+                                  },
+                                  onDelete: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          title: Text("Delete ${course.code}?"),
+                                          content: const Text(
+                                              "Are you sure you want to remove this course?"),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                              child: const Text("Cancel"),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+
+                                                Navigator.pop(context);
+                                              },
+                                              child: const Text(
+                                                "Delete",
+                                                style: TextStyle(
+                                                    color: Colors.red),
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
                                     );
                                   },
                                 );
@@ -184,6 +217,7 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
 
+      //bottom nav bar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         backgroundColor: AppColors.primaryBlue,
@@ -217,10 +251,12 @@ class HomeScreen extends StatelessWidget {
 class _CourseRow extends StatelessWidget {
   final String code;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
   const _CourseRow({
     required this.code,
     required this.onTap,
+    this.onDelete,
   });
 
   @override
@@ -236,8 +272,16 @@ class _CourseRow extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
-      trailing:
-      const Icon(Icons.chevron_right, color: Colors.white70),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.chevron_right, color: Colors.white70),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.white70),
+            onPressed: onDelete,
+          ),
+        ],
+      ),
       onTap: onTap,
     );
   }
