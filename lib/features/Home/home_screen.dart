@@ -1,10 +1,12 @@
-// This file makes up the components of the Home Screen, // Which displays the main page of the app,
-// courses registred, and an add course feature.
-// Uses of Utility classes for consistent styling and spacing across the app.
+// This file makes up the components of the Home Screen,
+// which displays the main page of the app, courses registered,
+// and an add course feature.
+// Uses utility classes for consistent styling and spacing across the app.
 // Custom fonts are being used.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../common/models/course.dart';
 import '../../common/repos/courses_repo.dart';
 import '../../data/fakes/fake_courses_repo.dart';
@@ -12,27 +14,40 @@ import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final CoursesRepo _coursesRepo = FakeCoursesRepo();
+
+  final List<Map<String, String>> _reminders = const [
+    {'course': 'CS301', 'detail': 'Due Tomorrow'},
+    {'course': 'CS306', 'detail': 'Due Today'},
+    {'course': 'CS306', 'detail': 'Due Next Week'},
+    {'course': 'CS310', 'detail': 'Due Friday'},
+  ];
+
+  Future<void> _deleteCourse(String courseId) async {
+    await _coursesRepo.removeCourse(courseId);
+    if (!mounted) return;
+    setState(() {
+      // triggers FutureBuilder to run _coursesRepo.getCourses() again
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> reminders = [
-      {'course': 'CS301', 'detail': 'Due Tomorrow'},
-      {'course': 'CS306', 'detail': 'Due Today'},
-      {'course': 'CS306', 'detail': 'Due Next Week'},
-      {'course': 'CS310', 'detail': 'Due Friday'},
-    ];
-
-    final CoursesRepo coursesRepo = FakeCoursesRepo();
-
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
 
       body: SingleChildScrollView(
         child: Column(
           children: [
-
+            // Top bar with logo + add course button
             Container(
               color: AppColors.cardBackground,
               padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
@@ -70,13 +85,13 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
-
+            // Main content
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  //scrollable reminders box
+                  // Scrollable reminders box
                   SizedBox(
                     height: 170,
                     child: Scrollbar(
@@ -85,9 +100,9 @@ class HomeScreen extends StatelessWidget {
                       radius: const Radius.circular(12),
                       child: ListView.separated(
                         physics: const BouncingScrollPhysics(),
-                        itemCount: reminders.length,
+                        itemCount: _reminders.length,
                         itemBuilder: (context, index) {
-                          final reminder = reminders[index];
+                          final reminder = _reminders[index];
                           return Card(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
@@ -119,7 +134,7 @@ class HomeScreen extends StatelessWidget {
 
                   const SizedBox(height: 32),
 
-                  // ur courses box
+                  // "YOUR COURSES" box
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.primaryBlue,
@@ -143,7 +158,7 @@ class HomeScreen extends StatelessWidget {
                         const SizedBox(height: AppSpacing.gapSmall),
 
                         FutureBuilder<List<Course>>(
-                          future: coursesRepo.getCourses(),
+                          future: _coursesRepo.getCourses(),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
@@ -170,31 +185,36 @@ class HomeScreen extends StatelessWidget {
                                 return _CourseRow(
                                   code: course.code,
                                   onTap: () {
-                                    context.go('/courses/detail/${course.id}');
+                                    context.go(
+                                      '/courses/detail/${course.id}',
+                                    );
                                   },
                                   onDelete: () {
                                     showDialog(
                                       context: context,
                                       builder: (context) {
                                         return AlertDialog(
-                                          title: Text("Delete ${course.code}?"),
+                                          title:
+                                          Text('Delete ${course.code}?'),
                                           content: const Text(
-                                              "Are you sure you want to remove this course?"),
+                                            'Are you sure you want to remove this course?',
+                                          ),
                                           actions: [
                                             TextButton(
                                               onPressed: () =>
                                                   Navigator.pop(context),
-                                              child: const Text("Cancel"),
+                                              child: const Text('Cancel'),
                                             ),
                                             TextButton(
-                                              onPressed: () {
-
+                                              onPressed: () async {
                                                 Navigator.pop(context);
+                                                await _deleteCourse(course.id);
                                               },
                                               child: const Text(
-                                                "Delete",
+                                                'Delete',
                                                 style: TextStyle(
-                                                    color: Colors.red),
+                                                  color: Colors.red,
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -217,7 +237,7 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
 
-      //bottom nav bar
+      // Bottom nav bar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         backgroundColor: AppColors.primaryBlue,
