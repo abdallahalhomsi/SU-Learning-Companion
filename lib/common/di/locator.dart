@@ -11,10 +11,13 @@ import '../repos/firestore_courses_repo.dart';
 import '../repos/firestore_exams_repo.dart';
 import '../repos/firestore_homeworks_repo.dart';
 import '../repos/firestore_notes_repo.dart';
+import '../repos/flashcards_repo.dart';
+import '../repos/firestore_flashcards_repo.dart';
 
 List<SingleChildWidget> buildProviders() => [
   Provider<CoursesRepo>(create: (_) => FirestoreCoursesRepo()),
   Provider<ExamsRepo>(create: (_) => FirestoreExamsRepo()),
   Provider<HomeworksRepo>(create: (_) => FirestoreHomeworksRepo()),
   Provider<NotesRepo>(create: (_) => FirestoreNotesRepo()),
+  Provider<FlashcardsRepo>(create: (_) => FirestoreFlashcardsRepo()),
 ];

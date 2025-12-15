@@ -1,22 +1,24 @@
-// This file makes up the components of the Flashcards Topics Screen,
-// Which displays a list of flashcard groups for a specific course.
-// Uses of Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
+// lib/features/flashcards/flashcards_topics.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
 
+import '../../common/models/flashcard.dart';
+import '../../common/repos/flashcards_repo.dart';
+
 class FlashcardsTopicsScreen extends StatefulWidget {
-  final String? courseId;
+  final String courseId;
   final String courseName;
 
   const FlashcardsTopicsScreen({
     super.key,
-    this.courseId,
-    this.courseName = 'Course Name',
+    required this.courseId,
+    required this.courseName,
   });
 
   @override
@@ -24,16 +26,62 @@ class FlashcardsTopicsScreen extends StatefulWidget {
 }
 
 class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
-  static final List<_FlashcardGroup> _groups = [
-    _FlashcardGroup(title: 'Chapter X', difficulty: 'Easy'),
-    _FlashcardGroup(title: 'Lecture Slides Y', difficulty: 'Medium'),
-    _FlashcardGroup(title: 'Quiz 1', difficulty: 'Hard'),
-  ];
+  late final FlashcardsRepo _repo;
+  bool _repoReady = false;
 
-  void _deleteGroup(int index) {
+  late Future<List<FlashcardGroup>> _future;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_repoReady) {
+      _repo = context.read<FlashcardsRepo>();
+      _repoReady = true;
+      _future = _repo.getGroupsForCourse(widget.courseId);
+    }
+  }
+
+  void _refresh() {
     setState(() {
-      _groups.removeAt(index);
+      _future = _repo.getGroupsForCourse(widget.courseId);
     });
+  }
+
+  Future<void> _deleteGroup(FlashcardGroup group) async {
+    try {
+      await _repo.removeGroup(courseId: widget.courseId, groupId: group.id);
+      if (!mounted) return;
+      _refresh();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete group: $e')),
+      );
+    }
+  }
+
+  Future<void> _addGroup() async {
+    final result = await context.push<Map<String, String>>('/flashcards/groups/add');
+    if (result == null) return;
+
+    final group = FlashcardGroup(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      courseId: widget.courseId,
+      title: result['title'] ?? 'New Group',
+      difficulty: result['difficulty'] ?? 'Easy',
+      createdAt: DateTime.now(),
+    );
+
+    try {
+      await _repo.addGroup(group);
+      if (!mounted) return;
+      _refresh();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add group: $e')),
+      );
+    }
   }
 
   @override
@@ -47,15 +95,7 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, size: 20),
           color: AppColors.textOnPrimary,
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else if (widget.courseId != null) {
-              context.go('/courses/detail/${widget.courseId}');
-            } else {
-              context.go('/home');
-            }
-          },
+          onPressed: () => context.go('/courses/detail/${widget.courseId}'),
         ),
         title: Text(
           'Flash Cards : ${widget.courseName}',
@@ -73,32 +113,47 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: const Color(0xFFE5EAF1)),
                 ),
-                child: _groups.isEmpty
-                    ? const Center(
-                  child: Text(
-                    'No flashcard groups yet.',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 14,
-                    ),
-                  ),
-                )
-                    : ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _groups.length,
-                  separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppSpacing.gapMedium),
-                  itemBuilder: (context, index) {
-                    final group = _groups[index];
-                    return _GroupButton(
-                      title: '${group.title}: ${group.difficulty}',
-                      onTap: () {
-                        context.push(
-                          '/flashcards/questions',
-                          extra: group.title,
+                child: FutureBuilder<List<FlashcardGroup>>(
+                  future: _future,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+
+                    final groups = snapshot.data ?? [];
+                    if (groups.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'No flashcard groups yet.',
+                          style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                        ),
+                      );
+                    }
+
+                    return ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: groups.length,
+                      separatorBuilder: (_, __) =>
+                      const SizedBox(height: AppSpacing.gapMedium),
+                      itemBuilder: (context, index) {
+                        final group = groups[index];
+                        return _GroupButton(
+                          title: '${group.title}: ${group.difficulty}',
+                          onTap: () {
+                            context.push(
+                              '/courses/${widget.courseId}/flashcards/${group.id}/questions',
+                              extra: {
+                                'groupTitle': group.title,
+                                'courseName': widget.courseName,
+                              },
+                            );
+                          },
+                          onDelete: () => _deleteGroup(group),
                         );
                       },
-                      onDelete: () => _deleteGroup(index),
                     );
                   },
                 ),
@@ -108,28 +163,11 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () async {
-                  final result = await context.push<Map<String, String>>(
-                    '/flashcards/groups/add',
-                  );
-
-                  if (result != null) {
-                    setState(() {
-                      _groups.add(
-                        _FlashcardGroup(
-                          title: result['title'] ?? 'New Group',
-                          difficulty: result['difficulty'] ?? 'Easy',
-                        ),
-                      );
-                    });
-                  }
-                },
+                onPressed: _addGroup,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 child: const Text(
                   '+ Add Flash Card Group',
@@ -142,13 +180,6 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
       ),
     );
   }
-}
-
-class _FlashcardGroup {
-  final String title;
-  final String difficulty;
-
-  _FlashcardGroup({required this.title, required this.difficulty});
 }
 
 class _GroupButton extends StatelessWidget {
@@ -176,11 +207,7 @@ class _GroupButton extends StatelessWidget {
             child: InkWell(
               onTap: onTap,
               child: Center(
-                child: Text(
-                  title,
-                  style: AppTextStyles.listButton,
-                  textAlign: TextAlign.center,
-                ),
+                child: Text(title, style: AppTextStyles.listButton, textAlign: TextAlign.center),
               ),
             ),
           ),

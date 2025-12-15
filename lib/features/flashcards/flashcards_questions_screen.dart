@@ -1,49 +1,96 @@
-// This file makes up the components of the Flashcards Questions Screen,
-// Which displays a list of flashcard questions for a specific group.
-// Uses of Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
+// lib/features/flashcards/flashcards_questions_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 
+import '../../common/models/flashcard.dart';
+import '../../common/repos/flashcards_repo.dart';
+
 class FlashcardsQuestionsScreen extends StatefulWidget {
+  final String courseId;
+  final String courseName;
+  final String groupId;
   final String groupTitle;
 
   const FlashcardsQuestionsScreen({
     super.key,
+    required this.courseId,
+    required this.courseName,
+    required this.groupId,
     required this.groupTitle,
   });
 
   @override
-  State<FlashcardsQuestionsScreen> createState() =>
-      _FlashcardsQuestionsScreenState();
+  State<FlashcardsQuestionsScreen> createState() => _FlashcardsQuestionsScreenState();
 }
 
 class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
-  static final Map<String, List<_FlashCard>> _storage = {
-    'Chapter X': [
-      _FlashCard(
-        question: 'Define xyz based on abc',
-        answer: 'Solution: xyz is based on abc because...',
-      ),
-      _FlashCard(
-        question: 'What is the powerhouse of the cell?',
-        answer: 'Mitochondria',
-      ),
-    ],
-  };
+  late final FlashcardsRepo _repo;
+  bool _repoReady = false;
 
-  List<_FlashCard> get _currentCards {
-    _storage.putIfAbsent(widget.groupTitle, () => []);
-    return _storage[widget.groupTitle]!;
+  late Future<List<Flashcard>> _future;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_repoReady) {
+      _repo = context.read<FlashcardsRepo>();
+      _repoReady = true;
+      _future = _repo.getCards(courseId: widget.courseId, groupId: widget.groupId);
+    }
   }
 
-  void _deleteCard(int index) {
+  void _refresh() {
     setState(() {
-      _currentCards.removeAt(index);
+      _future = _repo.getCards(courseId: widget.courseId, groupId: widget.groupId);
     });
+  }
+
+  Future<void> _deleteCard(Flashcard card) async {
+    try {
+      await _repo.removeCard(
+        courseId: widget.courseId,
+        groupId: widget.groupId,
+        cardId: card.id,
+      );
+      if (!mounted) return;
+      _refresh();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete card: $e')),
+      );
+    }
+  }
+
+  Future<void> _addCard() async {
+    final result = await context.push<Map<String, String>>('/flashcards/create');
+    if (result == null) return;
+
+    final card = Flashcard(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      courseId: widget.courseId,
+      groupId: widget.groupId,
+      question: result['question'] ?? 'New Question',
+      solution: result['solution'] ?? 'New Answer',
+      difficulty: result['difficulty'] ?? 'Easy',
+      createdAt: DateTime.now(),
+    );
+
+    try {
+      await _repo.addCard(card);
+      if (!mounted) return;
+      _refresh();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add card: $e')),
+      );
+    }
   }
 
   @override
@@ -74,32 +121,40 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
                   color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: _currentCards.isEmpty
-                    ? const Center(
-                  child: Text(
-                    'No cards created yet.',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                )
-                    : ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _currentCards.length,
-                  separatorBuilder: (_, __) =>
-                  const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final card = _currentCards[index];
-                    return _CardItem(
-                      question: card.question,
-                      onTap: () {
-                        context.push(
-                          '/flashcards/solution',
-                          extra: {
-                            'title': card.question,
-                            'solution': card.answer,
+                child: FutureBuilder<List<Flashcard>>(
+                  future: _future,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+
+                    final cards = snapshot.data ?? [];
+                    if (cards.isEmpty) {
+                      return const Center(
+                        child: Text('No cards created yet.', style: TextStyle(fontSize: 14)),
+                      );
+                    }
+
+                    return ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: cards.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final card = cards[index];
+                        return _CardItem(
+                          question: card.question,
+                          onTap: () {
+                            context.push(
+                              '/flashcards/solution',
+                              extra: {'title': card.question, 'solution': card.solution},
+                            );
                           },
+                          onDelete: () => _deleteCard(card),
                         );
                       },
-                      onDelete: () => _deleteCard(index),
                     );
                   },
                 ),
@@ -109,33 +164,13 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () async {
-                  final result = await context.push<Map<String, String>>(
-                    '/flashcards/create',
-                  );
-
-                  if (result != null) {
-                    setState(() {
-                      _currentCards.add(
-                        _FlashCard(
-                          question: result['question'] ?? 'New Question',
-                          answer: result['solution'] ?? 'New Answer',
-                        ),
-                      );
-                    });
-                  }
-                },
+                onPressed: _addCard,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: const Text(
-                  '+ Create Flash Card',
-                  style: AppTextStyles.primaryButton,
-                ),
+                child: const Text('+ Create Flash Card', style: AppTextStyles.primaryButton),
               ),
             ),
           ],
@@ -143,16 +178,6 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
       ),
     );
   }
-}
-
-class _FlashCard {
-  final String question;
-  final String answer;
-
-  _FlashCard({
-    required this.question,
-    required this.answer,
-  });
 }
 
 class _CardItem extends StatelessWidget {

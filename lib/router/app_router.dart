@@ -192,24 +192,46 @@ class AppRouter {
         },
       ),
 
-      // FLASHCARDS
+      // ===========================
+      // FLASHCARDS (FIXED)
+      // ===========================
+
+      // Topics (Groups) for a course
       GoRoute(
-        path: '/flashcards',
+        path: '/courses/:courseId/flashcards',
         builder: (context, state) {
+          final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
+          final courseName = extra?['courseName'] as String? ?? 'Course';
+
           return FlashcardsTopicsScreen(
-            courseId: extra?['courseId'],
-            courseName: extra?['courseName'] ?? 'Course Name',
+            courseId: courseId,
+            courseName: courseName,
           );
         },
       ),
+
+      // Questions (Cards) for a group in a course
       GoRoute(
-        path: '/flashcards/questions',
+        path: '/courses/:courseId/flashcards/:groupId/questions',
         builder: (context, state) {
-          final groupTitle = state.extra as String? ?? 'Chapter';
-          return FlashcardsQuestionsScreen(groupTitle: groupTitle);
+          final courseId = state.pathParameters['courseId']!;
+          final groupId = state.pathParameters['groupId']!;
+
+          final extra = state.extra as Map<String, dynamic>?;
+          final groupTitle = extra?['groupTitle'] as String? ?? 'Group';
+          final courseName = extra?['courseName'] as String? ?? 'Course';
+
+          return FlashcardsQuestionsScreen(
+            courseId: courseId,
+            courseName: courseName,
+            groupId: groupId,
+            groupTitle: groupTitle,
+          );
         },
       ),
+
+      // Solution (global)
       GoRoute(
         path: '/flashcards/solution',
         builder: (context, state) {
@@ -222,10 +244,14 @@ class AppRouter {
           );
         },
       ),
+
+      // Add group (global)
       GoRoute(
         path: '/flashcards/groups/add',
         builder: (context, state) => const FlashcardFormSheetGroup(),
       ),
+
+      // Create card (global)
       GoRoute(
         path: '/flashcards/create',
         builder: (context, state) => const FlashcardFormSheetQuestion(),

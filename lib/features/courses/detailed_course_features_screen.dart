@@ -126,11 +126,8 @@ class _DetailedCourseFeaturesScreenState
                 label: 'Flashcards',
                 onTap: () {
                   context.push(
-                    '/flashcards',
-                    extra: {
-                      'courseId': widget.courseId,
-                      'courseName': _course!.name,
-                    },
+                    '/courses/${widget.courseId}/flashcards',
+                    extra: {'courseName': _course!.name},
                   );
                 },
               ),
