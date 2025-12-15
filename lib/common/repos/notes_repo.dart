@@ -1,9 +1,13 @@
-// This abstract class defines the contract for a repository that manages notes.
-// It provides methods for retrieving, adding, and removing notes.
+// lib/common/repos/notes_repo.dart
 import '../models/notes.dart';
 
 abstract class NotesRepo {
-  List<Note> getNotesForCourse(String courseId);
-  void addNote(Note note);
-  void removeNote(String noteId);
+  Future<List<Note>> getNotesForCourse(String courseId);
+
+  Future<void> addNote(Note note);
+
+  Future<void> removeNote({
+    required String courseId,
+    required String noteId,
+  });
 }

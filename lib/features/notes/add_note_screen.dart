@@ -1,12 +1,10 @@
-// This file makes up the components of the Add Notes Screen,
-// Which displays the form for the user to add a new note for a specific course.
-// Uses of Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
+// lib/features/notes/add_note_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/notes.dart';
 import '../../common/repos/notes_repo.dart';
-import '../../data/fakes/fake_notes_repo.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
@@ -30,7 +28,17 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
   final TextEditingController _title = TextEditingController();
   final TextEditingController _body = TextEditingController();
 
-  final NotesRepo _notesRepo = FakeNotesRepo();
+  late final NotesRepo _notesRepo;
+  bool _repoReady = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_repoReady) {
+      _notesRepo = context.read<NotesRepo>();
+      _repoReady = true;
+    }
+  }
 
   @override
   void dispose() {
@@ -41,7 +49,6 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
 
   Future<void> _submit() async {
     final isValid = _formKey.currentState!.validate();
-
     if (!isValid) {
       showDialog(
         context: context,
@@ -70,10 +77,16 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
       createdAt: DateTime.now(),
     );
 
-    _notesRepo.addNote(note);
-
-    if (!mounted) return;
-    Navigator.pop(context, true);
+    try {
+      await _notesRepo.addNote(note);
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add note: $e')),
+      );
+    }
   }
 
   @override
@@ -87,11 +100,7 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
           style: AppTextStyles.appBarTitle,
         ),
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: AppColors.textOnPrimary,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -108,28 +117,18 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                     controller: _title,
                     decoration: InputDecoration(
                       labelText: 'Title',
-                      labelStyle: const TextStyle(
-                        color: Colors.black87,
-                        fontSize: 14,
-                      ),
+                      labelStyle: const TextStyle(color: Colors.black87, fontSize: 14),
                       fillColor: AppColors.inputGrey.withOpacity(0.25),
                       filled: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     ),
-                    validator: (v) => v == null || v.trim().isEmpty
-                        ? 'Title is required'
-                        : null,
+                    validator: (v) => v == null || v.trim().isEmpty ? 'Title is required' : null,
                   ),
                   const SizedBox(height: AppSpacing.gapMedium),
-
-
                   Container(
                     height: 420,
                     decoration: BoxDecoration(
@@ -167,8 +166,7 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                           decoration: const InputDecoration(
                             hintText: 'Write your note...',
                             border: InputBorder.none,
-                            contentPadding:
-                            EdgeInsets.fromLTRB(16, 10, 16, 16),
+                            contentPadding: EdgeInsets.fromLTRB(16, 10, 16, 16),
                           ),
                         ),
                       ],
@@ -178,8 +176,6 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
               ),
             ),
           ),
-
-
           SizedBox(
             height: 48,
             width: double.infinity,
@@ -187,15 +183,10 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryBlue,
                 foregroundColor: AppColors.textOnPrimary,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero,
-                ),
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
               onPressed: _submit,
-              child: const Text(
-                'Submit',
-                style: AppTextStyles.primaryButton,
-              ),
+              child: const Text('Submit', style: AppTextStyles.primaryButton),
             ),
           ),
         ],
@@ -217,10 +208,7 @@ class _LinedPaperPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = lineColor
-      ..strokeWidth = 1;
-
+    final paint = Paint()..color = lineColor..strokeWidth = 1;
     double y = topOffset;
     while (y < size.height) {
       canvas.drawLine(
