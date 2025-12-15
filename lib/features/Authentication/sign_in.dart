@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 import 'package:su_learning_companion/common/utils/app_colors.dart';
 import 'package:su_learning_companion/common/utils/app_spacing.dart';
 import 'package:su_learning_companion/common/utils/app_text_styles.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:su_learning_companion/features/authentication/auth_service.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -21,6 +23,7 @@ class _SignInScreenState extends State<SignInScreen> {
   final _passwordController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
+  final _authService = AuthService();
 
   @override
   void dispose() {
@@ -29,7 +32,7 @@ class _SignInScreenState extends State<SignInScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       showDialog(
         context: context,
@@ -37,7 +40,7 @@ class _SignInScreenState extends State<SignInScreen> {
           title: const Text('Please fix the form'),
           content: const Text(
             'Some fields are missing or invalid.\n'
-            'Fields with red text need your attention.',
+                'Fields with red text need your attention.',
           ),
           actions: [
             TextButton(
@@ -50,7 +53,31 @@ class _SignInScreenState extends State<SignInScreen> {
       return;
     }
 
-    context.go('/home');
+    try {
+      await _authService.signIn(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+      context.go('/home');
+    } on FirebaseAuthException catch (e) {
+      final msg = e.message ?? e.code;
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Sign in failed'),
+          content: Text(msg),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   InputDecoration _fieldDecoration(String hint) {
@@ -84,9 +111,9 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     final labelStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: AppColors.textPrimary,
-          fontWeight: FontWeight.w500,
-        );
+      color: AppColors.textPrimary,
+      fontWeight: FontWeight.w500,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
@@ -115,8 +142,6 @@ class _SignInScreenState extends State<SignInScreen> {
                   fit: BoxFit.contain,
                 ),
                 const SizedBox(height: AppSpacing.gapMedium * 2),
-
-                
                 Container(
                   width: double.infinity,
                   padding: AppSpacing.card,
@@ -144,9 +169,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           decoration: _fieldDecoration('Email'),
                           validator: (value) {
                             final email = value?.trim() ?? '';
-                            if (email.isEmpty) {
-                              return 'Email is required';
-                            }
+                            if (email.isEmpty) return 'Email is required';
                             if (!email.endsWith('@sabanciuniv.edu')) {
                               return 'Invalid email, must end with @sabanciuniv.edu';
                             }
@@ -154,7 +177,6 @@ class _SignInScreenState extends State<SignInScreen> {
                           },
                         ),
                         const SizedBox(height: AppSpacing.gapMedium),
-
                         Text('Password', style: labelStyle),
                         const SizedBox(height: AppSpacing.gapSmall),
                         TextFormField(
@@ -163,14 +185,11 @@ class _SignInScreenState extends State<SignInScreen> {
                           decoration: _fieldDecoration('Password'),
                           validator: (value) {
                             final password = value?.trim() ?? '';
-                            if (password.isEmpty) {
-                              return 'Password is required';
-                            }
+                            if (password.isEmpty) return 'Password is required';
                             return null;
                           },
                         ),
                         const SizedBox(height: AppSpacing.gapMedium * 2),
-
                         SizedBox(
                           height: 44,
                           child: ElevatedButton(
@@ -189,7 +208,6 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                         ),
                         const SizedBox(height: AppSpacing.gapMedium),
-
                         Align(
                           alignment: Alignment.centerLeft,
                           child: GestureDetector(

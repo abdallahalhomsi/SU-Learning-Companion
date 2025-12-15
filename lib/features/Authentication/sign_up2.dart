@@ -1,13 +1,20 @@
 // This file makes up the components of the Sign Up Step 2 Screen,
-// which collects additional user information such as Major, Minor, and Department. 
+// which collects additional user information such as Major, Minor, and Department.
 // Uses of Utility classes for consistent styling and spacing across the app.
 // Custom fonts are being used.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:su_learning_companion/common/utils/app_colors.dart';
 import 'package:su_learning_companion/common/utils/app_spacing.dart';
 import 'package:su_learning_companion/common/utils/app_text_styles.dart';
+
+// ✅ Make sure these paths match YOUR project structure.
+// If your auth_service.dart is somewhere else, update the import path accordingly.
+import 'auth_service.dart';
+import 'user_profile_service.dart';
 
 class SignUpStep2Screen extends StatefulWidget {
   const SignUpStep2Screen({super.key});
@@ -23,6 +30,12 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  // ✅ Services (single instances)
+  final AuthService _authService = AuthService();
+  final UserProfileService _profileService = UserProfileService();
+
+  bool _isLoading = false;
+
   @override
   void dispose() {
     _majorController.dispose();
@@ -35,28 +48,88 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
     context.go('/signup');
   }
 
-  void _finishSignUp() {
-    if (!_formKey.currentState!.validate()) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Please fix the form'),
-          content: const Text(
-            'Some fields are missing or invalid.\n'
-            'Fields with red text need your attention.',
+  void _showDialog(String title, String msg) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(msg),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _finishSignUp() async {
+    if (_isLoading) return;
+
+    if (!_formKey.currentState!.validate()) {
+      _showDialog(
+        'Please fix the form',
+        'Some fields are missing or invalid.\nFields with red text need your attention.',
       );
       return;
     }
 
-    context.go('/login');
+    // ✅ We expect step1 to have passed data via GoRouterState.extra
+    final extra = GoRouterState.of(context).extra as Map<String, dynamic>?;
+    if (extra == null) {
+      _showDialog('Missing data', 'Go back and fill step 1 again.');
+      return;
+    }
+
+    final fullName = (extra['fullName'] as String?)?.trim() ?? '';
+    final studentId = (extra['studentId'] as String?)?.trim() ?? '';
+    final email = (extra['email'] as String?)?.trim() ?? '';
+    final password = (extra['password'] as String?)?.trim() ?? '';
+
+    if (fullName.isEmpty || studentId.isEmpty || email.isEmpty || password.isEmpty) {
+      _showDialog('Missing data', 'Go back and fill step 1 again.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // 1) Create Firebase Auth user (this auto-signs in)
+      final cred = await _authService.register(email: email, password: password);
+      final uid = cred.user?.uid;
+      if (uid == null) {
+        throw FirebaseAuthException(
+          code: 'no-user',
+          message: 'Failed to create user. Please try again.',
+        );
+      }
+
+      // 2) Create Firestore profile (recommended)
+      await _profileService.createUserProfile(
+        uid: uid,
+        fullName: fullName,
+        studentId: studentId,
+        email: email,
+        major: _majorController.text.trim(),
+        minor: _minorController.text.trim(),
+        department: _departmentController.text.trim(),
+      );
+
+      // 3) IMPORTANT: sign out so user lands on login cleanly
+      await FirebaseAuth.instance.signOut();
+
+      // 4) Redirect to login
+      if (!mounted) return;
+      context.go('/login');
+    } on FirebaseAuthException catch (e) {
+      final msg = e.message ?? e.code;
+      _showDialog('Sign up failed', msg);
+    } catch (e) {
+      _showDialog('Sign up failed', e.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   InputDecoration _inputDecoration(String hint) {
@@ -88,10 +161,10 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
   @override
   Widget build(BuildContext context) {
     final labelStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          fontSize: 14,
-          color: AppColors.textPrimary,
-          fontWeight: FontWeight.w500,
-        );
+      fontSize: 14,
+      color: AppColors.textPrimary,
+      fontWeight: FontWeight.w500,
+    );
 
     return Scaffold(
       body: Container(
@@ -117,17 +190,13 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                 ),
               ),
-
               const SizedBox(height: 40),
-
               Image.asset(
                 'lib/common/assets/sabanci_logo.jpeg',
                 height: 80,
                 fit: BoxFit.contain,
               ),
-
               const SizedBox(height: 35),
-
               Expanded(
                 child: Center(
                   child: SingleChildScrollView(
@@ -151,53 +220,50 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _label('Major', labelStyle),
+                            Text('Major', style: labelStyle),
                             const SizedBox(height: AppSpacing.gapSmall),
-                            _field(
+                            TextFormField(
                               controller: _majorController,
-                              hint: 'Major',
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Major is required';
                                 }
                                 return null;
                               },
+                              decoration: _inputDecoration('Major'),
                             ),
                             const SizedBox(height: AppSpacing.gapMedium),
-
-                            _label('Minor', labelStyle),
+                            Text('Minor', style: labelStyle),
                             const SizedBox(height: AppSpacing.gapSmall),
-                            _field(
+                            TextFormField(
                               controller: _minorController,
-                              hint: 'Minor',
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Minor is required';
                                 }
                                 return null;
                               },
+                              decoration: _inputDecoration('Minor'),
                             ),
                             const SizedBox(height: AppSpacing.gapMedium),
-
-                            _label('Department', labelStyle),
+                            Text('Department', style: labelStyle),
                             const SizedBox(height: AppSpacing.gapSmall),
-                            _field(
+                            TextFormField(
                               controller: _departmentController,
-                              hint: 'Department',
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Department is required';
                                 }
                                 return null;
                               },
+                              decoration: _inputDecoration('Department'),
                             ),
                             const SizedBox(height: AppSpacing.gapMedium * 2),
-
                             SizedBox(
                               width: double.infinity,
                               height: 44,
                               child: ElevatedButton(
-                                onPressed: _finishSignUp,
+                                onPressed: _isLoading ? null : _finishSignUp,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primaryBlue,
                                   foregroundColor: AppColors.textOnPrimary,
@@ -206,7 +272,13 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                 ),
-                                child: const Text(
+                                child: _isLoading
+                                    ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                                    : const Text(
                                   'Sign Up',
                                   style: AppTextStyles.primaryButton,
                                 ),
@@ -219,28 +291,11 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: AppSpacing.gapMedium),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _label(String text, TextStyle? style) {
-    return Text(text, style: style);
-  }
-
-  Widget _field({
-    required TextEditingController controller,
-    required String hint,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      validator: validator,
-      decoration: _inputDecoration(hint),
     );
   }
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "317884244646",
+    "project_id": "su-learning-companion",
+    "storage_bucket": "su-learning-companion.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:317884244646:android:a2cf0bde4c0467e396ca67",
+        "android_client_info": {
+          "package_name": "com.example.su_learning_companion"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0MQMa0lLoZ7FTK5YnzXhRey6bfnD--qc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

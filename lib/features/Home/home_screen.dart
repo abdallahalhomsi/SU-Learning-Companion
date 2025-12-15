@@ -14,6 +14,7 @@ import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
 
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -83,10 +84,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
+
             ),
 
             // Main content
             Padding(
+
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,19 +1,26 @@
-// This file makes up the components of the Add Course screen where users can search
-// for courses and add them to their list.
-// It includes a search bar and allows users to view search results.(no database integration yet)
-// Uses of Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
+// lib/features/courses/add_course_screen.dart
+//
+// Add Course screen (Firestore):
+// - Reads ALL available courses from: /courses (global collection you seeded)
+// - Typing filters live (by course name, code, instructor)
+// - "Add" writes the selected course into the current user’s courses:
+//     /users/{uid}/courses/{courseId}
+//
+// Requirements:
+// - Firestore has collection: courses/{courseId} with fields:
+//   courseCode, courseName, semester, instructor
+// - User is logged in (FirebaseAuth.currentUser != null)
 
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import 'package:su_learning_companion/common/models/course.dart';
 import 'package:su_learning_companion/common/utils/app_colors.dart';
 import 'package:su_learning_companion/common/utils/app_spacing.dart';
 import 'package:su_learning_companion/common/utils/app_text_styles.dart';
-import '../../common/models/course.dart';
-import '../../common/repos/courses_repo.dart';
-import '../../data/fakes/fake_courses_repo.dart';
-import '../../common/widgets/app_scaffold.dart';
+import 'package:su_learning_companion/common/widgets/app_scaffold.dart';
 
 class AddCourseScreen extends StatefulWidget {
   const AddCourseScreen({Key? key}) : super(key: key);
@@ -23,156 +30,155 @@ class AddCourseScreen extends StatefulWidget {
 }
 
 class _AddCourseScreenState extends State<AddCourseScreen> {
-  final CoursesRepo _coursesRepo = FakeCoursesRepo();
-  final TextEditingController _searchController = TextEditingController();
-  List<Course> _searchResults = [];
-  bool _isLoading = false;
+  final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
+
+  bool _loading = true;
+  List<Course> _allCourses = [];
+  List<Course> _filteredCourses = [];
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _searchController.addListener(_filterCourses);
+    _loadCoursesFromFirestore();
   }
 
-  Future<void> _searchCourses() async {
-    final query = _searchController.text.trim();
+  Future<void> _loadCoursesFromFirestore() async {
+    setState(() => _loading = true);
 
-    if (query.isEmpty) {
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('courses')
+          .orderBy('courseCode')
+          .get();
+
+      final courses = snap.docs.map((doc) {
+        final data = doc.data();
+
+        // global courses
+        final code = (data['courseCode'] ?? '').toString();
+        final name = (data['courseName'] ?? '').toString();
+        final term = (data['semester'] ?? '').toString();
+        final instructor = (data['instructor'] ?? '').toString();
+
+        // createdAt is required by your Course model.
+        // For global courses, we can set it to now (or use a stored timestamp if you added one).
+        DateTime createdAt = DateTime.now();
+        final rawCreatedAt = data['createdAt'];
+        if (rawCreatedAt is Timestamp) {
+          createdAt = rawCreatedAt.toDate();
+        }
+
+        return Course(
+          id: doc.id, // courseId "0..n"
+          code: code,
+          name: name,
+          term: term,
+          instructor: instructor.isEmpty ? null : instructor,
+          createdAt: createdAt,
+        );
+      }).toList();
+
+      if (!mounted) return;
+      setState(() {
+        _allCourses = courses;
+        _filteredCourses = courses;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a search term'),
-          duration: Duration(seconds: 2),
-        ),
+        SnackBar(content: Text('Failed to load courses: $e')),
+      );
+    }
+  }
+
+  void _filterCourses() {
+    final q = _searchController.text.trim().toLowerCase();
+
+    setState(() {
+      if (q.isEmpty) {
+        _filteredCourses = _allCourses;
+        return;
+      }
+
+      _filteredCourses = _allCourses.where((c) {
+        final name = c.name.toLowerCase();
+        final code = c.code.toLowerCase();
+        final instructor = (c.instructor ?? '').toLowerCase();
+        return name.contains(q) || code.contains(q) || instructor.contains(q);
+      }).toList();
+    });
+  }
+
+  Future<void> _addCourseToUser(Course course) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You must login first.')),
       );
       return;
     }
 
-    setState(() => _isLoading = true);
-
     try {
-      final courses = await _coursesRepo.searchCourses(query);
-      setState(() {
-        _searchResults = courses;
-        _isLoading = false;
-      });
+      final uid = user.uid;
+      final courseId = course.id;
 
-      if (mounted) {
-        _showResultsDrawer();
-      }
+      // Store the course under the user.
+      // You can add more fields later (credits, section, etc.)
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('courses')
+          .doc(courseId)
+          .set({
+        'courseId': courseId,
+        'courseCode': course.code,
+        'courseName': course.name,
+        'semester': course.term,
+        'instructor': course.instructor,
+        'addedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${course.code} added'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error searching: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add course: $e')),
+      );
     }
   }
 
-  void _showResultsDrawer() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.75,
-        decoration: const BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[400],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Search Results (${_searchResults.length})',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryBlue,
-                        ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: _searchResults.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No courses found',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: Colors.grey),
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _searchResults.length,
-                      itemBuilder: (context, i) =>
-                          _buildCourseCard(_searchResults[i]),
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _addCourse(Course course) async {
-    await _coursesRepo.addCourse(course);
-
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${course.name} added successfully!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    Navigator.pop(context); 
+  @override
+  void dispose() {
+    _searchController.removeListener(_filterCourses);
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      currentIndex: 0, 
-
+      currentIndex: 0,
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
         centerTitle: true,
-        title: const Text(
-          'Add Course',
-          style: AppTextStyles.appBarTitle,
-        ),
+        title: const Text('Add Course', style: AppTextStyles.appBarTitle),
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: AppColors.textOnPrimary,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back_ios,
+              color: AppColors.textOnPrimary, size: 20),
           onPressed: () => context.go('/home'),
         ),
       ),
-
       body: Padding(
         padding: AppSpacing.screen,
         child: Column(
@@ -181,55 +187,51 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               controller: _searchController,
               style: Theme.of(context).textTheme.bodyMedium,
               decoration: InputDecoration(
-                hintText: 'Search Course...',
+                hintText: 'Search course name, code, instructor...',
                 hintStyle: Theme.of(context)
                     .textTheme
                     .bodyMedium
                     ?.copyWith(color: Colors.grey),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: AppColors.primaryBlue,
-                ),
-                suffixIcon: _isLoading
-                    ? const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      )
-                    : IconButton(
-                        icon: const Icon(
-                          Icons.search,
-                          color: AppColors.primaryBlue,
-                        ),
-                        onPressed: _searchCourses,
-                      ),
+                prefixIcon:
+                const Icon(Icons.search, color: AppColors.primaryBlue),
                 filled: true,
                 fillColor: const Color(0xFFE8F0F8),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 15,
+                contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.gapMedium),
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _filteredCourses.isEmpty
+                  ? Center(
+                child: Text(
+                  'No courses found',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: Colors.grey),
+                ),
+              )
+                  : Scrollbar(
+                controller: _scrollController,
+                thumbVisibility: true,
+                thickness: 6,
+                radius: const Radius.circular(12),
+                child: ListView.builder(
+                  controller: _scrollController,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: _filteredCourses.length,
+                  itemBuilder: (context, i) =>
+                      _buildCourseCard(_filteredCourses[i]),
                 ),
               ),
-              onSubmitted: (_) => _searchCourses(),
             ),
-
-            const Spacer(),
-
-            Text(
-              'Enter course name or code to search',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey,
-                  ),
-            ),
-
-            const SizedBox(height: 100),
           ],
         ),
       ),
@@ -246,7 +248,6 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-           
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,9 +255,9 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                   Text(
                     course.name,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryBlue,
-                        ),
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryBlue,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -270,26 +271,25 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                   Text(
                     course.term,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey,
-                          fontStyle: FontStyle.italic,
-                        ),
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
-                  if (course.instructor != null) ...[
+                  if ((course.instructor ?? '').isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Icon(
-                          Icons.person,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
+                        const Icon(Icons.person, size: 16, color: Colors.grey),
                         const SizedBox(width: 6),
-                        Text(
-                          course.instructor!,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(color: Colors.grey[700]),
+                        Expanded(
+                          child: Text(
+                            course.instructor!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(color: Colors.grey[700]),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
@@ -297,10 +297,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                 ],
               ),
             ),
-
-            
             ElevatedButton(
-              onPressed: () => _addCourse(course),
+              onPressed: () => _addCourseToUser(course),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryBlue,
                 foregroundColor: AppColors.textOnPrimary,
@@ -308,7 +306,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               ),
               child: const Text('Add'),
             ),

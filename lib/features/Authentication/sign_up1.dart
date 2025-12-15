@@ -22,7 +22,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  TextEditingController();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -44,7 +44,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
           title: const Text('Please fix the form'),
           content: const Text(
             'Some fields are missing or invalid.\n'
-            'Fields with red text need your attention.',
+                'Fields with red text need your attention.',
           ),
           actions: [
             TextButton(
@@ -57,7 +57,15 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
       return;
     }
 
-    context.go('/signup_2');
+    context.go(
+      '/signup_2',
+      extra: {
+        'fullName': _fullNameController.text.trim(),
+        'studentId': _studentIdController.text.trim(),
+        'email': _emailController.text.trim(),
+        'password': _passwordController.text.trim(),
+      },
+    );
   }
 
   void _goBackToLogin() {
@@ -93,10 +101,10 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
   @override
   Widget build(BuildContext context) {
     final labelStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          fontSize: 14,
-          color: AppColors.textPrimary,
-          fontWeight: FontWeight.w500,
-        );
+      fontSize: 14,
+      color: AppColors.textPrimary,
+      fontWeight: FontWeight.w500,
+    );
 
     return Scaffold(
       body: Container(
@@ -122,17 +130,13 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                 ),
               ),
-
               const SizedBox(height: 40),
-
               Image.asset(
                 'lib/common/assets/sabanci_logo.jpeg',
                 height: 80,
                 fit: BoxFit.contain,
               ),
-
               const SizedBox(height: 35),
-
               Expanded(
                 child: Center(
                   child: SingleChildScrollView(
@@ -169,7 +173,6 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                               },
                             ),
                             const SizedBox(height: AppSpacing.gapMedium),
-
                             _label('Student ID', labelStyle),
                             const SizedBox(height: AppSpacing.gapSmall),
                             _field(
@@ -177,9 +180,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                               hint: 'Student ID',
                               validator: (value) {
                                 final text = value?.trim() ?? '';
-                                if (text.isEmpty) {
-                                  return 'Student ID is required';
-                                }
+                                if (text.isEmpty) return 'Student ID is required';
                                 if (!RegExp(r'^[0-9]+$').hasMatch(text)) {
                                   return 'Invalid student ID';
                                 }
@@ -187,7 +188,6 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                               },
                             ),
                             const SizedBox(height: AppSpacing.gapMedium),
-
                             _label('Email', labelStyle),
                             const SizedBox(height: AppSpacing.gapSmall),
                             _field(
@@ -195,9 +195,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                               hint: 'email@sabanciuniv.edu',
                               validator: (value) {
                                 final email = value?.trim() ?? '';
-                                if (email.isEmpty) {
-                                  return 'Email is required';
-                                }
+                                if (email.isEmpty) return 'Email is required';
                                 if (!email.endsWith('@sabanciuniv.edu')) {
                                   return 'Invalid email, must end with @sabanciuniv.edu';
                                 }
@@ -205,7 +203,6 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                               },
                             ),
                             const SizedBox(height: AppSpacing.gapMedium),
-
                             _label('Password', labelStyle),
                             const SizedBox(height: AppSpacing.gapSmall),
                             _field(
@@ -214,14 +211,11 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                               obscure: true,
                               validator: (value) {
                                 final password = value?.trim() ?? '';
-                                if (password.isEmpty) {
-                                  return 'Password is required';
-                                }
+                                if (password.isEmpty) return 'Password is required';
                                 return null;
                               },
                             ),
                             const SizedBox(height: AppSpacing.gapMedium),
-
                             _label('Confirm Password', labelStyle),
                             const SizedBox(height: AppSpacing.gapSmall),
                             _field(
@@ -230,18 +224,14 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                               obscure: true,
                               validator: (value) {
                                 final confirm = value?.trim() ?? '';
-                                if (confirm.isEmpty) {
-                                  return 'Confirm password is required';
-                                }
-                                if (confirm !=
-                                    _passwordController.text.trim()) {
+                                if (confirm.isEmpty) return 'Confirm password is required';
+                                if (confirm != _passwordController.text.trim()) {
                                   return 'Incorrect password';
                                 }
                                 return null;
                               },
                             ),
                             const SizedBox(height: AppSpacing.gapMedium * 2),
-
                             SizedBox(
                               width: double.infinity,
                               height: 44,
@@ -268,7 +258,6 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: AppSpacing.gapMedium),
             ],
           ),
@@ -277,9 +266,7 @@ class _SignUpStep1ScreenState extends State<SignUpStep1Screen> {
     );
   }
 
-  Widget _label(String text, TextStyle? style) {
-    return Text(text, style: style);
-  }
+  Widget _label(String text, TextStyle? style) => Text(text, style: style);
 
   Widget _field({
     required TextEditingController controller,
