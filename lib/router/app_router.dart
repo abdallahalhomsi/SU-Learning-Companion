@@ -1,46 +1,45 @@
-// This file makes up the components of the App Router,
-// which defines the navigation structure of the app using GoRouter.
-// It includes routes for authentication, home, courses, calendar, profile,
-// exams, homeworks, resources, and flashcards.
-
+// lib/router/app_router.dart
+//
+// GoRouter navigation for the whole app.
+// IMPORTANT: This file must contain ONLY router code (no other widget classes).
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 // Auth
+import 'package:su_learning_companion/features/Authentication/welcome.dart';
 import 'package:su_learning_companion/features/Authentication/sign_in.dart';
 import 'package:su_learning_companion/features/Authentication/sign_up1.dart';
 import 'package:su_learning_companion/features/Authentication/sign_up2.dart';
-import 'package:su_learning_companion/features/Authentication/welcome.dart';
 
-// Core features
-import '../features/Home/home_screen.dart';
-import '../features/courses/add_course_screen.dart';
-import '../features/courses/detailed_course_features_screen.dart';
-import '../features/calendar/calendar_screen.dart';
-import '../features/Profile/profile_screen.dart';
-import '../features/notes/notes_list_screen.dart';
+// Core
+import 'package:su_learning_companion/features/Home/home_screen.dart';
+import 'package:su_learning_companion/features/courses/add_course_screen.dart';
+import 'package:su_learning_companion/features/courses/detailed_course_features_screen.dart';
+import 'package:su_learning_companion/features/calendar/calendar_screen.dart';
+import 'package:su_learning_companion/features/Profile/profile_screen.dart';
+import 'package:su_learning_companion/features/notes/notes_list_screen.dart';
 
 // Exams & Homeworks
-import '../features/exams/exams_list_screen.dart';
-import '../features/exams/exams_form_sheet.dart';
-import '../features/homeworks/homeworks_list_screen.dart';
-import '../features/homeworks/homeworks_form_sheet.dart';
+import 'package:su_learning_companion/features/exams/exams_list_screen.dart';
+import 'package:su_learning_companion/features/exams/exams_form_sheet.dart';
+import 'package:su_learning_companion/features/homeworks/homeworks_list_screen.dart';
+import 'package:su_learning_companion/features/homeworks/homeworks_form_sheet.dart';
 
 // Resources
-import '../features/resources/resources_list_screen.dart';
-import '../features/resources/add_resource_screen.dart';
-import '../features/resources/resource_details_screen.dart';
+import 'package:su_learning_companion/features/resources/resources_list_screen.dart';
+import 'package:su_learning_companion/features/resources/add_resource_screen.dart';
+import 'package:su_learning_companion/features/resources/resource_details_screen.dart';
 
 // Flashcards
-import '../features/flashcards/flashcard_form_sheet_group.dart';
-import '../features/flashcards/flashcard_form_sheet_question.dart';
-import '../features/flashcards/flashcards_questions_screen.dart';
-import '../features/flashcards/flashcards_solution.dart';
-import '../features/flashcards/flashcards_topics.dart';
+import 'package:su_learning_companion/features/flashcards/flashcards_topics.dart';
+import 'package:su_learning_companion/features/flashcards/flashcards_questions_screen.dart';
+import 'package:su_learning_companion/features/flashcards/flashcards_solution.dart';
+import 'package:su_learning_companion/features/flashcards/flashcard_form_sheet_group.dart';
+import 'package:su_learning_companion/features/flashcards/flashcard_form_sheet_question.dart';
 
 class AppRouter {
-  static final router = GoRouter(
+  static final GoRouter router = GoRouter(
     initialLocation: '/welcome',
     routes: [
       // WELCOME / AUTH
@@ -54,8 +53,7 @@ class AppRouter {
           return CustomTransitionPage(
             transitionDuration: const Duration(milliseconds: 600),
             child: const SignInScreen(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },
           );
@@ -76,7 +74,7 @@ class AppRouter {
         builder: (context, state) => const HomeScreen(),
       ),
 
-      // COURSE DETAIL 
+      // COURSE DETAIL
       GoRoute(
         path: '/courses/detail/:courseId',
         builder: (context, state) {
@@ -110,13 +108,8 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-
           final courseName = extra?['courseName'] as String? ?? 'Course';
-
-          return ExamsListScreen(
-            courseId: courseId,
-            courseName: courseName,
-          );
+          return ExamsListScreen(courseId: courseId, courseName: courseName);
         },
       ),
       GoRoute(
@@ -124,13 +117,8 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-
           final courseName = extra?['courseName'] as String? ?? 'Course';
-
-          return ExamFormScreen(
-            courseId: courseId,
-            courseName: courseName,
-          );
+          return ExamFormScreen(courseId: courseId, courseName: courseName);
         },
       ),
 
@@ -140,16 +128,10 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-
           final courseName = extra?['courseName'] as String? ?? 'Course';
-
-          return NotesListScreen(
-            courseId: courseId,
-            courseName: courseName,
-          );
+          return NotesListScreen(courseId: courseId, courseName: courseName);
         },
       ),
-
 
       // HOMEWORKS
       GoRoute(
@@ -157,13 +139,8 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-
           final courseName = extra?['courseName'] as String? ?? 'Course';
-
-          return HomeworksListScreen(
-            courseId: courseId,
-            courseName: courseName,
-          );
+          return HomeworksListScreen(courseId: courseId, courseName: courseName);
         },
       ),
       GoRoute(
@@ -171,13 +148,8 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-
           final courseName = extra?['courseName'] as String? ?? 'Course';
-
-          return HomeworkFormScreen(
-            courseId: courseId,
-            courseName: courseName,
-          );
+          return HomeworkFormScreen(courseId: courseId, courseName: courseName);
         },
       ),
 
@@ -187,13 +159,8 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-
           final courseName = extra?['courseName'] as String? ?? 'Course';
-
-          return ResourcesListScreen(
-            courseId: courseId,
-            courseName: courseName,
-          );
+          return ResourcesListScreen(courseId: courseId, courseName: courseName);
         },
       ),
       GoRoute(
@@ -201,13 +168,8 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-
           final courseName = extra?['courseName'] as String? ?? 'Course';
-
-          return AddResourceScreen(
-            courseId: courseId,
-            courseName: courseName,
-          );
+          return AddResourceScreen(courseId: courseId, courseName: courseName);
         },
       ),
       GoRoute(
@@ -216,8 +178,14 @@ class AppRouter {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
 
+          if (extra == null || extra['resource'] == null) {
+            return const Scaffold(
+              body: Center(child: Text('Missing resource data')),
+            );
+          }
+
           return ResourceDetailsScreen(
-            resource: extra!['resource'],
+            resource: extra['resource'],
             courseId: courseId,
             courseName: extra['courseName'] ?? 'Course',
           );
@@ -229,7 +197,6 @@ class AppRouter {
         path: '/flashcards',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
-
           return FlashcardsTopicsScreen(
             courseId: extra?['courseId'],
             courseName: extra?['courseName'] ?? 'Course Name',
@@ -239,7 +206,7 @@ class AppRouter {
       GoRoute(
         path: '/flashcards/questions',
         builder: (context, state) {
-          final groupTitle = state.extra as String? ?? 'Chapter X';
+          final groupTitle = state.extra as String? ?? 'Chapter';
           return FlashcardsQuestionsScreen(groupTitle: groupTitle);
         },
       ),
@@ -247,11 +214,8 @@ class AppRouter {
         path: '/flashcards/solution',
         builder: (context, state) {
           final data = state.extra as Map<String, String>?;
-
           final cardTitle = data?['title'] ?? 'Card';
-          final solutionText =
-              data?['solution'] ?? 'Solution text coming soon';
-
+          final solutionText = data?['solution'] ?? 'Solution text coming soon';
           return FlashcardSolutionScreen(
             cardTitle: cardTitle,
             solutionText: solutionText,

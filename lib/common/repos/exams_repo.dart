@@ -1,9 +1,12 @@
-// This abstract class defines the contract for a repository that manages exams.
-// It provides methods for retrieving, adding, and removing exams.
 import '../models/exam.dart';
 
 abstract class ExamsRepo {
-  List<Exam> getExamsForCourse(String courseId);
-  void addExam(Exam exam);
-  void removeExam(String examId);
+  /// Reads: users/{uid}/courses/{courseId}/exams
+  Future<List<Exam>> getExamsForCourse(String courseId);
+
+  /// Writes: users/{uid}/courses/{courseId}/exams/{autoId}
+  Future<void> addExam(Exam exam);
+
+  /// Deletes: users/{uid}/courses/{courseId}/exams/{examId}
+  Future<void> removeExam(String courseId, String examId);
 }

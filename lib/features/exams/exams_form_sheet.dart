@@ -1,13 +1,10 @@
-// This file makes up the components of the Exams Form Screen,
-// Which displays a list a form for the user to enter an exam for a specific course.
-// Uses of Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/exam.dart';
 import '../../common/repos/exams_repo.dart';
-import '../../data/fakes/fake_exams_repo.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_spacing.dart';
 import '../../common/utils/app_text_styles.dart';
@@ -36,7 +33,17 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
-  final ExamsRepo _examsRepo = FakeExamsRepo();
+  late final ExamsRepo _examsRepo;
+  bool _repoReady = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_repoReady) {
+      _examsRepo = context.read<ExamsRepo>();
+      _repoReady = true;
+    }
+  }
 
   @override
   void dispose() {
@@ -59,21 +66,9 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       setState(() {
         _selectedDate = picked;
         final months = [
-          'Jan',
-          'Feb',
-          'Mar',
-          'Apr',
-          'May',
-          'Jun',
-          'Jul',
-          'Aug',
-          'Sep',
-          'Oct',
-          'Nov',
-          'Dec'
+          'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'
         ];
-        _dateController.text =
-        '${picked.day} ${months[picked.month - 1]} ${picked.year}';
+        _dateController.text = '${picked.day} ${months[picked.month - 1]} ${picked.year}';
       });
     }
   }
@@ -99,7 +94,6 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
-      // same alert dialog style as before
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -134,20 +128,26 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
         '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
 
     final exam = Exam(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: '', // Firestore will generate the real doc id
       courseId: widget.courseId,
       title: _titleController.text.trim(),
       date: storedDate,
       time: storedTime,
     );
 
-    _examsRepo.addExam(exam);
-
-    if (!mounted) return;
-    context.go(
-      '/courses/${widget.courseId}/exams',
-      extra: {'courseName': widget.courseName},
-    );
+    try {
+      await _examsRepo.addExam(exam);
+      if (!mounted) return;
+      context.go(
+        '/courses/${widget.courseId}/exams',
+        extra: {'courseName': widget.courseName},
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add exam: $e')),
+      );
+    }
   }
 
   @override
@@ -166,10 +166,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
             );
           },
         ),
-        title: const Text(
-          'Add Exam',
-          style: AppTextStyles.appBarTitle,
-        ),
+        title: const Text('Add Exam', style: AppTextStyles.appBarTitle),
         centerTitle: true,
       ),
       body: Padding(
@@ -197,12 +194,10 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                             hintText: 'Title',
                             errorStyle: AppTextStyles.errorText,
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Title is required';
-                            }
-                            return null;
-                          },
+                          validator: (value) =>
+                          (value == null || value.trim().isEmpty)
+                              ? 'Title is required'
+                              : null,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.gapSmall),
@@ -216,12 +211,10 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                             hintText: 'Date...',
                             errorStyle: AppTextStyles.errorText,
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Date is required';
-                            }
-                            return null;
-                          },
+                          validator: (value) =>
+                          (value == null || value.trim().isEmpty)
+                              ? 'Date is required'
+                              : null,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.gapSmall),
@@ -235,12 +228,10 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                             hintText: 'Time',
                             errorStyle: AppTextStyles.errorText,
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Time is required';
-                            }
-                            return null;
-                          },
+                          validator: (value) =>
+                          (value == null || value.trim().isEmpty)
+                              ? 'Time is required'
+                              : null,
                         ),
                       ),
                     ],
@@ -260,10 +251,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                   ),
                 ),
                 onPressed: _submit,
-                child: const Text(
-                  'Submit',
-                  style: AppTextStyles.primaryButton,
-                ),
+                child: const Text('Submit', style: AppTextStyles.primaryButton),
               ),
             ),
           ],

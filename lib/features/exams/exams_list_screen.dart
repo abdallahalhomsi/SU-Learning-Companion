@@ -1,14 +1,12 @@
-// This file makes up the components of the Exams List Screen,
-// Which displays a list of exams for a specific course.
-// Uses of Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
+// Exams List Screen (Firestore via Provider)
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/date_time_formatter.dart';
 import '../../common/models/exam.dart';
 import '../../common/repos/exams_repo.dart';
-import '../../data/fakes/fake_exams_repo.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_spacing.dart';
 import '../../common/utils/app_text_styles.dart';
@@ -28,28 +26,50 @@ class ExamsListScreen extends StatefulWidget {
 }
 
 class _ExamsListScreenState extends State<ExamsListScreen> {
-  final ExamsRepo _examsRepo = FakeExamsRepo();
+  late final ExamsRepo _examsRepo;
+  bool _repoReady = false;
 
   List<Exam> _exams = [];
   bool _isLoading = true;
 
   @override
-  void initState() {
-    super.initState();
-    _loadExams();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_repoReady) {
+      _examsRepo = context.read<ExamsRepo>();
+      _repoReady = true;
+      _loadExams();
+    }
   }
 
-  void _loadExams() {
-    final items = _examsRepo.getExamsForCourse(widget.courseId);
-    setState(() {
-      _exams = items;
-      _isLoading = false;
-    });
+  Future<void> _loadExams() async {
+    setState(() => _isLoading = true);
+    try {
+      final items = await _examsRepo.getExamsForCourse(widget.courseId);
+      if (!mounted) return;
+      setState(() {
+        _exams = items;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load exams: $e')),
+      );
+    }
   }
 
-  void _removeExam(String examId) {
-    _examsRepo.removeExam(examId);
-    _loadExams();
+  Future<void> _removeExam(String examId) async {
+    try {
+      await _examsRepo.removeExam(widget.courseId, examId);
+      await _loadExams();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to remove exam: $e')),
+      );
+    }
   }
 
   @override
@@ -64,9 +84,7 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
             color: AppColors.textOnPrimary,
             size: 20,
           ),
-          onPressed: () {
-            context.go('/courses/detail/${widget.courseId}');
-          },
+          onPressed: () => context.go('/courses/detail/${widget.courseId}'),
         ),
         title: Text(
           'Exams: ${widget.courseName}',
@@ -118,15 +136,18 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
                           mainAxisAlignment:
                           MainAxisAlignment.spaceBetween,
                           children: [
-                            Padding(
-                              padding:
-                              const EdgeInsets.only(left: 12),
-                              child: Text(
-                                '${exam.title}: $formattedDate, $formattedTime',
-                                style: const TextStyle(
-                                  color: AppColors.textOnPrimary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                            Expanded(
+                              child: Padding(
+                                padding:
+                                const EdgeInsets.only(left: 12),
+                                child: Text(
+                                  '${exam.title}: $formattedDate, $formattedTime',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: AppColors.textOnPrimary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ),
@@ -135,16 +156,14 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
                                 Icons.delete,
                                 color: AppColors.textOnPrimary,
                               ),
-                              onPressed: () {
-                                _removeExam(exam.id);
-                              },
+                              onPressed: () => _removeExam(exam.id),
                             ),
                           ],
                         ),
                       );
                     },
-                    separatorBuilder: (_, __) =>
-                    const SizedBox(height: AppSpacing.gapSmall),
+                    separatorBuilder: (_, __) => const SizedBox(
+                        height: AppSpacing.gapSmall),
                   ),
                 ),
               ),

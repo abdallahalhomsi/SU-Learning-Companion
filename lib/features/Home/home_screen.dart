@@ -1,19 +1,20 @@
-// This file makes up the components of the Home Screen,
-// which displays the main page of the app, courses registered,
-// and an add course feature.
-// Uses utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
+// lib/features/Home/home_screen.dart
+//
+// Home Screen:
+// - Shows reminders (dummy for now)
+// - Shows USER courses from Firestore via CoursesRepo (Provider)
+// - Delete removes from users/{uid}/courses
+// - Uses ScrollControllers for Scrollbar (no more assertion)
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
-import '../../common/models/course.dart';
-import '../../common/repos/courses_repo.dart';
-import '../../data/fakes/fake_courses_repo.dart';
-import '../../common/utils/app_colors.dart';
-import '../../common/utils/app_text_styles.dart';
-import '../../common/utils/app_spacing.dart';
-
+import 'package:su_learning_companion/common/models/course.dart';
+import 'package:su_learning_companion/common/repos/courses_repo.dart';
+import 'package:su_learning_companion/common/utils/app_colors.dart';
+import 'package:su_learning_companion/common/utils/app_text_styles.dart';
+import 'package:su_learning_companion/common/utils/app_spacing.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,7 +24,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final CoursesRepo _coursesRepo = FakeCoursesRepo();
+  late final CoursesRepo _coursesRepo;
+
+  final ScrollController _remindersScroll = ScrollController();
+  final ScrollController _coursesScroll = ScrollController();
 
   final List<Map<String, String>> _reminders = const [
     {'course': 'CS301', 'detail': 'Due Tomorrow'},
@@ -32,19 +36,43 @@ class _HomeScreenState extends State<HomeScreen> {
     {'course': 'CS310', 'detail': 'Due Friday'},
   ];
 
+  bool _repoReady = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_repoReady) {
+      _coursesRepo = context.read<CoursesRepo>(); // ✅ Firestore repo from Provider
+      _repoReady = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    _remindersScroll.dispose();
+    _coursesScroll.dispose();
+    super.dispose();
+  }
+
   Future<void> _deleteCourse(String courseId) async {
-    await _coursesRepo.removeCourse(courseId);
-    if (!mounted) return;
-    setState(() {
-      // triggers FutureBuilder to run _coursesRepo.getCourses() again
-    });
+    try {
+      await _coursesRepo.removeUserCourse(courseId); // ✅ remove from user collection
+      if (!mounted) return;
+      setState(() {
+        // triggers FutureBuilder again
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete course: $e')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
-
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -74,9 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         vertical: 10,
                       ),
                     ),
-                    onPressed: () {
-                      context.go('/courses/add');
-                    },
+                    onPressed: () => context.go('/courses/add'),
                     child: const Text(
                       '+ ADD COURSE',
                       style: AppTextStyles.primaryButton,
@@ -84,24 +110,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-
             ),
 
             // Main content
             Padding(
-
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Scrollable reminders box
+                  // Reminders (scrollable + scrollbar)
                   SizedBox(
                     height: 170,
                     child: Scrollbar(
+                      controller: _remindersScroll,
                       thumbVisibility: true,
                       thickness: 6,
                       radius: const Radius.circular(12),
                       child: ListView.separated(
+                        controller: _remindersScroll,
                         physics: const BouncingScrollPhysics(),
                         itemCount: _reminders.length,
                         itemBuilder: (context, index) {
@@ -161,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: AppSpacing.gapSmall),
 
                         FutureBuilder<List<Course>>(
-                          future: _coursesRepo.getCourses(),
+                          future: _coursesRepo.getCourses(), // ✅ user courses
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
@@ -169,64 +195,75 @@ class _HomeScreenState extends State<HomeScreen> {
                                 padding: EdgeInsets.all(8.0),
                                 child: CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
+                                    Colors.white,
+                                  ),
                                 ),
                               );
                             }
 
-                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            if (snapshot.hasError) {
+                              return Text(
+                                'Error: ${snapshot.error}',
+                                style: const TextStyle(color: Colors.white70),
+                              );
+                            }
+
+                            final courses = snapshot.data ?? [];
+                            if (courses.isEmpty) {
                               return const Text(
                                 'No courses yet',
                                 style: TextStyle(color: Colors.white70),
                               );
                             }
 
-                            final courses = snapshot.data!;
-
-                            return Column(
-                              children: courses.map((course) {
-                                return _CourseRow(
-                                  code: course.code,
-                                  onTap: () {
-                                    context.go(
-                                      '/courses/detail/${course.id}',
-                                    );
-                                  },
-                                  onDelete: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return AlertDialog(
-                                          title:
-                                          Text('Delete ${course.code}?'),
-                                          content: const Text(
-                                            'Are you sure you want to remove this course?',
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(context),
-                                              child: const Text('Cancel'),
+                            return Scrollbar(
+                              controller: _coursesScroll,
+                              thumbVisibility: true,
+                              thickness: 5,
+                              radius: const Radius.circular(12),
+                              child: ListView(
+                                controller: _coursesScroll,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                children: courses.map((course) {
+                                  return _CourseRow(
+                                    code: course.code,
+                                    onTap: () {
+                                      context.go('/courses/detail/${course.id}');
+                                    },
+                                    onDelete: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            title: Text('Delete ${course.code}?'),
+                                            content: const Text(
+                                              'Are you sure you want to remove this course?',
                                             ),
-                                            TextButton(
-                                              onPressed: () async {
-                                                Navigator.pop(context);
-                                                await _deleteCourse(course.id);
-                                              },
-                                              child: const Text(
-                                                'Delete',
-                                                style: TextStyle(
-                                                  color: Colors.red,
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.pop(context),
+                                                child: const Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () async {
+                                                  Navigator.pop(context);
+                                                  await _deleteCourse(course.id);
+                                                },
+                                                child: const Text(
+                                                  'Delete',
+                                                  style: TextStyle(color: Colors.red),
                                                 ),
                                               ),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  },
-                                );
-                              }).toList(),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
+                                  );
+                                }).toList(),
+                              ),
                             );
                           },
                         ),

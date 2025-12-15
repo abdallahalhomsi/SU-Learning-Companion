@@ -1,13 +1,10 @@
-// This file makes up the components of the Add Homeworks Screen,
-// Which displays a form for the user to add a homework for a specific course.
-// Uses of Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/homework.dart';
 import '../../common/repos/homeworks_repo.dart';
-import '../../data/fakes/fake_homeworks_repo.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
@@ -36,7 +33,17 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
-  final HomeworksRepo _homeworksRepo = FakeHomeworksRepo();
+  late final HomeworksRepo _homeworksRepo;
+  bool _repoReady = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_repoReady) {
+      _homeworksRepo = context.read<HomeworksRepo>();
+      _repoReady = true;
+    }
+  }
 
   @override
   void dispose() {
@@ -59,11 +66,9 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
       setState(() {
         _selectedDate = picked;
         final months = [
-          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+          'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'
         ];
-        _dateController.text =
-        '${picked.day} ${months[picked.month - 1]} ${picked.year}';
+        _dateController.text = '${picked.day} ${months[picked.month - 1]} ${picked.year}';
       });
     }
   }
@@ -124,20 +129,26 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
         '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
 
     final homework = Homework(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: '', // Firestore will generate the real doc id
       courseId: widget.courseId,
       title: _titleController.text.trim(),
       date: storedDate,
       time: storedTime,
     );
 
-    _homeworksRepo.addHomework(homework);
-
-    if (!mounted) return;
-    context.go(
-      '/courses/${widget.courseId}/homeworks',
-      extra: {'courseName': widget.courseName},
-    );
+    try {
+      await _homeworksRepo.addHomework(homework);
+      if (!mounted) return;
+      context.go(
+        '/courses/${widget.courseId}/homeworks',
+        extra: {'courseName': widget.courseName},
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add homework: $e')),
+      );
+    }
   }
 
   @override
@@ -156,10 +167,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
             );
           },
         ),
-        title: const Text(
-          'Add Homework',
-          style: AppTextStyles.appBarTitle,
-        ),
+        title: const Text('Add Homework', style: AppTextStyles.appBarTitle),
         centerTitle: true,
       ),
       body: Padding(
@@ -187,12 +195,10 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                             hintText: 'Title',
                             errorStyle: AppTextStyles.errorText,
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Title is required';
-                            }
-                            return null;
-                          },
+                          validator: (value) =>
+                          (value == null || value.trim().isEmpty)
+                              ? 'Title is required'
+                              : null,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.gapSmall),
@@ -206,12 +212,10 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                             hintText: 'Date...',
                             errorStyle: AppTextStyles.errorText,
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Date is required';
-                            }
-                            return null;
-                          },
+                          validator: (value) =>
+                          (value == null || value.trim().isEmpty)
+                              ? 'Date is required'
+                              : null,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.gapSmall),
@@ -225,12 +229,10 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                             hintText: 'Time',
                             errorStyle: AppTextStyles.errorText,
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Time is required';
-                            }
-                            return null;
-                          },
+                          validator: (value) =>
+                          (value == null || value.trim().isEmpty)
+                              ? 'Time is required'
+                              : null,
                         ),
                       ),
                     ],
@@ -250,10 +252,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                   ),
                 ),
                 onPressed: _submit,
-                child: const Text(
-                  'Submit',
-                  style: AppTextStyles.primaryButton,
-                ),
+                child: const Text('Submit', style: AppTextStyles.primaryButton),
               ),
             ),
           ],

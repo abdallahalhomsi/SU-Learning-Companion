@@ -1,13 +1,11 @@
-// This file makes up the components of the Homeworks List Screen,
-// Which displays a list of homeworks for a specific course.
-// Uses of Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
+// Homeworks List Screen (Firestore via Provider)
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
 import '../../common/utils/date_time_formatter.dart';
 import '../../common/models/homework.dart';
 import '../../common/repos/homeworks_repo.dart';
-import '../../data/fakes/fake_homeworks_repo.dart';
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
@@ -28,19 +26,54 @@ class HomeworksListScreen extends StatefulWidget {
 }
 
 class _HomeworksListScreenState extends State<HomeworksListScreen> {
-  final HomeworksRepo _homeworksRepo = FakeHomeworksRepo();
+  late final HomeworksRepo _homeworksRepo;
+  bool _repoReady = false;
 
-  void _removeHomework(String hwId) {
-    setState(() {
-      _homeworksRepo.removeHomework(hwId);
-    });
+  List<Homework> _homeworks = [];
+  bool _isLoading = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_repoReady) {
+      _homeworksRepo = context.read<HomeworksRepo>();
+      _repoReady = true;
+      _loadHomeworks();
+    }
+  }
+
+  Future<void> _loadHomeworks() async {
+    setState(() => _isLoading = true);
+    try {
+      final items = await _homeworksRepo.getHomeworksForCourse(widget.courseId);
+      if (!mounted) return;
+      setState(() {
+        _homeworks = items;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load homeworks: $e')),
+      );
+    }
+  }
+
+  Future<void> _removeHomework(String hwId) async {
+    try {
+      await _homeworksRepo.removeHomework(widget.courseId, hwId);
+      await _loadHomeworks();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to remove homework: $e')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<Homework> homeworks =
-    _homeworksRepo.getHomeworksForCourse(widget.courseId);
-
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
@@ -51,9 +84,7 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
             color: AppColors.textOnPrimary,
             size: 20,
           ),
-          onPressed: () {
-            context.go('/courses/detail/${widget.courseId}');
-          },
+          onPressed: () => context.go('/courses/detail/${widget.courseId}'),
         ),
         title: Text(
           'Homeworks: ${widget.courseName}',
@@ -80,7 +111,9 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
                     ),
                   ],
                 ),
-                child: homeworks.isEmpty
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _homeworks.isEmpty
                     ? const Center(
                   child: Text(
                     'No homeworks yet',
@@ -92,11 +125,11 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
                   ),
                 )
                     : ListView.separated(
-                  itemCount: homeworks.length,
-                  separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppSpacing.gapSmall),
+                  itemCount: _homeworks.length,
+                  separatorBuilder: (_, __) => const SizedBox(
+                      height: AppSpacing.gapSmall),
                   itemBuilder: (context, index) {
-                    final hw = homeworks[index];
+                    final hw = _homeworks[index];
 
                     final formattedDate =
                     DateTimeFormatter.formatRawDate(hw.date);
@@ -110,17 +143,21 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
                         children: [
-                          Padding(
-                            padding:
-                            const EdgeInsets.only(left: 12),
-                            child: Text(
-                              '${hw.title}: $formattedDate, $formattedTime',
-                              style: const TextStyle(
-                                color: AppColors.textOnPrimary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                          Expanded(
+                            child: Padding(
+                              padding:
+                              const EdgeInsets.only(left: 12),
+                              child: Text(
+                                '${hw.title}: $formattedDate, $formattedTime',
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: AppColors.textOnPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                           ),
