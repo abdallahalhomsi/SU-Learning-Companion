@@ -14,4 +14,4 @@ class Note {
     required this.content,
     required this.createdAt,
   });
-}// later
+}

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../common/models/resource.dart';
 import '../../common/repos/resources_repo.dart';
-import '../../data/fakes/fake_resources_repo.dart';
+import 'package:provider/provider.dart';
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
@@ -27,7 +27,13 @@ class AddResourceScreen extends StatefulWidget {
 }
 
 class _AddResourceScreenState extends State<AddResourceScreen> {
-  final ResourcesRepo _resourcesRepo = FakeResourcesRepo();
+  late final ResourcesRepo _resourcesRepo;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _resourcesRepo = context.read<ResourcesRepo>();
+  }
 
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _title = TextEditingController();

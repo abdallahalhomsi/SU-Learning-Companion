@@ -8,11 +8,11 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../common/models/resource.dart';
 import '../../common/repos/resources_repo.dart';
-import '../../data/fakes/fake_resources_repo.dart';
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
+import 'package:provider/provider.dart';
 
 class ResourceDetailsScreen extends StatefulWidget {
   final Resource resource;
@@ -31,7 +31,20 @@ class ResourceDetailsScreen extends StatefulWidget {
 }
 
 class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
-  final ResourcesRepo _repo = FakeResourcesRepo();
+// ...
+
+  late final ResourcesRepo _repo;
+  bool _repoReady = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_repoReady) {
+      _repo = context.read<ResourcesRepo>();
+      _repoReady = true;
+    }
+  }
+
 
   bool _editing = false;
   bool _loading = false;
@@ -81,10 +94,9 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
   }
 
   Future<void> _delete() async {
-    await _repo.deleteResource(widget.resource.id);
+    await _repo.deleteResource(widget.courseId, widget.resource.id);
+
     if (!mounted) return;
-
-
     context.pop<bool>(true);
   }
 

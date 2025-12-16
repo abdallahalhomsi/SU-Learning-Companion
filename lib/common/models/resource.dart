@@ -1,11 +1,11 @@
-// This file defines the data models for Resources.
-// These models are used throughout the application to represent Resources.
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Resource {
   final String id;
   final String courseId;
-  String title;
-  String description;
-  String link;
+  final String title;
+  final String description;
+  final String link;
   final DateTime createdAt;
 
   Resource({
@@ -16,4 +16,28 @@ class Resource {
     required this.link,
     required this.createdAt,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'courseId': courseId,
+      'title': title,
+      'description': description,
+      'link': link,
+      'createdAt': Timestamp.fromDate(createdAt),
+    };
+  }
+
+  static Resource fromMap(Map<String, dynamic> map, String id) {
+    final ts = map['createdAt'];
+    final createdAt = ts is Timestamp ? ts.toDate() : DateTime.now();
+
+    return Resource(
+      id: id,
+      courseId: (map['courseId'] ?? '') as String,
+      title: (map['title'] ?? '') as String,
+      description: (map['description'] ?? '') as String,
+      link: (map['link'] ?? '') as String,
+      createdAt: createdAt,
+    );
+  }
 }
