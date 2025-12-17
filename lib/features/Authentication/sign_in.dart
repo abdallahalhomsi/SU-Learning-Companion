@@ -32,6 +32,23 @@ class _SignInScreenState extends State<SignInScreen> {
     super.dispose();
   }
 
+  String _friendlyAuthError(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'user-not-found':
+        return 'No account exists for this email.';
+      case 'wrong-password':
+        return 'Incorrect password. Please try again.';
+      case 'invalid-email':
+        return 'The email address entered is invalid.';
+      case 'user-disabled':
+        return 'This account has been disabled.';
+      default:
+        return e.message ?? 'Sign-in failed.';
+    }
+  }
+
+  
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       showDialog(
@@ -62,7 +79,7 @@ class _SignInScreenState extends State<SignInScreen> {
       if (!mounted) return;
       context.go('/home');
     } on FirebaseAuthException catch (e) {
-      final msg = e.message ?? e.code;
+      final msg = _friendlyAuthError(e);
       if (!mounted) return;
       showDialog(
         context: context,
