@@ -2,12 +2,9 @@
 import '../models/notes.dart';
 
 abstract class NotesRepo {
-  Future<List<Note>> getNotesForCourse(String courseId);
+  Stream<List<Note>> watchNotes(String uid);
 
-  Future<void> addNote(Note note);
-
-  Future<void> removeNote({
-    required String courseId,
-    required String noteId,
-  });
+  Future<void> addNote(String uid, {required String title, required String content});
+  Future<void> updateNote(String uid, Note note);
+  Future<void> deleteNote(String uid, String noteId);
 }
