@@ -10,6 +10,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+// REQUIRED for context.watch / context.read
+import 'package:provider/provider.dart';
+import '../../common/providers/theme_provider.dart';
+
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
@@ -90,7 +94,10 @@ class ProfileScreen extends StatelessWidget {
             // - name / fullName
             // - studentId / id
             // - major / minor / department
-            final name = _str(data['name'] ?? data['fullName'], fallback: _str(user.displayName, fallback: ''));
+            final name = _str(
+              data['name'] ?? data['fullName'],
+              fallback: _str(user.displayName, fallback: ''),
+            );
             final studentId = _str(data['studentId'] ?? data['id']);
             final email = _str(data['email'], fallback: _str(user.email));
             final major = _str(data['major']);
@@ -99,6 +106,22 @@ class ProfileScreen extends StatelessWidget {
 
             return Column(
               children: [
+                // ✅ Theme toggle is now part of the widget tree
+                SwitchListTile(
+                  title: const Text('Dark Mode'),
+                  subtitle: const Text('Switch between light and dark theme'),
+                  value: context.watch<ThemeProvider>().isDarkMode,
+                  onChanged: (value) {
+                    // keep your provider behavior; just ensure it is in the tree
+                    context.read<ThemeProvider>().toggleTheme();
+                  },
+                  secondary: Icon(
+                    context.watch<ThemeProvider>().isDarkMode
+                        ? Icons.dark_mode
+                        : Icons.light_mode,
+                  ),
+                ),
+
                 Expanded(
                   child: SingleChildScrollView(
                     child: Container(
