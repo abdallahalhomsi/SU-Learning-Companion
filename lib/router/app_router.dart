@@ -1,10 +1,14 @@
 // lib/router/app_router.dart
 //
-// GoRouter navigation for the whole app.
-// IMPORTANT: This file must contain ONLY router code (no other widget classes).
+// GoRouter navigation for the whole app with AUTH GUARD.
+// - Logged-out users can only access auth screens
+// - Logged-in users can only access main app screens
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // Auth
 import 'package:su_learning_companion/features/Authentication/welcome.dart';
@@ -39,10 +43,41 @@ import 'package:su_learning_companion/features/flashcards/flashcard_form_sheet_g
 import 'package:su_learning_companion/features/flashcards/flashcard_form_sheet_question.dart';
 
 class AppRouter {
+  // Listen to Firebase auth state changes
+  static final _authRefresh =
+  GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges());
+
   static final GoRouter router = GoRouter(
     initialLocation: '/welcome',
+    refreshListenable: _authRefresh,
+
+    redirect: (context, state) {
+      final user = FirebaseAuth.instance.currentUser;
+      final location = state.matchedLocation;
+
+      // Public routes (no authentication required)
+      final isPublicRoute = location == '/welcome' ||
+          location == '/login' ||
+          location == '/signup' ||
+          location == '/signup_2';
+
+      // 🔒 Not logged in → block protected routes
+      if (user == null && !isPublicRoute) {
+        return '/login';
+      }
+
+      // 🔐 Logged in → block auth screens
+      if (user != null && isPublicRoute) {
+        return '/home';
+      }
+
+      return null;
+    },
+
     routes: [
-      // WELCOME / AUTH
+      // =====================
+      // AUTH / WELCOME
+      // =====================
       GoRoute(
         path: '/welcome',
         builder: (context, state) => const WelcomeScreen(),
@@ -68,7 +103,9 @@ class AppRouter {
         builder: (context, state) => const SignUpStep2Screen(),
       ),
 
+      // =====================
       // HOME
+      // =====================
       GoRoute(
         path: '/home',
         builder: (context, state) => const HomeScreen(),
@@ -98,7 +135,6 @@ class AppRouter {
       // PROFILE
       GoRoute(
         path: '/profile',
-        name: 'profile',
         builder: (context, state) => const ProfileScreen(),
       ),
 
@@ -108,7 +144,7 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-          final courseName = extra?['courseName'] as String? ?? 'Course';
+          final courseName = extra?['courseName'] ?? 'Course';
           return ExamsListScreen(courseId: courseId, courseName: courseName);
         },
       ),
@@ -117,7 +153,7 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-          final courseName = extra?['courseName'] as String? ?? 'Course';
+          final courseName = extra?['courseName'] ?? 'Course';
           return ExamFormScreen(courseId: courseId, courseName: courseName);
         },
       ),
@@ -128,7 +164,7 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-          final courseName = extra?['courseName'] as String? ?? 'Course';
+          final courseName = extra?['courseName'] ?? 'Course';
           return NotesListScreen(courseId: courseId, courseName: courseName);
         },
       ),
@@ -139,7 +175,7 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-          final courseName = extra?['courseName'] as String? ?? 'Course';
+          final courseName = extra?['courseName'] ?? 'Course';
           return HomeworksListScreen(courseId: courseId, courseName: courseName);
         },
       ),
@@ -148,7 +184,7 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-          final courseName = extra?['courseName'] as String? ?? 'Course';
+          final courseName = extra?['courseName'] ?? 'Course';
           return HomeworkFormScreen(courseId: courseId, courseName: courseName);
         },
       ),
@@ -159,7 +195,7 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-          final courseName = extra?['courseName'] as String? ?? 'Course';
+          final courseName = extra?['courseName'] ?? 'Course';
           return ResourcesListScreen(courseId: courseId, courseName: courseName);
         },
       ),
@@ -168,7 +204,7 @@ class AppRouter {
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-          final courseName = extra?['courseName'] as String? ?? 'Course';
+          final courseName = extra?['courseName'] ?? 'Course';
           return AddResourceScreen(courseId: courseId, courseName: courseName);
         },
       ),
@@ -192,70 +228,63 @@ class AppRouter {
         },
       ),
 
-      // ===========================
-      // FLASHCARDS (FIXED)
-      // ===========================
-
-      // Topics (Groups) for a course
+      // FLASHCARDS
       GoRoute(
         path: '/courses/:courseId/flashcards',
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final extra = state.extra as Map<String, dynamic>?;
-          final courseName = extra?['courseName'] as String? ?? 'Course';
-
-          return FlashcardsTopicsScreen(
-            courseId: courseId,
-            courseName: courseName,
-          );
+          final courseName = extra?['courseName'] ?? 'Course';
+          return FlashcardsTopicsScreen(courseId: courseId, courseName: courseName);
         },
       ),
-
-      // Questions (Cards) for a group in a course
       GoRoute(
         path: '/courses/:courseId/flashcards/:groupId/questions',
         builder: (context, state) {
           final courseId = state.pathParameters['courseId']!;
           final groupId = state.pathParameters['groupId']!;
-
           final extra = state.extra as Map<String, dynamic>?;
-          final groupTitle = extra?['groupTitle'] as String? ?? 'Group';
-          final courseName = extra?['courseName'] as String? ?? 'Course';
-
           return FlashcardsQuestionsScreen(
             courseId: courseId,
-            courseName: courseName,
+            courseName: extra?['courseName'] ?? 'Course',
             groupId: groupId,
-            groupTitle: groupTitle,
+            groupTitle: extra?['groupTitle'] ?? 'Group',
           );
         },
       ),
-
-      // Solution (global)
       GoRoute(
         path: '/flashcards/solution',
         builder: (context, state) {
           final data = state.extra as Map<String, String>?;
-          final cardTitle = data?['title'] ?? 'Card';
-          final solutionText = data?['solution'] ?? 'Solution text coming soon';
           return FlashcardSolutionScreen(
-            cardTitle: cardTitle,
-            solutionText: solutionText,
+            cardTitle: data?['title'] ?? 'Card',
+            solutionText: data?['solution'] ?? 'Solution',
           );
         },
       ),
-
-      // Add group (global)
       GoRoute(
         path: '/flashcards/groups/add',
         builder: (context, state) => const FlashcardFormSheetGroup(),
       ),
-
-      // Create card (global)
       GoRoute(
         path: '/flashcards/create',
         builder: (context, state) => const FlashcardFormSheetQuestion(),
       ),
     ],
   );
+}
+
+/// Listens to a stream and notifies GoRouter to re-evaluate redirects
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    _subscription = stream.listen((_) => notifyListeners());
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
 }
