@@ -1,4 +1,4 @@
-// Exams List Screen (Firestore via Provider)
+// Exams List Screen (Firestore via providers)
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';

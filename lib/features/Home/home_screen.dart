@@ -2,7 +2,7 @@
 //
 // Home Screen:
 // - Reminders are now REAL: pulls this user's Exams + Homeworks for the CURRENT MONTH
-// - Shows USER courses from Firestore via CoursesRepo (Provider)
+// - Shows USER courses from Firestore via CoursesRepo (providers)
 // - Delete removes from users/{uid}/courses
 // - Uses ScrollControllers for Scrollbar
 
@@ -12,8 +12,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:su_learning_companion/common/models/course.dart';
-import 'package:su_learning_companion/common/models/exam.dart';
-import 'package:su_learning_companion/common/models/homework.dart';
 
 import 'package:su_learning_companion/common/repos/courses_repo.dart';
 import 'package:su_learning_companion/common/repos/exams_repo.dart';
@@ -22,6 +20,8 @@ import 'package:su_learning_companion/common/repos/homeworks_repo.dart';
 import 'package:su_learning_companion/common/utils/app_colors.dart';
 import 'package:su_learning_companion/common/utils/app_text_styles.dart';
 import 'package:su_learning_companion/common/utils/app_spacing.dart';
+
+import 'package:su_learning_companion/common/widgets/app_scaffold.dart';
 
 enum _ReminderType { exam, homework }
 
@@ -210,14 +210,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
+    return AppScaffold(
+      currentIndex: 0,
       body: SingleChildScrollView(
         child: Column(
           children: [
             // Top bar
             Container(
-              color: AppColors.cardBackground,
+              color: Theme.of(context).colorScheme.surface,
               padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -261,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         'THIS MONTH',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: Colors.black87,
+                          color: Theme.of(context).colorScheme.onSurface,
                           letterSpacing: .4,
                         ),
                       ),
@@ -278,7 +278,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: _remindersLoading
                         ? const Center(child: CircularProgressIndicator())
                         : _reminders.isEmpty
-                        ? const Center(child: Text('No exams/homeworks this month'))
+                        ? Center(
+                      child: Text(
+                        'No exams/homeworks this month',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    )
                         : Scrollbar(
                       controller: _remindersScroll,
                       thumbVisibility: true,
@@ -293,9 +298,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                           final isExam = r.type == _ReminderType.exam;
                           final icon = isExam ? Icons.assignment : Icons.description;
-                          final iconColor = isExam ? Colors.redAccent : Colors.blueAccent;
+                          final iconColor =
+                          isExam ? Colors.redAccent : Colors.blueAccent;
 
-                          final when = DateFormat('MMM d • h:mm a').format(r.dueDate);
+                          final when =
+                          DateFormat('MMM d • h:mm a').format(r.dueDate);
                           final typeLabel = isExam ? 'Exam' : 'Homework';
 
                           return Card(
@@ -306,12 +313,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               leading: Icon(icon, color: iconColor),
                               title: Text(
                                 '${r.courseCode} • ${r.title}',
-                                style: const TextStyle(fontWeight: FontWeight.w600),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               subtitle: Text('$typeLabel • $when'),
                               trailing: const Icon(Icons.chevron_right),
-                              onTap: () => context.go('/courses/detail/${r.courseId}'),
+                              onTap: () => context.go(
+                                '/courses/detail/${r.courseId}',
+                              ),
                             ),
                           );
                         },
@@ -348,11 +359,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         FutureBuilder<List<Course>>(
                           future: _coursesRepo.getCourses(),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               );
                             }
@@ -384,7 +398,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 children: courses.map((course) {
                                   return _CourseRow(
                                     code: course.code,
-                                    onTap: () => context.go('/courses/detail/${course.id}'),
+                                    onTap: () => context.go(
+                                      '/courses/detail/${course.id}',
+                                    ),
                                     onDelete: () {
                                       showDialog(
                                         context: context,
@@ -396,7 +412,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ),
                                             actions: [
                                               TextButton(
-                                                onPressed: () => Navigator.pop(context),
+                                                onPressed: () =>
+                                                    Navigator.pop(context),
                                                 child: const Text('Cancel'),
                                               ),
                                               TextButton(
@@ -428,33 +445,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-      ),
-
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        backgroundColor: AppColors.primaryBlue,
-        selectedItemColor: AppColors.textOnPrimary,
-        unselectedItemColor: Colors.white70,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              break;
-            case 1:
-              context.go('/calendar');
-              break;
-            case 2:
-              context.go('/profile');
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
-        ],
       ),
     );
   }

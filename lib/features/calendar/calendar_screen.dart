@@ -1,6 +1,6 @@
 // lib/features/calendar/calendar_screen.dart
 //
-// Calendar Screen (Firestore-backed via Provider):
+// Calendar Screen (Firestore-backed via providers):
 // - Reads USER courses from CoursesRepo
 // - For each course, reads that user's Exams + Homeworks
 // - Builds a 6-month calendar, tapping a day shows that day's items
