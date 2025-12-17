@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+// EmptyState Widget
+//
+// Reusable widget used to display a friendly message
+// when there is no data to show (e.g., no notes yet).
+// This improves user experience by avoiding blank screens and
+// guiding the user on what to do next.
 class EmptyState extends StatelessWidget {
   final String title;
   final String message;
@@ -19,7 +25,7 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final colorScheme = theme.colorScheme;
 
     return Center(
       child: ConstrainedBox(
@@ -29,8 +35,16 @@ class EmptyState extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 64, color: cs.primary),
+              // Icon to visually indicate empty content
+              Icon(
+                icon,
+                size: 64,
+                color: colorScheme.primary,
+              ),
+
               const SizedBox(height: 12),
+
+              // Main title text
               Text(
                 title,
                 style: theme.textTheme.titleLarge?.copyWith(
@@ -38,7 +52,10 @@ class EmptyState extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
+
               const SizedBox(height: 8),
+
+              // Supporting message text
               Text(
                 message,
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -46,6 +63,8 @@ class EmptyState extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
+
+
               if (buttonText != null && onPressed != null) ...[
                 const SizedBox(height: 18),
                 FilledButton(
