@@ -5,7 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../common/utils/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../common/utils/app_spacing.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -21,19 +21,29 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   void initState() {
     super.initState();
+    _startUp();
+  }
 
-    Future.delayed(const Duration(seconds: 3), () async {
-      if (!mounted) return;
+  Future<void> _startUp() async {
+    await FirebaseAuth.instance.authStateChanges().first;
+    await Future.delayed(const Duration(seconds: 3));
 
-      setState(() {
-        _opacity = 0.0;
-      });
+    if (!mounted) return;
 
-      await Future.delayed(const Duration(milliseconds: 800));
-      if (!mounted) return;
-
-      context.go('/login');
+    setState(() {
+      _opacity = 0.0;
     });
+
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      context.go('/home');
+    } else {
+      context.go('/login');
+    }
   }
 
   @override
@@ -51,7 +61,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFF0C6AC5), 
+                Color(0xFF0C6AC5),
                 Color(0xFF00345A),
               ],
             ),
@@ -61,12 +71,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             children: [
               const SizedBox(height: 60),
 
-        
               const Text(
                 'SU LEARNING\nCOMPANION',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: 'SplashFont', 
+                  fontFamily: 'SplashFont',
                   fontSize: 34,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 4.5,
@@ -90,7 +99,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
               const SizedBox(height: 20),
 
-              
               Image.network(
                 'https://upload.wikimedia.org/wikipedia/commons/d/dd/Simple_light_bulb_graphic_white.png',
                 height: 60,
