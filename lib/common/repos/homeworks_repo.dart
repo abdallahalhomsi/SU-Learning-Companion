@@ -2,7 +2,7 @@ import '../models/homework.dart';
 
 abstract class HomeworksRepo {
   /// Reads: users/{uid}/courses/{courseId}/homeworks
-  Future<List<Homework>> getHomeworksForCourse(String courseId);
+  Stream<List<Homework>> watchHomeworksForCourse(String courseId); // refreshes in real time
 
   /// Writes: users/{uid}/courses/{courseId}/homeworks/{autoId}
   Future<void> addHomework(Homework homework);

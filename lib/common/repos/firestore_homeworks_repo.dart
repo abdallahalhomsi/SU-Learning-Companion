@@ -27,7 +27,10 @@ class FirestoreHomeworksRepo implements HomeworksRepo {
         .collection('homeworks');
   }
 
-  Homework _fromDoc(String courseId, DocumentSnapshot<Map<String, dynamic>> doc) {
+  Homework _fromDoc(
+      String courseId,
+      DocumentSnapshot<Map<String, dynamic>> doc,
+      ) {
     final d = doc.data() ?? {};
     return Homework(
       id: doc.id,
@@ -47,14 +50,17 @@ class FirestoreHomeworksRepo implements HomeworksRepo {
     };
   }
 
+  // real time stream (fast+cashed)
   @override
-  Future<List<Homework>> getHomeworksForCourse(String courseId) async {
-    final snap = await _hwRef(courseId).get();
-    final hws = snap.docs.map((d) => _fromDoc(courseId, d)).toList();
-
-    // Optional: basic client-side sort if date is like YYYY-MM-DD.
-    hws.sort((a, b) => (a.date).compareTo(b.date));
-    return hws;
+  Stream<List<Homework>> watchHomeworksForCourse(String courseId) {
+    return _hwRef(courseId)
+        .orderBy('createdAt', descending: false)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => _fromDoc(courseId, doc))
+          .toList();
+    });
   }
 
   @override
