@@ -10,9 +10,11 @@ import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 
+/// A form screen that allows users to add a specific Question & Answer card
+/// to an existing Flashcard Group.
 class FlashcardFormSheetQuestion extends StatefulWidget {
-  final String courseId; // <--- ADDED: To know which course
-  final String groupId;  // <--- ADDED: To know which group (topic)
+  final String courseId;
+  final String groupId;
 
   const FlashcardFormSheetQuestion({
     super.key,
@@ -34,13 +36,11 @@ class _FlashcardFormSheetQuestionState
 
   String? _selectedDifficulty;
 
-  // Repo variable
   late final FlashcardsRepo _repo;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Get the repo from the Provider
     _repo = context.read<FlashcardsRepo>();
   }
 
@@ -51,8 +51,8 @@ class _FlashcardFormSheetQuestionState
     super.dispose();
   }
 
+  /// Validates the form and persists the new Flashcard to Firestore.
   Future<void> _submit() async {
-    // 1. Validate
     final formValid = _formKey.currentState!.validate();
     final difficultyValid = _selectedDifficulty != null;
 
@@ -61,19 +61,19 @@ class _FlashcardFormSheetQuestionState
       return;
     }
 
-    // 2. Create Object
+    // Create Flashcard Object
+    // ID and UserID are empty here; the Repository layer handles generation and security.
     final newCard = Flashcard(
-      id: '', // Repo generates ID
-      courseId: widget.courseId, // <--- Use passed ID
-      groupId: widget.groupId,   // <--- Use passed ID
+      id: '',
+      courseId: widget.courseId,
+      groupId: widget.groupId,
       question: _questionController.text.trim(),
       solution: _answerController.text.trim(),
       difficulty: _selectedDifficulty!,
       createdAt: DateTime.now(),
-      userId: '', // Repo will fill this
+      userId: '',
     );
 
-    // 3. Save to Firebase
     try {
       await _repo.addFlashcard(newCard);
 

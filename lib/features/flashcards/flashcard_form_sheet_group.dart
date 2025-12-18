@@ -2,20 +2,21 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart'; // <--- Import Provider
+import 'package:provider/provider.dart';
 
-import '../../common/models/flashcard.dart'; // <--- Import Model
-import '../../common/repos/flashcards_repo.dart';   // <--- Import Repo
+import '../../common/models/flashcard.dart';
+import '../../common/repos/flashcards_repo.dart';
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 
+/// A form screen that allows users to create a new Flashcard Topic (Group).
 class FlashcardFormSheetGroup extends StatefulWidget {
-  final String courseId; // <--- ADDED: We need this to save to the right course
+  final String courseId;
 
   const FlashcardFormSheetGroup({
     super.key,
-    required this.courseId, // <--- REQUIRED
+    required this.courseId,
   });
 
   @override
@@ -28,13 +29,11 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
   final TextEditingController _titleController = TextEditingController();
   String? _selectedDifficulty;
 
-  // Repo variable
   late final FlashcardsRepo _repo;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Get the repo from the Provider
     _repo = context.read<FlashcardsRepo>();
   }
 
@@ -44,29 +43,29 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
     super.dispose();
   }
 
+  /// Validates input and saves the new group to Firestore.
   Future<void> _submit() async {
-    // 1. Validate Form
     if (!_formKey.currentState!.validate() || _selectedDifficulty == null) {
       _showErrorDialog();
       return;
     }
 
-    // 2. Create the Group Object
+    // Create the Group object
+    // Note: ID and UserID are handled by the Repository layer.
     final newGroup = FlashcardGroup(
-      id: '', // Repo/Firebase will handle the ID
-      courseId: widget.courseId, // <--- Use the passed courseId
+      id: '',
+      courseId: widget.courseId,
       title: _titleController.text.trim(),
       difficulty: _selectedDifficulty!,
       createdAt: DateTime.now(),
-      userId: '', // Repo will fill this with the correct User ID
+      userId: '',
     );
 
-    // 3. Save to Firebase
     try {
       await _repo.addFlashcardGroup(newGroup);
 
       if (!mounted) return;
-      context.pop(); // Close the screen on success
+      context.pop(); // Return to previous screen on success
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
