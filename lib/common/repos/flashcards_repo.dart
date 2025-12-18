@@ -1,26 +1,21 @@
 // lib/common/repos/flashcards_repo.dart
+
 import '../models/flashcard.dart';
 
 abstract class FlashcardsRepo {
-  Future<List<FlashcardGroup>> getGroupsForCourse(String courseId);
+  // --- GROUPS ---
+  Future<List<FlashcardGroup>> getFlashcardGroups(String courseId);
 
-  Future<void> addGroup(FlashcardGroup group);
+  Future<void> addFlashcardGroup(FlashcardGroup group);
 
-  Future<void> removeGroup({
-    required String courseId,
-    required String groupId,
-  });
+  // Added courseId back because Firestore needs it!
+  Future<void> deleteFlashcardGroup(String courseId, String groupId);
 
-  Future<List<Flashcard>> getCards({
-    required String courseId,
-    required String groupId,
-  });
+  // --- CARDS ---
+  // Added courseId because Firestore path structure needs it
+  Future<List<Flashcard>> getFlashcards(String courseId, String groupId);
 
-  Future<void> addCard(Flashcard card);
+  Future<void> addFlashcard(Flashcard card);
 
-  Future<void> removeCard({
-    required String courseId,
-    required String groupId,
-    required String cardId,
-  });
+  Future<void> deleteFlashcard(String courseId, String groupId, String cardId);
 }
