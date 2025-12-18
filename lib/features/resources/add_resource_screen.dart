@@ -120,55 +120,72 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: AppSpacing.screen,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _title,
-                validator: (v) => v == null || v.trim().isEmpty ? 'Enter title' : null,
-                decoration: _fieldDecoration('Title'),
-              ),
-              const SizedBox(height: AppSpacing.gapMedium),
-              TextFormField(
-                controller: _desc,
-                maxLines: 4,
-                validator: (v) => v == null || v.trim().isEmpty ? 'Enter description' : null,
-                decoration: _fieldDecoration('Description'),
-              ),
-              const SizedBox(height: AppSpacing.gapMedium),
-              TextFormField(
-                controller: _link,
-                validator: (v) => v == null || v.trim().isEmpty ? 'Enter link' : null,
-                decoration: _fieldDecoration('Link'),
-              ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                height: 46,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
-                    foregroundColor: AppColors.textOnPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+      body: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: AppSpacing.screen,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _title,
+                      validator: (v) =>
+                      v == null || v.trim().isEmpty ? 'Enter title' : null,
+                      decoration: _fieldDecoration('Title'),
                     ),
-                  ),
-                  onPressed: _isSubmitting ? null : _submit,
-                  child: _isSubmitting
-                      ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                  )
-                      : const Text('Submit', style: AppTextStyles.primaryButton),
+                    const SizedBox(height: AppSpacing.gapMedium),
+                    TextFormField(
+                      controller: _desc,
+                      maxLines: 4,
+                      validator: (v) =>
+                      v == null || v.trim().isEmpty ? 'Enter description' : null,
+                      decoration: _fieldDecoration('Description'),
+                    ),
+                    const SizedBox(height: AppSpacing.gapMedium),
+                    TextFormField(
+                      controller: _link,
+                      validator: (v) =>
+                      v == null || v.trim().isEmpty ? 'Enter link' : null,
+                      decoration: _fieldDecoration('Link'),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryBlue,
+                  foregroundColor: AppColors.textOnPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: _isSubmitting ? null : _submit,
+                child: _isSubmitting
+                    ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+                    : const Text(
+                  '+ Add Resource',
+                  style: AppTextStyles.primaryButton,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
