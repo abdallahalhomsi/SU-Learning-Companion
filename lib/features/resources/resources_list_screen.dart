@@ -50,7 +50,6 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
     });
 
     try {
-      // Prevent infinite spinner if the call hangs (network/rules/etc.)
       final list = await _repo
           .getResourcesByCourse(widget.courseId)
           .timeout(const Duration(seconds: 10));
@@ -99,8 +98,11 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
         backgroundColor: AppColors.primaryBlue,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              color: AppColors.textOnPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.textOnPrimary,
+            size: 20,
+          ),
           onPressed: () => context.go('/courses/detail/${widget.courseId}'),
         ),
         title: Text(
@@ -114,77 +116,97 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
           ),
         ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Padding(
-        padding: AppSpacing.screen,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Failed to load resources:\n$_error',
-              textAlign: TextAlign.center,
+      body: Column(
+        children: [
+          // 📄 CONTENT
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                ? Padding(
+              padding: AppSpacing.screen,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Failed to load resources:\n$_error',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 44,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryBlue,
+                      ),
+                      onPressed: _load,
+                      child: const Text(
+                        'Try again',
+                        style: AppTextStyles.primaryButton,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+                : _resources.isEmpty
+                ? const Center(child: Text('No resources available'))
+                : ListView.builder(
+              padding: AppSpacing.screen,
+              itemCount: _resources.length,
+              itemBuilder: (_, i) {
+                final r = _resources[i];
+                return Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: AppSpacing.gapMedium,
+                  ),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryBlue,
+                      foregroundColor:
+                      AppColors.textOnPrimary,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () => _openDetails(r),
+                    child: Text(
+                      r.title,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.listButton,
+                    ),
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: 12),
-            SizedBox(
+          ),
+
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: SizedBox(
               width: double.infinity,
-              height: 44,
+              height: 48,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
+                  foregroundColor: AppColors.textOnPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-                onPressed: _load,
+                onPressed: _openAdd,
                 child: const Text(
-                  'Try again',
+                  '+ Add Resource',
                   style: AppTextStyles.primaryButton,
                 ),
               ),
             ),
-          ],
-        ),
-      )
-          : _resources.isEmpty
-          ? const Center(child: Text('No resources available'))
-          : ListView.builder(
-        padding: AppSpacing.screen,
-        itemCount: _resources.length,
-        itemBuilder: (_, i) {
-          final r = _resources[i];
-          return Padding(
-            padding: const EdgeInsets.only(
-                bottom: AppSpacing.gapMedium),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBlue,
-                foregroundColor: AppColors.textOnPrimary,
-                padding:
-                const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onPressed: () => _openDetails(r),
-              child: Text(
-                r.title,
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(
-                  color: AppColors.textOnPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: AppColors.textOnPrimary,
-        onPressed: _openAdd,
-        child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }

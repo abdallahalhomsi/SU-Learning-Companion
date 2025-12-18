@@ -206,7 +206,7 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
               onPressed: _submit,
-              child: const Text('Submit', style: AppTextStyles.primaryButton),
+              child: const Text('Add Note', style: AppTextStyles.primaryButton),
             ),
           ),
         ],
