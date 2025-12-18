@@ -4,6 +4,8 @@ import 'theme/theme.dart';
 import 'router/app_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'common/providers/theme_provider.dart';
+import 'common/repos/flashcards_repo.dart';
+import 'common/repos/firestore_flashcards_repo.dart';
 
 class SUApp extends StatelessWidget {
   const SUApp({super.key});
