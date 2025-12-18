@@ -1,102 +1,90 @@
-import 'dart:async';
+// lib/common/providers/notes_provider.dart
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../models/notes.dart';
 import '../repos/notes_repo.dart';
 
-
-// This provider manages the state of user notes.
-// It listens to Firestore in real-time through NotesRepo
-// and exposes the notes list to the UI.
-
-
-// - Hold notes data in memory
-// - Listen to Firestore changes (real-time)
-// - Handle loading and error states
-// - Provide CRUD methods for notes
-//
-
+/// NotesProvider
+/// - Holds notes in memory
+/// - Loads notes per course using Future-based repo methods
+/// - Exposes loading + error states
+/// - Supports add + delete
+///
+/// NOTE: Your current NotesRepo/FirestoreNotesRepo is Future-based (not Stream-based),
+/// so this provider uses manual refresh (load) after mutations.
 class NotesProvider extends ChangeNotifier {
   final NotesRepo _repo;
 
   NotesProvider(this._repo);
 
-  // In-memory list of notes for the logged-in user
   List<Note> _notes = [];
-
-  // Used to show loading indicators in the UI
   bool _loading = false;
-
-  // Stores error messages (if any) from Firestore operations
   String? _error;
 
-  // Firestore stream subscription
-  StreamSubscription<List<Note>>? _subscription;
+  String? _activeCourseId;
 
-  /// Public getters (read-only for UI)
   List<Note> get notes => _notes;
   bool get isLoading => _loading;
   String? get error => _error;
+  String? get activeCourseId => _activeCourseId;
 
-  /// Start listening to notes for a specific user.
-  /// This should be called after the user logs in.
-  void start(String userId) {
+  /// Load notes for a specific course
+  Future<void> loadForCourse(String courseId) async {
+    _activeCourseId = courseId;
     _loading = true;
     _error = null;
     notifyListeners();
 
-    // Cancel any previous Firestore listener
-    _subscription?.cancel();
-
-    // Listen to Firestore notes stream
-    _subscription = _repo.watchNotes(userId).listen(
-          (data) {
-        // Update local state when Firestore data changes
-        _notes = data;
-        _loading = false;
-        notifyListeners();
-      },
-      onError: (e) {
-        // Handle Firestore errors
-        _loading = false;
-        _error = e.toString();
-        notifyListeners();
-      },
-    );
-  }
-
-  /// Stop listening to Firestore.
-  /// Called when the user logs out.
-  void stop() {
-    _subscription?.cancel();
-    _subscription = null;
-    _notes = [];
-    _loading = false;
-    _error = null;
-    notifyListeners();
-  }
-
-  /// Create a new note for the logged-in user
-  Future<void> addNote(
-      String userId, {
-        required String title,
-        required String content,
-      }) async {
     try {
-      await _repo.addNote(
-        userId,
-        title: title,
-        content: content,
-      );
+      final data = await _repo.getNotesForCourse(courseId);
+      _notes = data;
     } catch (e) {
       _error = e.toString();
+    } finally {
+      _loading = false;
       notifyListeners();
     }
   }
 
-  /// Update an existing note
-  Future<void> updateNote(String userId, Note note) async {
+  /// Clear cached notes (e.g., on logout or switching contexts)
+  void clear() {
+    _notes = [];
+    _loading = false;
+    _error = null;
+    _activeCourseId = null;
+    notifyListeners();
+  }
+
+  /// Add a note (builds Note object correctly)
+  Future<void> addNote({
+    required String courseId,
+    required String title,
+    required String content,
+  }) async {
+    _error = null;
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      _error = 'Not logged in';
+      notifyListeners();
+      return;
+    }
+
+    final note = Note(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      courseId: courseId,
+      title: title.trim(),
+      content: content,
+      createdAt: DateTime.now(),
+      createdBy: uid,
+    );
+
     try {
-      await _repo.updateNote(userId, note);
+      await _repo.addNote(note);
+
+      // refresh list so UI updates
+      await loadForCourse(courseId);
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -104,18 +92,20 @@ class NotesProvider extends ChangeNotifier {
   }
 
   /// Delete a note by ID
-  Future<void> deleteNote(String userId, String noteId) async {
+  Future<void> deleteNote({
+    required String courseId,
+    required String noteId,
+  }) async {
+    _error = null;
+
     try {
-      await _repo.deleteNote(userId, noteId);
+      await _repo.removeNote(courseId: courseId, noteId: noteId);
+
+      // refresh list so UI updates
+      await loadForCourse(courseId);
     } catch (e) {
       _error = e.toString();
       notifyListeners();
     }
-  }
-
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    super.dispose();
   }
 }

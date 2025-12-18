@@ -37,12 +37,16 @@ class FirestoreNotesRepo implements NotesRepo {
     DateTime createdAt = DateTime.now();
     if (ts is Timestamp) createdAt = ts.toDate();
 
+    // ✅ Read createdBy from Firestore; if missing (older notes), fall back to current uid.
+    final createdBy = (d['createdBy'] ?? _uid).toString();
+
     return Note(
       id: doc.id,
       courseId: courseId,
       title: (d['title'] ?? '').toString(),
       content: (d['content'] ?? '').toString(),
       createdAt: createdAt,
+      createdBy: createdBy, // ✅ Fix: required param
     );
   }
 
@@ -61,6 +65,7 @@ class FirestoreNotesRepo implements NotesRepo {
       'title': note.title,
       'content': note.content,
       'createdAt': FieldValue.serverTimestamp(),
+      'createdBy': note.createdBy, // ✅ Fix: persist owner
     });
   }
 

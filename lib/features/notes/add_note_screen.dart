@@ -1,6 +1,7 @@
 // lib/features/notes/add_note_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/notes.dart';
@@ -69,12 +70,25 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
       return;
     }
 
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    // If your app guarantees this screen is only reachable when logged-in,
+    // uid should never be null. But we still guard to avoid crashes.
+    if (uid == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You must be logged in to add a note.')),
+      );
+      return;
+    }
+
     final note = Note(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       courseId: widget.courseId,
       title: _title.text.trim(),
       content: _body.text,
       createdAt: DateTime.now(),
+      createdBy: uid, // ✅ Fix: provide required createdBy
     );
 
     try {
@@ -100,7 +114,11 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
           style: AppTextStyles.appBarTitle,
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.textOnPrimary,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -118,7 +136,8 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                     decoration: InputDecoration(
                       labelText: 'Title',
                       labelStyle: const TextStyle(color: Colors.black87, fontSize: 14),
-                      fillColor: AppColors.inputGrey.withOpacity(0.25),
+                      // ✅ Fix: withOpacity deprecated -> withValues(alpha: ...)
+                      fillColor: AppColors.inputGrey.withValues(alpha: 0.25),
                       filled: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -137,7 +156,8 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                       border: Border.all(color: const Color(0xFFE5EAF1)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
+                          // ✅ Fix: withOpacity deprecated -> withValues(alpha: ...)
+                          color: Colors.black.withValues(alpha: 0.03),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -208,7 +228,10 @@ class _LinedPaperPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = lineColor..strokeWidth = 1;
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 1;
+
     double y = topOffset;
     while (y < size.height) {
       canvas.drawLine(

@@ -1,5 +1,7 @@
+// lib/common/models/notes.dart
 // This file defines the data models for Notes.
 // These models are used throughout the application to represent Notes.
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Note {
@@ -21,16 +23,19 @@ class Note {
 
   /// Convert Firestore document → Note object
   factory Note.fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> doc,
-      ) {
-    final data = doc.data()!;
+      DocumentSnapshot<Map<String, dynamic>> doc, {
+        required String courseId,
+      }) {
+    final data = doc.data() ?? {};
 
     return Note(
       id: doc.id,
-      title: data['title'] ?? '',
-      content: data['content'] ?? '',
-      createdBy: data['createdBy'] ?? '',
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      courseId: courseId, // ✅ FIX
+      title: (data['title'] ?? '').toString(),
+      content: (data['content'] ?? '').toString(),
+      createdBy: (data['createdBy'] ?? '').toString(),
+      createdAt:
+      (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
@@ -39,6 +44,7 @@ class Note {
     return {
       'title': title,
       'content': content,
+      'courseId': courseId,
       'createdBy': createdBy,
       'createdAt': Timestamp.fromDate(createdAt),
     };
@@ -51,6 +57,7 @@ class Note {
   }) {
     return Note(
       id: id,
+      courseId: courseId, // ✅ FIX
       title: title ?? this.title,
       content: content ?? this.content,
       createdBy: createdBy,
