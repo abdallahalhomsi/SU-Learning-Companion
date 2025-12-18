@@ -1,22 +1,15 @@
 // lib/router/flashcards_router.dart
 //
 // GoRouter routes for Flashcards feature.
-// Uses course-scoped + group-scoped paths.
-// - /courses/:courseId/flashcards
-// - /courses/:courseId/flashcards/:groupId/questions
-// Global utility routes:
-// - /flashcards/solution
-// - /flashcards/groups/add
-// - /flashcards/create
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:su_learning_companion/features/flashcards/flashcards_topics.dart';
-import 'package:su_learning_companion/features/flashcards/flashcards_questions_screen.dart';
-import 'package:su_learning_companion/features/flashcards/flashcards_solution.dart';
-import 'package:su_learning_companion/features/flashcards/flashcard_form_sheet_group.dart';
-import 'package:su_learning_companion/features/flashcards/flashcard_form_sheet_question.dart';
+import '../features/flashcards/flashcards_topics.dart';
+import '../features/flashcards/flashcards_questions_screen.dart';
+import '../features/flashcards/flashcards_solution.dart';
+import '../features/flashcards/flashcard_form_sheet_group.dart';
+import '../features/flashcards/flashcard_form_sheet_question.dart';
 
 class FlashcardsRouter {
   // Course-scoped routes
@@ -24,7 +17,7 @@ class FlashcardsRouter {
   static const String questions =
       '/courses/:courseId/flashcards/:groupId/questions';
 
-  // Global routes (no courseId needed)
+  // Global routes (no courseId needed in URL, passed via extra)
   static const String solution = '/flashcards/solution';
   static const String groupsAdd = '/flashcards/groups/add';
   static const String create = '/flashcards/create';
@@ -85,13 +78,31 @@ class FlashcardsRouter {
     // ADD GROUP (Global form sheet)
     GoRoute(
       path: groupsAdd,
-      builder: (context, state) => const FlashcardFormSheetGroup(),
+      builder: (context, state) {
+        // FIX: Extract courseId from extra
+        final extra = state.extra as Map<String, dynamic>?;
+        final courseId = extra?['courseId'] as String? ?? '';
+
+        return FlashcardFormSheetGroup(
+          courseId: courseId,
+        );
+      },
     ),
 
     // CREATE CARD (Global form sheet)
     GoRoute(
       path: create,
-      builder: (context, state) => const FlashcardFormSheetQuestion(),
+      builder: (context, state) {
+        // FIX: Extract courseId and groupId from extra
+        final extra = state.extra as Map<String, dynamic>?;
+        final courseId = extra?['courseId'] as String? ?? '';
+        final groupId = extra?['groupId'] as String? ?? '';
+
+        return FlashcardFormSheetQuestion(
+          courseId: courseId,
+          groupId: groupId,
+        );
+      },
     ),
   ];
 }
