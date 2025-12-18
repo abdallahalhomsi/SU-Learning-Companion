@@ -6,6 +6,7 @@ class Note {
   final String id;
   final String title;
   final String content;
+  final String courseId;
   final String createdBy;
   final DateTime createdAt;
 
@@ -13,6 +14,7 @@ class Note {
     required this.id,
     required this.title,
     required this.content,
+    required this.courseId,
     required this.createdBy,
     required this.createdAt,
   });
