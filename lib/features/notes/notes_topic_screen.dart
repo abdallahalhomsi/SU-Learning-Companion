@@ -1,15 +1,14 @@
-// This file makes up the components of the Notes Topic Screen,
-// Which displays the specific written notes of the user.
-// Uses Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
+// lib/features/notes/notes_topic_screen.dart
 
 import 'package:flutter/material.dart';
-import '../../common/widgets/app_scaffold.dart';
+import 'package:provider/provider.dart';
+
 import '../../common/models/notes.dart';
+import '../../common/repos/notes_repo.dart';
+import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
-import '../../common/repos/firestore_notes_repo.dart';
 
 class NotesTopicScreen extends StatefulWidget {
   final String courseName;
@@ -26,22 +25,26 @@ class NotesTopicScreen extends StatefulWidget {
 }
 
 class _NotesTopicScreenState extends State<NotesTopicScreen> {
-  final _notesRepo = FirestoreNotesRepo();
+  late final NotesRepo _notesRepo;
 
-  late TextEditingController _titleController;
-  late TextEditingController _contentController;
+  late final TextEditingController _titleController;
+  late final TextEditingController _contentController;
 
   bool _isEditing = false;
-  bool _hasUnsavedChanges = false;
   bool _isSaving = false;
+  bool _hasUnsavedChanges = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _notesRepo = context.read<NotesRepo>();
+  }
 
   @override
   void initState() {
     super.initState();
-    _titleController =
-        TextEditingController(text: widget.note.title);
-    _contentController =
-        TextEditingController(text: widget.note.content);
+    _titleController = TextEditingController(text: widget.note.title);
+    _contentController = TextEditingController(text: widget.note.content);
 
     _titleController.addListener(_markDirty);
     _contentController.addListener(_markDirty);
@@ -53,25 +56,39 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
     }
   }
 
-  Future<bool> _confirmExit() async {
-    if (!_hasUnsavedChanges) return true;
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    super.dispose();
+  }
 
+  Future<bool> _confirmDiscard() async {
     return await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Unsaved changes'),
-        content:
-        const Text('Discard changes and leave?'),
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: const [
+            Icon(Icons.warning_amber_rounded, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Unsaved changes',
+                style: TextStyle(color: Colors.red)),
+          ],
+        ),
+        content: const Text(
+          'You have unsaved changes.\nDo you want to discard them?',
+        ),
         actions: [
           TextButton(
-            onPressed: () =>
-                Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () =>
-                Navigator.pop(context, true),
-            child: const Text('Discard'),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Discard',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -89,117 +106,139 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
       content: _contentController.text.trim(),
     );
 
+    if (!mounted) return;
+
     setState(() {
       _isSaving = false;
       _isEditing = false;
       _hasUnsavedChanges = false;
     });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        backgroundColor: Colors.green,
+        content: Text(
+          'Note saved successfully',
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _confirmExit,
-      child: Stack(
-        children: [
-          AppScaffold(
-            currentIndex: 0,
-            appBar: AppBar(
-              backgroundColor: AppColors.primaryBlue,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios,
-                    color: AppColors.textOnPrimary,
-                    size: 20),
-                onPressed: () async {
-                  if (await _confirmExit()) {
-                    Navigator.pop(context);
-                  }
-                },
-              ),
-              title: Text(widget.courseName,
-                  style: AppTextStyles.appBarTitle),
-              centerTitle: true,
-            ),
-            body: Column(
-              children: [
-                Padding(
-                  padding: AppSpacing.screen,
-                  child: TextField(
-                    controller: _titleController,
-                    readOnly: !_isEditing,
-                    style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
-                    decoration:
-                    const InputDecoration(border: InputBorder.none),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: AppSpacing.screen,
-                    child: TextField(
-                      controller: _contentController,
-                      maxLines: null,
-                      readOnly: !_isEditing,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding:
-                  const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 46,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                        AppColors.primaryBlue,
-                        foregroundColor:
-                        AppColors.textOnPrimary,
-                      ),
-                      onPressed:
-                      _isEditing ? _save : () {
-                        setState(() => _isEditing = true);
-                      },
-                      child: Text(
-                        _isEditing ? 'Save Note' : 'Edit Note',
-                        style: AppTextStyles.primaryButton,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+    return PopScope(
+      canPop: !_hasUnsavedChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await _confirmDiscard();
+        if (shouldPop && mounted) {
+          Navigator.pop(context, result);
+        }
+      },
+      child: AppScaffold(
+        currentIndex: 0,
+        appBar: AppBar(
+          backgroundColor: AppColors.primaryBlue,
+          centerTitle: true,
+          title: Text(widget.courseName,
+              style: AppTextStyles.appBarTitle),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios,
+                color: AppColors.textOnPrimary),
+            onPressed: () async {
+              final shouldPop = await _confirmDiscard();
+              if (shouldPop && mounted) Navigator.pop(context);
+            },
           ),
-
-          // added loading overlay while screen saves new changes to notees
-          if (_isSaving)
-            Container(
-              color: Colors.black45,
-              child: const Center(
-                child: CircularProgressIndicator(
-                    color: Colors.white),
+        ),
+        body: Stack(
+          children: [
+            Padding(
+              padding: AppSpacing.screen,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE5EAF1)),
+                ),
+                child: Stack(
+                  children: [
+                    CustomPaint(
+                      painter: _LinedPaperPainter(
+                        lineColor: const Color(0xFFCBD5E1),
+                        spacing: 28,
+                        topOffset: 60,
+                      ),
+                      size: Size.infinite,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          TextField(
+                            controller: _titleController,
+                            readOnly: !_isEditing,
+                            style: AppTextStyles.primaryButton.copyWith(
+                              color: Colors.black,
+                              fontSize: 16,
+                            ),
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Title',
+                            ),
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: _contentController,
+                              readOnly: !_isEditing,
+                              maxLines: null,
+                              keyboardType: TextInputType.multiline,
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                hintText: 'Write your notes...',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-        ],
+            if (_isSaving)
+              Container(
+                color: Colors.black.withValues(alpha: 0.25),
+                alignment: Alignment.center,
+                child: const CircularProgressIndicator(),
+              ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: AppColors.primaryBlue,
+          onPressed: _isSaving
+              ? null
+              : () => _isEditing ? _save() : setState(() => _isEditing = true),
+          child: Icon(
+            _isEditing ? Icons.save : Icons.edit,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }
 }
 
-// added painter class for lined pages
-class LinedPaperPainter extends CustomPainter {
+class _LinedPaperPainter extends CustomPainter {
   final Color lineColor;
   final double spacing;
   final double topOffset;
 
-  LinedPaperPainter({
+  const _LinedPaperPainter({
     required this.lineColor,
-    this.spacing = 28,
-    this.topOffset = 32,
+    required this.spacing,
+    required this.topOffset,
   });
 
   @override
@@ -220,5 +259,5 @@ class LinedPaperPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(_) => false;
 }
