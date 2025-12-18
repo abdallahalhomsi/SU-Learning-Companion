@@ -1,15 +1,24 @@
-// This file makes up the components of the Flashcards Formsheet Questions Screen
-// Which displays a form for creating new questions inside a topic
-// Uses of Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
+// lib/features/flashcards/flashcard_form_sheet_question.dart
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../../common/models/flashcard.dart';
+import '../../common/repos/flashcards_repo.dart';
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 
 class FlashcardFormSheetQuestion extends StatefulWidget {
-  const FlashcardFormSheetQuestion({super.key});
+  final String courseId; // <--- ADDED: To know which course
+  final String groupId;  // <--- ADDED: To know which group (topic)
+
+  const FlashcardFormSheetQuestion({
+    super.key,
+    required this.courseId,
+    required this.groupId,
+  });
 
   @override
   State<FlashcardFormSheetQuestion> createState() =>
@@ -25,6 +34,16 @@ class _FlashcardFormSheetQuestionState
 
   String? _selectedDifficulty;
 
+  // Repo variable
+  late final FlashcardsRepo _repo;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Get the repo from the Provider
+    _repo = context.read<FlashcardsRepo>();
+  }
+
   @override
   void dispose() {
     _questionController.dispose();
@@ -32,7 +51,8 @@ class _FlashcardFormSheetQuestionState
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    // 1. Validate
     final formValid = _formKey.currentState!.validate();
     final difficultyValid = _selectedDifficulty != null;
 
@@ -41,11 +61,30 @@ class _FlashcardFormSheetQuestionState
       return;
     }
 
-    Navigator.of(context).pop(<String, String>{
-      'question': _questionController.text.trim(),
-      'solution': _answerController.text.trim(),
-      'difficulty': _selectedDifficulty!,
-    });
+    // 2. Create Object
+    final newCard = Flashcard(
+      id: '', // Repo generates ID
+      courseId: widget.courseId, // <--- Use passed ID
+      groupId: widget.groupId,   // <--- Use passed ID
+      question: _questionController.text.trim(),
+      solution: _answerController.text.trim(),
+      difficulty: _selectedDifficulty!,
+      createdAt: DateTime.now(),
+      userId: '', // Repo will fill this
+    );
+
+    // 3. Save to Firebase
+    try {
+      await _repo.addFlashcard(newCard);
+
+      if (!mounted) return;
+      context.pop(); // Close screen on success
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving card: $e')),
+      );
+    }
   }
 
   void _showErrorDialog() {

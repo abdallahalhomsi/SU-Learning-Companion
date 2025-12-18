@@ -40,22 +40,25 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
     if (!_repoReady) {
       _repo = context.read<FlashcardsRepo>();
       _repoReady = true;
-      _future = _repo.getCards(courseId: widget.courseId, groupId: widget.groupId);
+      // FIX 1: Use 'getFlashcards' with positional arguments
+      _future = _repo.getFlashcards(widget.courseId, widget.groupId);
     }
   }
 
   void _refresh() {
     setState(() {
-      _future = _repo.getCards(courseId: widget.courseId, groupId: widget.groupId);
+      // FIX 2: Use 'getFlashcards' with positional arguments
+      _future = _repo.getFlashcards(widget.courseId, widget.groupId);
     });
   }
 
   Future<void> _deleteCard(Flashcard card) async {
     try {
-      await _repo.removeCard(
-        courseId: widget.courseId,
-        groupId: widget.groupId,
-        cardId: card.id,
+      // FIX 3: Use 'deleteFlashcard' with positional arguments
+      await _repo.deleteFlashcard(
+        widget.courseId,
+        widget.groupId,
+        card.id,
       );
       if (!mounted) return;
       _refresh();
@@ -68,29 +71,17 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
   }
 
   Future<void> _addCard() async {
-    final result = await context.push<Map<String, String>>('/flashcards/create');
-    if (result == null) return;
+    // FIX 4: Simplified Logic
+    // The Form Sheet now handles saving to Firebase.
+    // We just pass the IDs it needs to know WHERE to save.
+    await context.push('/flashcards/create', extra: {
+      'courseId': widget.courseId,
+      'groupId': widget.groupId,
+    });
 
-    final card = Flashcard(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      courseId: widget.courseId,
-      groupId: widget.groupId,
-      question: result['question'] ?? 'New Question',
-      solution: result['solution'] ?? 'New Answer',
-      difficulty: result['difficulty'] ?? 'Easy',
-      createdAt: DateTime.now(),
-    );
-
-    try {
-      await _repo.addCard(card);
-      if (!mounted) return;
-      _refresh();
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add card: $e')),
-      );
-    }
+    // When we return, just refresh the list.
+    if (!mounted) return;
+    _refresh();
   }
 
   @override

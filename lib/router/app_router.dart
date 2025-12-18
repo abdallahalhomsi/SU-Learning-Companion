@@ -262,13 +262,31 @@ class AppRouter {
           );
         },
       ),
+      // --- FIXED ROUTES BELOW ---
+
+      // 1. Add Flashcard Group
+      // This now extracts 'courseId' from extra, so we know where to save the group.
       GoRoute(
         path: '/flashcards/groups/add',
-        builder: (context, state) => const FlashcardFormSheetGroup(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return FlashcardFormSheetGroup(
+            courseId: extra?['courseId'] ?? '',
+          );
+        },
       ),
+
+      // 2. Add Flashcard Question
+      // This now extracts 'groupId' from extra, so we know where to save the question.
       GoRoute(
         path: '/flashcards/create',
-        builder: (context, state) => const FlashcardFormSheetQuestion(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return FlashcardFormSheetQuestion(
+            groupId: extra?['groupId'] ?? '',
+            courseId: extra?['courseId'] ?? '', // <--- Add this line!
+          );
+        },
       ),
     ],
   );

@@ -1,4 +1,5 @@
 // lib/features/flashcards/flashcards_topics.dart
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +9,7 @@ import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
 
-import '../../common/models/flashcard.dart';
+import '../../common/models/flashcard.dart'; // <--- Ensure this matches your file name
 import '../../common/repos/flashcards_repo.dart';
 
 class FlashcardsTopicsScreen extends StatefulWidget {
@@ -37,19 +38,23 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
     if (!_repoReady) {
       _repo = context.read<FlashcardsRepo>();
       _repoReady = true;
-      _future = _repo.getGroupsForCourse(widget.courseId);
+      // FIX 1: Use the correct method name from the interface
+      _future = _repo.getFlashcardGroups(widget.courseId);
     }
   }
 
   void _refresh() {
     setState(() {
-      _future = _repo.getGroupsForCourse(widget.courseId);
+      // FIX 2: Use the correct method name
+      _future = _repo.getFlashcardGroups(widget.courseId);
     });
   }
 
   Future<void> _deleteGroup(FlashcardGroup group) async {
     try {
-      await _repo.removeGroup(courseId: widget.courseId, groupId: group.id);
+      // FIX 3: Use correct method name and positional arguments
+      await _repo.deleteFlashcardGroup(widget.courseId, group.id);
+
       if (!mounted) return;
       _refresh();
     } catch (e) {
@@ -61,27 +66,14 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
   }
 
   Future<void> _addGroup() async {
-    final result = await context.push<Map<String, String>>('/flashcards/groups/add');
-    if (result == null) return;
+    // FIX 4: Simplified Logic
+    // We navigate to the Form Sheet and pass the courseId.
+    // The Form Sheet now handles the saving to Firebase.
+    await context.push('/flashcards/groups/add', extra: {'courseId': widget.courseId});
 
-    final group = FlashcardGroup(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      courseId: widget.courseId,
-      title: result['title'] ?? 'New Group',
-      difficulty: result['difficulty'] ?? 'Easy',
-      createdAt: DateTime.now(),
-    );
-
-    try {
-      await _repo.addGroup(group);
-      if (!mounted) return;
-      _refresh();
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add group: $e')),
-      );
-    }
+    // When we return, we just refresh the list to show the new item.
+    if (!mounted) return;
+    _refresh();
   }
 
   @override
