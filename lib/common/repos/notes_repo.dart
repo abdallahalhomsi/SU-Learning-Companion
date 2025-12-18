@@ -2,7 +2,9 @@
 import '../models/notes.dart';
 
 abstract class NotesRepo {
-  Future<List<Note>> getNotesForCourse(String courseId);
+  Future<List<Note>> getNotesForCourse(String courseId); // one time fetch
+
+  Stream<List<Note>> watchNotesForCourse(String courseId);// real time update stream for notes
 
   Future<void> addNote(Note note);
 

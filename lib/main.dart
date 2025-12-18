@@ -17,7 +17,7 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ...buildProviders(), // ✅ your existing providers
+        ...buildProviders(), // existing providers
         ChangeNotifierProvider<ThemeProvider>(
           create: (_) => ThemeProvider()..loadTheme(),
         ),

@@ -37,7 +37,7 @@ class FirestoreNotesRepo implements NotesRepo {
     DateTime createdAt = DateTime.now();
     if (ts is Timestamp) createdAt = ts.toDate();
 
-    // ✅ Read createdBy from Firestore; if missing (older notes), fall back to current uid.
+    // Read createdBy from Firestore; if missing (older notes), fall back to current uid.
     final createdBy = (d['createdBy'] ?? _uid).toString();
 
     return Note(
@@ -49,7 +49,7 @@ class FirestoreNotesRepo implements NotesRepo {
       createdBy: createdBy, // ✅ Fix: required param
     );
   }
-
+// single fetch of notes for cources
   @override
   Future<List<Note>> getNotesForCourse(String courseId) async {
     final snap = await _notesCol(courseId)
@@ -57,6 +57,18 @@ class FirestoreNotesRepo implements NotesRepo {
         .get();
 
     return snap.docs.map((d) => _fromDoc(courseId, d)).toList();
+  }
+
+  // realtime stream, fetches updated notes
+  @override
+  Stream<List<Note>> watchNotesForCourse(String courseId) {
+    return _notesCol(courseId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) =>
+          snapshot.docs.map((d) => _fromDoc(courseId, d)).toList(),
+    );
   }
 
   @override
