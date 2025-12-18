@@ -26,139 +26,165 @@ class NotesTopicScreen extends StatefulWidget {
 }
 
 class _NotesTopicScreenState extends State<NotesTopicScreen> {
-  late TextEditingController _controller;
-  bool _isEditing = false;
   final _notesRepo = FirestoreNotesRepo();
+
+  late TextEditingController _titleController;
+  late TextEditingController _contentController;
+
+  bool _isEditing = false;
+  bool _hasUnsavedChanges = false;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.note.content);
+    _titleController =
+        TextEditingController(text: widget.note.title);
+    _contentController =
+        TextEditingController(text: widget.note.content);
+
+    _titleController.addListener(_markDirty);
+    _contentController.addListener(_markDirty);
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _saveNote() async {
-    if (_controller.text.trim().isEmpty) {
-      _showAlert('Note cannot be empty.');
-      return;
-    }
-
-    try {
-      await _notesRepo.updateNote(
-        courseId: widget.note.courseId,
-        noteId: widget.note.id,
-        content: _controller.text.trim(),
-      );
-
-      setState(() => _isEditing = false);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Note saved successfully')),
-      );
-    } catch (e) {
-      _showAlert('Failed to save note. Please try again.');
+  void _markDirty() {
+    if (!_hasUnsavedChanges) {
+      setState(() => _hasUnsavedChanges = true);
     }
   }
 
-  void _showAlert(String message) {
-    showDialog(
+  Future<bool> _confirmExit() async {
+    if (!_hasUnsavedChanges) return true;
+
+    return await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Error'),
-        content: Text(message),
+        title: const Text('Unsaved changes'),
+        content:
+        const Text('Discard changes and leave?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          )
+            onPressed: () =>
+                Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(context, true),
+            child: const Text('Discard'),
+          ),
         ],
       ),
+    ) ??
+        false;
+  }
+
+  Future<void> _save() async {
+    setState(() => _isSaving = true);
+
+    await _notesRepo.updateNote(
+      courseId: widget.note.courseId,
+      noteId: widget.note.id,
+      title: _titleController.text.trim(),
+      content: _contentController.text.trim(),
     );
+
+    setState(() {
+      _isSaving = false;
+      _isEditing = false;
+      _hasUnsavedChanges = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      currentIndex: 0,
-      appBar: AppBar(
-        backgroundColor: AppColors.primaryBlue,
-        title: Text(
-          '${widget.courseName}: ${widget.note.title}',
-          style: AppTextStyles.appBarTitle,
-        ),
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: AppColors.textOnPrimary,
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: AppSpacing.screen,
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE5EAF1)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+    return WillPopScope(
+      onWillPop: _confirmExit,
+      child: Stack(
+        children: [
+          AppScaffold(
+            currentIndex: 0,
+            appBar: AppBar(
+              backgroundColor: AppColors.primaryBlue,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios,
+                    color: AppColors.textOnPrimary,
+                    size: 20),
+                onPressed: () async {
+                  if (await _confirmExit()) {
+                    Navigator.pop(context);
+                  }
+                },
               ),
-            ],
+              title: Text(widget.courseName,
+                  style: AppTextStyles.appBarTitle),
+              centerTitle: true,
+            ),
+            body: Column(
+              children: [
+                Padding(
+                  padding: AppSpacing.screen,
+                  child: TextField(
+                    controller: _titleController,
+                    readOnly: !_isEditing,
+                    style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
+                    decoration:
+                    const InputDecoration(border: InputBorder.none),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: AppSpacing.screen,
+                    child: TextField(
+                      controller: _contentController,
+                      maxLines: null,
+                      readOnly: !_isEditing,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding:
+                  const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 46,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                        AppColors.primaryBlue,
+                        foregroundColor:
+                        AppColors.textOnPrimary,
+                      ),
+                      onPressed:
+                      _isEditing ? _save : () {
+                        setState(() => _isEditing = true);
+                      },
+                      child: Text(
+                        _isEditing ? 'Save Note' : 'Edit Note',
+                        style: AppTextStyles.primaryButton,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: Stack(
-            children: [
-              CustomPaint(
-                painter: LinedPaperPainter(
-                  lineColor: const Color(0xFFCBD5E1),
-                  spacing: 28,
-                  topOffset: 32,
-                ),
-                size: Size.infinite,
+
+          // added loading overlay while screen saves new changes to notees
+          if (_isSaving)
+            Container(
+              color: Colors.black45,
+              child: const Center(
+                child: CircularProgressIndicator(
+                    color: Colors.white),
               ),
-              TextField(
-                controller: _controller,
-                maxLines: null,
-                readOnly: !_isEditing,
-                keyboardType: TextInputType.multiline,
-                textAlignVertical: TextAlignVertical.top,
-                style: const TextStyle(
-                  height: 1.4,
-                  color: AppColors.textPrimary,
-                ),
-                decoration: const InputDecoration(
-                  hintText: 'Write your notes...',
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.fromLTRB(16, 10, 16, 16),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.primaryBlue,
-        child: Icon(
-          _isEditing ? Icons.save : Icons.edit,
-          color: Colors.white,
-        ),
-        onPressed: () {
-          if (_isEditing) {
-            _saveNote();
-          } else {
-            setState(() => _isEditing = true);
-          }
-        },
+            ),
+        ],
       ),
     );
   }
