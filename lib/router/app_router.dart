@@ -61,12 +61,12 @@ class AppRouter {
           location == '/signup' ||
           location == '/signup_2';
 
-      // 🔒 Not logged in → block protected routes
+      //  Not logged in → block protected routes
       if (user == null && !isPublicRoute) {
         return '/login';
       }
 
-      // 🔐 Logged in → block auth screens
+      //  Logged in → block auth screens
       if (user != null && isPublicRoute) {
         return '/home';
       }
@@ -262,10 +262,8 @@ class AppRouter {
           );
         },
       ),
-      // --- FIXED ROUTES BELOW ---
 
       // 1. Add Flashcard Group
-      // This now extracts 'courseId' from extra, so we know where to save the group.
       GoRoute(
         path: '/flashcards/groups/add',
         builder: (context, state) {
@@ -277,14 +275,13 @@ class AppRouter {
       ),
 
       // 2. Add Flashcard Question
-      // This now extracts 'groupId' from extra, so we know where to save the question.
       GoRoute(
         path: '/flashcards/create',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           return FlashcardFormSheetQuestion(
             groupId: extra?['groupId'] ?? '',
-            courseId: extra?['courseId'] ?? '', // <--- Add this line!
+            courseId: extra?['courseId'] ?? '',
           );
         },
       ),

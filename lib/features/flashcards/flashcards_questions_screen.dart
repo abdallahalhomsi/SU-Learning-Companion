@@ -1,4 +1,5 @@
 // lib/features/flashcards/flashcards_questions_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +11,8 @@ import '../../common/utils/app_text_styles.dart';
 import '../../common/models/flashcard.dart';
 import '../../common/repos/flashcards_repo.dart';
 
+/// Displays the list of individual flashcards (questions) within a specific topic (Group).
+/// Allows the user to view, add, or delete specific cards.
 class FlashcardsQuestionsScreen extends StatefulWidget {
   final String courseId;
   final String courseName;
@@ -25,7 +28,8 @@ class FlashcardsQuestionsScreen extends StatefulWidget {
   });
 
   @override
-  State<FlashcardsQuestionsScreen> createState() => _FlashcardsQuestionsScreenState();
+  State<FlashcardsQuestionsScreen> createState() =>
+      _FlashcardsQuestionsScreenState();
 }
 
 class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
@@ -40,28 +44,26 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
     if (!_repoReady) {
       _repo = context.read<FlashcardsRepo>();
       _repoReady = true;
-      // FIX 1: Use 'getFlashcards' with positional arguments
-      _future = _repo.getFlashcards(widget.courseId, widget.groupId);
+      _loadData();
     }
   }
 
-  void _refresh() {
+  void _loadData() {
     setState(() {
-      // FIX 2: Use 'getFlashcards' with positional arguments
       _future = _repo.getFlashcards(widget.courseId, widget.groupId);
     });
   }
 
+  /// Deletes a specific card from Firestore and refreshes the list upon success.
   Future<void> _deleteCard(Flashcard card) async {
     try {
-      // FIX 3: Use 'deleteFlashcard' with positional arguments
       await _repo.deleteFlashcard(
         widget.courseId,
         widget.groupId,
         card.id,
       );
       if (!mounted) return;
-      _refresh();
+      _loadData();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -70,18 +72,16 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
     }
   }
 
+  /// Navigates to the form to create a new card, passing necessary IDs.
   Future<void> _addCard() async {
-    // FIX 4: Simplified Logic
-    // The Form Sheet now handles saving to Firebase.
-    // We just pass the IDs it needs to know WHERE to save.
     await context.push('/flashcards/create', extra: {
       'courseId': widget.courseId,
       'groupId': widget.groupId,
     });
 
-    // When we return, just refresh the list.
+    // Refresh the list when returning from the form
     if (!mounted) return;
-    _refresh();
+    _loadData();
   }
 
   @override
@@ -125,7 +125,10 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
                     final cards = snapshot.data ?? [];
                     if (cards.isEmpty) {
                       return const Center(
-                        child: Text('No cards created yet.', style: TextStyle(fontSize: 14)),
+                        child: Text(
+                          'No cards created yet.',
+                          style: TextStyle(fontSize: 14),
+                        ),
                       );
                     }
 
@@ -138,9 +141,13 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
                         return _CardItem(
                           question: card.question,
                           onTap: () {
+                            // Navigate to Solution/Answer View
                             context.push(
                               '/flashcards/solution',
-                              extra: {'title': card.question, 'solution': card.solution},
+                              extra: {
+                                'title': card.question,
+                                'solution': card.solution
+                              },
                             );
                           },
                           onDelete: () => _deleteCard(card),
@@ -159,9 +166,14 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                child: const Text('+ Create Flash Card', style: AppTextStyles.primaryButton),
+                child: const Text(
+                  '+ Create Flash Card',
+                  style: AppTextStyles.primaryButton,
+                ),
               ),
             ),
           ],
@@ -171,6 +183,7 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
   }
 }
 
+/// A helper widget to display a single flashcard row with a delete action.
 class _CardItem extends StatelessWidget {
   final String question;
   final VoidCallback onTap;

@@ -1,12 +1,16 @@
 // lib/common/models/flashcard_models.dart
 
+/// Represents a topic/collection of flashcards (e.g., "Midterm Review").
 class FlashcardGroup {
   final String id;
   final String courseId;
   final String title;
-  final String difficulty; // Easy/Medium/Hard
+  final String difficulty;
   final DateTime createdAt;
-  final String userId; // <--- ADD THIS FIELD
+
+  /// The UID of the creator.
+  /// Required to enforce "Delete as Main Writer" permissions.
+  final String userId;
 
   FlashcardGroup({
     required this.id,
@@ -14,10 +18,10 @@ class FlashcardGroup {
     required this.title,
     required this.difficulty,
     required this.createdAt,
-    required this.userId, // <--- ADD TO CONSTRUCTOR
+    required this.userId,
   });
 
-  // Convert from Firestore
+  /// Factory to parse Firestore data, handling Timestamp conversions safely.
   factory FlashcardGroup.fromMap(Map<String, dynamic> data, String documentId) {
     return FlashcardGroup(
       id: documentId,
@@ -27,31 +31,35 @@ class FlashcardGroup {
       createdAt: data['createdAt'] != null
           ? DateTime.parse(data['createdAt'])
           : DateTime.now(),
-      userId: data['userId'] ?? '', // <--- READ IT
+      userId: data['userId'] ?? '',
     );
   }
 
-  // Convert to Firestore
+  /// Serializes data for Firestore storage.
   Map<String, dynamic> toMap() {
     return {
       'courseId': courseId,
       'title': title,
       'difficulty': difficulty,
       'createdAt': createdAt.toIso8601String(),
-      'userId': userId, // <--- SAVE IT
+      'userId': userId,
     };
   }
 }
 
+/// Represents a specific Question and Answer pair within a group.
 class Flashcard {
   final String id;
   final String courseId;
   final String groupId;
   final String question;
   final String solution;
-  final String difficulty; // Easy/Medium/Hard
+  final String difficulty;
   final DateTime createdAt;
-  final String userId; // <--- ADD THIS FIELD
+
+  /// The UID of the creator.
+  /// Required to enforce "Delete as Main Writer" permissions.
+  final String userId;
 
   Flashcard({
     required this.id,
@@ -61,10 +69,10 @@ class Flashcard {
     required this.solution,
     required this.difficulty,
     required this.createdAt,
-    required this.userId, // <--- ADD TO CONSTRUCTOR
+    required this.userId,
   });
 
-  // Convert from Firestore
+  /// Factory to parse Firestore data, handling Timestamp conversions safely.
   factory Flashcard.fromMap(Map<String, dynamic> data, String documentId) {
     return Flashcard(
       id: documentId,
@@ -76,11 +84,10 @@ class Flashcard {
       createdAt: data['createdAt'] != null
           ? DateTime.parse(data['createdAt'])
           : DateTime.now(),
-      userId: data['userId'] ?? '', // <--- READ IT
+      userId: data['userId'] ?? '',
     );
   }
 
-  // Convert to Firestore
   Map<String, dynamic> toMap() {
     return {
       'courseId': courseId,
@@ -89,7 +96,7 @@ class Flashcard {
       'solution': solution,
       'difficulty': difficulty,
       'createdAt': createdAt.toIso8601String(),
-      'userId': userId, // <--- SAVE IT
+      'userId': userId,
     };
   }
 }

@@ -1,26 +1,26 @@
-// This file makes up the components of the Add Resources Screen,
-// Which displays a form in order to add new resources to the course.
-// Uses of Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
+// lib/features/resources/add_resource_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
 import '../../common/models/resource.dart';
 import '../../common/repos/resources_repo.dart';
-import 'package:provider/provider.dart';
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
 
+/// A form screen that allows users to contribute new learning resources to a specific course.
 class AddResourceScreen extends StatefulWidget {
   final String courseId;
   final String courseName;
 
   const AddResourceScreen({
-    Key? key,
+    super.key,
     required this.courseId,
     required this.courseName,
-  }) : super(key: key);
+  });
 
   @override
   State<AddResourceScreen> createState() => _AddResourceScreenState();
@@ -28,12 +28,6 @@ class AddResourceScreen extends StatefulWidget {
 
 class _AddResourceScreenState extends State<AddResourceScreen> {
   late final ResourcesRepo _resourcesRepo;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _resourcesRepo = context.read<ResourcesRepo>();
-  }
 
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _title = TextEditingController();
@@ -43,6 +37,12 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
   bool _isSubmitting = false;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _resourcesRepo = context.read<ResourcesRepo>();
+  }
+
+  @override
   void dispose() {
     _title.dispose();
     _desc.dispose();
@@ -50,42 +50,58 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
     super.dispose();
   }
 
+  /// Validates the form input and persists the new resource to Firestore via the repository.
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Please fix the form'),
-          content: const Text(
-            'Some fields are missing or invalid.\n'
-                'Fields with red text need your attention.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+      _showValidationDialog();
       return;
     }
 
     setState(() => _isSubmitting = true);
 
-    final resource = Resource(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      courseId: widget.courseId,
-      title: _title.text.trim(),
-      description: _desc.text.trim(),
-      link: _link.text.trim(),
-      createdAt: DateTime.now(),
+    try {
+      // We pass an empty ID and empty createdBy; the repository layer is responsible
+      // for generating the unique ID and assigning the current user's UID securely.
+      final resource = Resource(
+        id: '',
+        courseId: widget.courseId,
+        title: _title.text.trim(),
+        description: _desc.text.trim(),
+        link: _link.text.trim(),
+        createdBy: '',
+        createdAt: DateTime.now(),
+      );
+
+      await _resourcesRepo.addResource(resource);
+
+      if (!mounted) return;
+      context.pop<bool>(true); // Return true to indicate successful addition
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error adding resource: $e')),
+      );
+    }
+  }
+
+  void _showValidationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Please fix the form'),
+        content: const Text(
+          'Some fields are missing or invalid.\n'
+              'Fields with red text need your attention.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
     );
-
-    await _resourcesRepo.addResource(resource);
-
-    if (!mounted) return;
-    context.pop<bool>(true);
   }
 
   @override
@@ -95,8 +111,7 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              color: AppColors.textOnPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -113,23 +128,20 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
             children: [
               TextFormField(
                 controller: _title,
-                validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Enter title' : null,
+                validator: (v) => v == null || v.trim().isEmpty ? 'Enter title' : null,
                 decoration: _fieldDecoration('Title'),
               ),
               const SizedBox(height: AppSpacing.gapMedium),
               TextFormField(
                 controller: _desc,
                 maxLines: 4,
-                validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Enter description' : null,
+                validator: (v) => v == null || v.trim().isEmpty ? 'Enter description' : null,
                 decoration: _fieldDecoration('Description'),
               ),
               const SizedBox(height: AppSpacing.gapMedium),
               TextFormField(
                 controller: _link,
-                validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Enter link' : null,
+                validator: (v) => v == null || v.trim().isEmpty ? 'Enter link' : null,
                 decoration: _fieldDecoration('Link'),
               ),
               const Spacer(),
@@ -145,10 +157,13 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
                     ),
                   ),
                   onPressed: _isSubmitting ? null : _submit,
-                  child: Text(
-                    'Submit',
-                    style: AppTextStyles.primaryButton,
-                  ),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                      : const Text('Submit', style: AppTextStyles.primaryButton),
                 ),
               ),
             ],

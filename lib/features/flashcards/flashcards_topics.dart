@@ -9,9 +9,11 @@ import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
 
-import '../../common/models/flashcard.dart'; // <--- Ensure this matches your file name
+import '../../common/models/flashcard.dart';
 import '../../common/repos/flashcards_repo.dart';
 
+/// Displays a list of Flashcard Topics (Groups) for a specific course.
+/// Allows users to navigate to specific questions or create new topics.
 class FlashcardsTopicsScreen extends StatefulWidget {
   final String courseId;
   final String courseName;
@@ -38,25 +40,23 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
     if (!_repoReady) {
       _repo = context.read<FlashcardsRepo>();
       _repoReady = true;
-      // FIX 1: Use the correct method name from the interface
-      _future = _repo.getFlashcardGroups(widget.courseId);
+      _loadData();
     }
   }
 
-  void _refresh() {
+  void _loadData() {
     setState(() {
-      // FIX 2: Use the correct method name
       _future = _repo.getFlashcardGroups(widget.courseId);
     });
   }
 
+  /// Deletes a flashcard group and its contents, then refreshes the list.
   Future<void> _deleteGroup(FlashcardGroup group) async {
     try {
-      // FIX 3: Use correct method name and positional arguments
       await _repo.deleteFlashcardGroup(widget.courseId, group.id);
 
       if (!mounted) return;
-      _refresh();
+      _loadData();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -65,15 +65,13 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
     }
   }
 
+  /// Navigates to the form to add a new group.
   Future<void> _addGroup() async {
-    // FIX 4: Simplified Logic
-    // We navigate to the Form Sheet and pass the courseId.
-    // The Form Sheet now handles the saving to Firebase.
     await context.push('/flashcards/groups/add', extra: {'courseId': widget.courseId});
 
-    // When we return, we just refresh the list to show the new item.
+    // Refresh the list when returning from the form
     if (!mounted) return;
-    _refresh();
+    _loadData();
   }
 
   @override
@@ -174,6 +172,7 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
   }
 }
 
+/// A helper widget to display a group button with a delete icon.
 class _GroupButton extends StatelessWidget {
   final String title;
   final VoidCallback onTap;

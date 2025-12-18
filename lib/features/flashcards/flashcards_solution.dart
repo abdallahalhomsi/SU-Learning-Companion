@@ -1,13 +1,16 @@
-// This file makes up the components of the Flashcards Solution Screen
-// Which displays the solution to a flashcard question.
-// Uses of Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
+// lib/features/flashcards/flashcard_solution_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 
+/// A presentation screen that displays the "back" of a flashcard.
+///
+/// It shows the original question (title) at the top for context,
+/// followed by the detailed solution in a scrollable view.
 class FlashcardSolutionScreen extends StatelessWidget {
   final String cardTitle;
   final String solutionText;
@@ -40,6 +43,7 @@ class FlashcardSolutionScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            // Question / Title Section
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -70,6 +74,7 @@ class FlashcardSolutionScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
+            // Solution / Body Section
             Expanded(
               child: Container(
                 width: double.infinity,
