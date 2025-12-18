@@ -1,15 +1,17 @@
 // This file makes up the components of the Notes Topic Screen,
 // Which displays the specific written notes of the user.
-// Uses of Utility classes for consistent styling and spacing across the app.
+// Uses Utility classes for consistent styling and spacing across the app.
 // Custom fonts are being used.
+
 import 'package:flutter/material.dart';
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/notes.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
+import '../../common/repos/firestore_notes_repo.dart';
 
-class NotesTopicScreen extends StatelessWidget {
+class NotesTopicScreen extends StatefulWidget {
   final String courseName;
   final Note note;
 
@@ -20,15 +22,73 @@ class NotesTopicScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final controller = TextEditingController(text: note.content);
+  State<NotesTopicScreen> createState() => _NotesTopicScreenState();
+}
 
+class _NotesTopicScreenState extends State<NotesTopicScreen> {
+  late TextEditingController _controller;
+  bool _isEditing = false;
+  final _notesRepo = FirestoreNotesRepo();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.note.content);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveNote() async {
+    if (_controller.text.trim().isEmpty) {
+      _showAlert('Note cannot be empty.');
+      return;
+    }
+
+    try {
+      await _notesRepo.updateNote(
+        courseId: widget.note.courseId,
+        noteId: widget.note.id,
+        content: _controller.text.trim(),
+      );
+
+      setState(() => _isEditing = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Note saved successfully')),
+      );
+    } catch (e) {
+      _showAlert('Failed to save note. Please try again.');
+    }
+  }
+
+  void _showAlert(String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          )
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
         title: Text(
-          '$courseName: ${note.title}',
+          '${widget.courseName}: ${widget.note.title}',
           style: AppTextStyles.appBarTitle,
         ),
         leading: IconButton(
@@ -59,7 +119,7 @@ class NotesTopicScreen extends StatelessWidget {
           child: Stack(
             children: [
               CustomPaint(
-                painter: _LinedPaperPainter(
+                painter: LinedPaperPainter(
                   lineColor: const Color(0xFFCBD5E1),
                   spacing: 28,
                   topOffset: 32,
@@ -67,8 +127,9 @@ class NotesTopicScreen extends StatelessWidget {
                 size: Size.infinite,
               ),
               TextField(
-                controller: controller,
+                controller: _controller,
                 maxLines: null,
+                readOnly: !_isEditing,
                 keyboardType: TextInputType.multiline,
                 textAlignVertical: TextAlignVertical.top,
                 style: const TextStyle(
@@ -85,16 +146,31 @@ class NotesTopicScreen extends StatelessWidget {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryBlue,
+        child: Icon(
+          _isEditing ? Icons.save : Icons.edit,
+          color: Colors.white,
+        ),
+        onPressed: () {
+          if (_isEditing) {
+            _saveNote();
+          } else {
+            setState(() => _isEditing = true);
+          }
+        },
+      ),
     );
   }
 }
 
-class _LinedPaperPainter extends CustomPainter {
+// added painter class for lined pages
+class LinedPaperPainter extends CustomPainter {
   final Color lineColor;
   final double spacing;
   final double topOffset;
 
-  _LinedPaperPainter({
+  LinedPaperPainter({
     required this.lineColor,
     this.spacing = 28,
     this.topOffset = 32,

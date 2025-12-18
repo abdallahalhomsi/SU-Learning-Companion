@@ -10,4 +10,10 @@ abstract class NotesRepo {
     required String courseId,
     required String noteId,
   });
+
+  Future<void> updateNote({ //  added editable notes
+    required String courseId,
+    required String noteId,
+    required String content,
+  });
 }

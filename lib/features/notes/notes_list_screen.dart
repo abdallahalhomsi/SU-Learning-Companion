@@ -49,7 +49,8 @@ class _NotesListScreenState extends State<NotesListScreen> {
     });
   }
 
-  void _openTopic(Note note) async {
+  // refreshes list after returning from topic screen to get updated notes
+  Future<void> _openTopic(Note note) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -59,6 +60,9 @@ class _NotesListScreenState extends State<NotesListScreen> {
         ),
       ),
     );
+
+    if (!mounted) return;
+    _refresh();
   }
 
   void _confirmDelete(Note note) {
@@ -106,7 +110,11 @@ class _NotesListScreenState extends State<NotesListScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.textOnPrimary,
+            size: 20,
+          ),
           onPressed: () => context.go('/courses/detail/${widget.courseId}'),
         ),
         title: Text(
@@ -179,7 +187,8 @@ class _NotesListScreenState extends State<NotesListScreen> {
                             ),
                             child: ListTile(
                               dense: true,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                              contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 12),
                               title: Text(
                                 note.title,
                                 overflow: TextOverflow.ellipsis,
@@ -216,7 +225,9 @@ class _NotesListScreenState extends State<NotesListScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
                   foregroundColor: AppColors.textOnPrimary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -231,7 +242,10 @@ class _NotesListScreenState extends State<NotesListScreen> {
                     if (added == true) _refresh();
                   });
                 },
-                child: const Text('+ Add Note', style: AppTextStyles.primaryButton),
+                child: const Text(
+                  '+ Add Note',
+                  style: AppTextStyles.primaryButton,
+                ),
               ),
             ),
           ],

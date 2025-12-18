@@ -70,6 +70,18 @@ class FirestoreNotesRepo implements NotesRepo {
   }
 
   @override
+  Future<void> updateNote({ // allows user to edit notes
+    required String courseId,
+    required String noteId,
+    required String content,
+  }) async {
+    await _notesCol(courseId).doc(noteId).update({
+      'content': content,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  @override
   Future<void> removeNote({
     required String courseId,
     required String noteId,
