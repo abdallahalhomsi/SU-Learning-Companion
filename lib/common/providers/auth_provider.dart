@@ -43,7 +43,7 @@ class AuthProvider extends ChangeNotifier {
       case 'email-already-in-use':
         return 'An account with this email already exists.';
       case 'weak-password':
-        return 'Password is too weak.';
+        return 'Password is too weak. Must at least be 6 Characters';
       case 'too-many-requests':
         return 'Too many attempts. Try again later.';
       default:
