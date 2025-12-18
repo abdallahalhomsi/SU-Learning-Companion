@@ -1,3 +1,4 @@
+// Homeworks List Screen (Firestore via providers)
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +11,7 @@ import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
 
-class HomeworksListScreen extends StatelessWidget {
+class HomeworksListScreen extends StatefulWidget {
   final String courseId;
   final String courseName;
 
@@ -21,9 +22,58 @@ class HomeworksListScreen extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final repo = context.read<HomeworksRepo>();
+  State<HomeworksListScreen> createState() => _HomeworksListScreenState();
+}
 
+class _HomeworksListScreenState extends State<HomeworksListScreen> {
+  late final HomeworksRepo _homeworksRepo;
+  bool _repoReady = false;
+
+  List<Homework> _homeworks = [];
+  bool _isLoading = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_repoReady) {
+      _homeworksRepo = context.read<HomeworksRepo>();
+      _repoReady = true;
+      _loadHomeworks();
+    }
+  }
+
+  Future<void> _loadHomeworks() async {
+    setState(() => _isLoading = true);
+    try {
+      final items = await _homeworksRepo.getHomeworksForCourse(widget.courseId);
+      if (!mounted) return;
+      setState(() {
+        _homeworks = items;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load homeworks: $e')),
+      );
+    }
+  }
+
+  Future<void> _removeHomework(String hwId) async {
+    try {
+      await _homeworksRepo.removeHomework(widget.courseId, hwId);
+      await _loadHomeworks();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to remove homework: $e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
@@ -34,16 +84,14 @@ class HomeworksListScreen extends StatelessWidget {
             color: AppColors.textOnPrimary,
             size: 20,
           ),
-          onPressed: () => context.go('/courses/detail/$courseId'),
+          onPressed: () => context.go('/courses/detail/${widget.courseId}'),
         ),
         title: Text(
-          'Homeworks: $courseName',
+          'Homeworks: ${widget.courseName}',
           style: AppTextStyles.appBarTitle,
         ),
         centerTitle: true,
       ),
-
-      // 🔥 REAL-TIME UI
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
         child: Column(
@@ -63,101 +111,71 @@ class HomeworksListScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _homeworks.isEmpty
+                    ? const Center(
+                  child: Text(
+                    'No homeworks yet',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                )
+                    : ListView.separated(
+                  itemCount: _homeworks.length,
+                  separatorBuilder: (_, __) => const SizedBox(
+                      height: AppSpacing.gapSmall),
+                  itemBuilder: (context, index) {
+                    final hw = _homeworks[index];
 
-                // ⭐ STREAM BUILDER
-                child: StreamBuilder<List<Homework>>(
-                  stream: repo.watchHomeworksForCourse(courseId),
-                  builder: (context, snapshot) {
-                    // First load (no cached data yet)
-                    if (snapshot.connectionState == ConnectionState.waiting &&
-                        !snapshot.hasData) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
+                    final formattedDate =
+                    DateTimeFormatter.formatRawDate(hw.date);
+                    final formattedTime =
+                    DateTimeFormatter.formatRawTime(hw.time);
 
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'Failed to load homeworks',
-                          style: AppTextStyles.errorText,
-                        ),
-                      );
-                    }
-
-                    final homeworks = snapshot.data ?? [];
-
-                    if (homeworks.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'No homeworks yet',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.black54,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      );
-                    }
-
-                    return ListView.separated(
-                      itemCount: homeworks.length,
-                      separatorBuilder: (_, __) =>
-                      const SizedBox(height: AppSpacing.gapSmall),
-                      itemBuilder: (context, index) {
-                        final hw = homeworks[index];
-
-                        final formattedDate =
-                        DateTimeFormatter.formatRawDate(hw.date);
-                        final formattedTime =
-                        DateTimeFormatter.formatRawTime(hw.time);
-
-                        return Container(
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryBlue,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Padding(
-                                  padding:
-                                  const EdgeInsets.only(left: 12),
-                                  child: Text(
-                                    '${hw.title}: $formattedDate, $formattedTime',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: AppColors.textOnPrimary,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
+                    return Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryBlue,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding:
+                              const EdgeInsets.only(left: 12),
+                              child: Text(
+                                '${hw.title}: $formattedDate, $formattedTime',
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
                                   color: AppColors.textOnPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
                                 ),
-                                onPressed: () {
-                                  repo.removeHomework(courseId, hw.id);
-                                },
                               ),
-                            ],
+                            ),
                           ),
-                        );
-                      },
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: AppColors.textOnPrimary,
+                            ),
+                            onPressed: () => _removeHomework(hw.id),
+                          ),
+                        ],
+                      ),
                     );
                   },
                 ),
               ),
             ),
-
             const SizedBox(height: AppSpacing.gapMedium),
-
             SizedBox(
               width: double.infinity,
               height: 46,
@@ -170,8 +188,8 @@ class HomeworksListScreen extends StatelessWidget {
                 ),
                 onPressed: () {
                   context.go(
-                    '/courses/$courseId/homeworks/add',
-                    extra: {'courseName': courseName},
+                    '/courses/${widget.courseId}/homeworks/add',
+                    extra: {'courseName': widget.courseName},
                   );
                 },
                 child: const Text(
