@@ -5,16 +5,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:provider/provider.dart';
 import 'package:su_learning_companion/common/utils/app_colors.dart';
 import 'package:su_learning_companion/common/utils/app_spacing.dart';
 import 'package:su_learning_companion/common/utils/app_text_styles.dart';
-
-// ✅ Make sure these paths match YOUR project structure.
-// If your auth_service.dart is somewhere else, update the import path accordingly.
-import 'auth_service.dart';
-import 'user_profile_service.dart';
+import 'package:su_learning_companion/common/providers/auth_provider.dart';
+import '../../common/widgets/loading_spinner.dart';
 
 class SignUpStep2Screen extends StatefulWidget {
   const SignUpStep2Screen({super.key});
@@ -29,12 +25,6 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
   final TextEditingController _departmentController = TextEditingController();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-  // ✅ Services (single instances)
-  final AuthService _authService = AuthService();
-  final UserProfileService _profileService = UserProfileService();
-
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -64,9 +54,8 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
     );
   }
 
+  // ✅ UPDATED: now uses AuthProvider
   Future<void> _finishSignUp() async {
-    if (_isLoading) return;
-
     if (!_formKey.currentState!.validate()) {
       _showDialog(
         'Please fix the form',
@@ -75,7 +64,6 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
       return;
     }
 
-    // ✅ We expect step1 to have passed data via GoRouterState.extra
     final extra = GoRouterState.of(context).extra as Map<String, dynamic>?;
     if (extra == null) {
       _showDialog('Missing data', 'Go back and fill step 1 again.');
@@ -92,43 +80,24 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    final auth = context.read<AuthProvider>();
 
-    try {
-      // 1) Create Firebase Auth user (this auto-signs in)
-      final cred = await _authService.register(email: email, password: password);
-      final uid = cred.user?.uid;
-      if (uid == null) {
-        throw FirebaseAuthException(
-          code: 'no-user',
-          message: 'Failed to create user. Please try again.',
-        );
-      }
+    final success = await auth.signUp(
+      fullName: fullName,
+      studentId: studentId,
+      email: email,
+      password: password,
+      major: _majorController.text.trim(),
+      minor: _minorController.text.trim(),
+      department: _departmentController.text.trim(),
+    );
 
-      // 2) Create Firestore profile (recommended)
-      await _profileService.createUserProfile(
-        uid: uid,
-        fullName: fullName,
-        studentId: studentId,
-        email: email,
-        major: _majorController.text.trim(),
-        minor: _minorController.text.trim(),
-        department: _departmentController.text.trim(),
-      );
+    if (!mounted) return;
 
-      // 3) IMPORTANT: sign out so user lands on login cleanly
-      await FirebaseAuth.instance.signOut();
-
-      // 4) Redirect to login
-      if (!mounted) return;
+    if (success) {
       context.go('/login');
-    } on FirebaseAuthException catch (e) {
-      final msg = e.message ?? e.code;
-      _showDialog('Sign up failed', msg);
-    } catch (e) {
-      _showDialog('Sign up failed', e.toString());
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    } else {
+      _showDialog('Sign up failed', auth.error ?? 'Sign up failed.');
     }
   }
 
@@ -160,6 +129,9 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final isLoading = auth.isLoading;
+
     final labelStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
       fontSize: 14,
       color: AppColors.textPrimary,
@@ -263,7 +235,7 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
                               width: double.infinity,
                               height: 44,
                               child: ElevatedButton(
-                                onPressed: _isLoading ? null : _finishSignUp,
+                                onPressed: isLoading ? null : _finishSignUp,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primaryBlue,
                                   foregroundColor: AppColors.textOnPrimary,
@@ -272,16 +244,12 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                 ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
+                                child: isLoading
+                                    ? const LoadingSpinner()
                                     : const Text(
-                                  'Sign Up',
-                                  style: AppTextStyles.primaryButton,
-                                ),
+                                        'Sign Up',
+                                        style: AppTextStyles.primaryButton,
+                                      ),
                               ),
                             ),
                           ],

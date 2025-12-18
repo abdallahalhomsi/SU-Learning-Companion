@@ -8,8 +8,9 @@ import 'package:go_router/go_router.dart';
 import 'package:su_learning_companion/common/utils/app_colors.dart';
 import 'package:su_learning_companion/common/utils/app_spacing.dart';
 import 'package:su_learning_companion/common/utils/app_text_styles.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:su_learning_companion/features/authentication/auth_service.dart';
+import 'package:provider/provider.dart';
+import 'package:su_learning_companion/common/providers/auth_provider.dart';
+import '../../common/widgets/loading_spinner.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -23,7 +24,6 @@ class _SignInScreenState extends State<SignInScreen> {
   final _passwordController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
-  final _authService = AuthService();
 
   @override
   void dispose() {
@@ -32,23 +32,7 @@ class _SignInScreenState extends State<SignInScreen> {
     super.dispose();
   }
 
-  String _friendlyAuthError(FirebaseAuthException e) {
-    switch (e.code) {
-      case 'user-not-found':
-        return 'No account exists for this email.';
-      case 'wrong-password':
-        return 'Incorrect password. Please try again.';
-      case 'invalid-email':
-        return 'The email address entered is invalid.';
-      case 'user-disabled':
-        return 'This account has been disabled.';
-      default:
-        return e.message ?? 'Sign-in failed.';
-    }
-  }
-
-  
-
+  // ✅ UPDATED submit method (uses AuthProvider)
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       showDialog(
@@ -57,7 +41,7 @@ class _SignInScreenState extends State<SignInScreen> {
           title: const Text('Please fix the form'),
           content: const Text(
             'Some fields are missing or invalid.\n'
-                'Fields with red text need your attention.',
+            'Fields with red text need your attention.',
           ),
           actions: [
             TextButton(
@@ -70,22 +54,23 @@ class _SignInScreenState extends State<SignInScreen> {
       return;
     }
 
-    try {
-      await _authService.signIn(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+    final auth = context.read<AuthProvider>();
 
-      if (!mounted) return;
+    final success = await auth.signIn(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    if (success) {
       context.go('/home');
-    } on FirebaseAuthException catch (e) {
-      final msg = _friendlyAuthError(e);
-      if (!mounted) return;
+    } else {
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
           title: const Text('Sign in failed'),
-          content: Text(msg),
+          content: Text(auth.error ?? 'Sign in failed.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -127,6 +112,9 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final isLoading = auth.isLoading;
+
     final labelStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
       color: AppColors.textPrimary,
       fontWeight: FontWeight.w500,
@@ -217,11 +205,13 @@ class _SignInScreenState extends State<SignInScreen> {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                             ),
-                            onPressed: _submit,
-                            child: const Text(
-                              'Sign In',
-                              style: AppTextStyles.primaryButton,
-                            ),
+                            onPressed: isLoading ? null : _submit,
+                            child: isLoading
+                                ? const LoadingSpinner()
+                                : const Text(
+                                    'Sign In',
+                                    style: AppTextStyles.primaryButton,
+                                  ),
                           ),
                         ),
                         const SizedBox(height: AppSpacing.gapMedium),

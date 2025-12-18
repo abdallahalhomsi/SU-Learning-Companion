@@ -14,6 +14,8 @@ import '../repos/flashcards_repo.dart';
 import '../repos/firestore_flashcards_repo.dart';
 import 'package:su_learning_companion/common/repos/resources_repo.dart';
 import 'package:su_learning_companion/common/repos/firestore_resources_repo.dart';
+import 'package:su_learning_companion/common/providers/auth_provider.dart';
+
 
 List<SingleChildWidget> buildProviders() => [
   Provider<CoursesRepo>(create: (_) => FirestoreCoursesRepo()),
@@ -22,5 +24,6 @@ List<SingleChildWidget> buildProviders() => [
   Provider<NotesRepo>(create: (_) => FirestoreNotesRepo()),
   Provider<ResourcesRepo>(create: (_) => FirestoreResourcesRepo()),
   Provider<FlashcardsRepo>(create: (_) => FirestoreFlashcardsRepo()),
+  ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
 
 ];
