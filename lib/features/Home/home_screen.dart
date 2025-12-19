@@ -1,10 +1,10 @@
 // lib/features/Home/home_screen.dart
 //
 // Home Screen:
-// - Reminders are now REAL: pulls this user's Exams + Homeworks for the CURRENT MONTH
+// - Reminders: pulls this user's Exams + Homeworks for CURRENT MONTH
 // - Shows USER courses from Firestore via CoursesRepo (providers)
-// - Delete removes from users/{uid}/courses
-// - Uses ScrollControllers for Scrollbar
+// - Faster: caches courses Future + loads reminders in parallel
+// - UI: "YOUR COURSES" title at top of box + smaller gaps
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -58,6 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _reposReady = false;
 
+  // ✅ cache courses future so we don't refetch on every build
+  Future<List<Course>>? _coursesFuture;
+
   bool _remindersLoading = true;
   List<_Reminder> _reminders = [];
 
@@ -71,7 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _homeworksRepo = context.read<HomeworksRepo>();
     _reposReady = true;
 
-    _loadRemindersForThisMonth();
+    _coursesFuture = _coursesRepo.getCourses();
+    _loadRemindersForThisMonth(); // will reuse courses
   }
 
   @override
@@ -81,17 +85,21 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  Future<void> _refreshAll() async {
+    setState(() {
+      _coursesFuture = _coursesRepo.getCourses();
+      _remindersLoading = true;
+    });
+    await _loadRemindersForThisMonth();
+  }
+
   Future<void> _deleteCourse(String courseId) async {
     try {
       await _coursesRepo.removeUserCourse(courseId);
       if (!mounted) return;
 
-      // Also refresh reminders because course set changed.
-      await _loadRemindersForThisMonth();
-
-      setState(() {
-        // triggers FutureBuilder again for courses list
-      });
+      // Refresh courses + reminders
+      await _refreshAll();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -105,18 +113,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final now = DateTime.now();
-      final courses = await _coursesRepo.getCourses(); // user courses
+
+      // ✅ reuse cached courses if available, otherwise fetch once
+      final courses = await (_coursesFuture ?? _coursesRepo.getCourses());
       final codeById = {for (final c in courses) c.id: c.code};
 
-      final items = <_Reminder>[];
+      // ✅ parallel fetch: for each course fetch exams + hws concurrently
+      final futures = courses.map((c) async {
+        final results = await Future.wait([
+          _examsRepo.getExamsForCourse(c.id),
+          _homeworksRepo.getHomeworksForCourse(c.id),
+        ]);
 
-      for (final c in courses) {
-        final exams = await _examsRepo.getExamsForCourse(c.id);
+        final exams = results[0] as List<dynamic>;
+        final hws = results[1] as List<dynamic>;
+
+        final list = <_Reminder>[];
+
         for (final e in exams) {
           final dt = _parseDateTime(e.date, e.time);
           if (dt == null) continue;
           if (dt.year == now.year && dt.month == now.month) {
-            items.add(
+            list.add(
               _Reminder(
                 type: _ReminderType.exam,
                 courseId: c.id,
@@ -128,12 +146,11 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         }
 
-        final hws = await _homeworksRepo.getHomeworksForCourse(c.id);
         for (final h in hws) {
           final dt = _parseDateTime(h.date, h.time);
           if (dt == null) continue;
           if (dt.year == now.year && dt.month == now.month) {
-            items.add(
+            list.add(
               _Reminder(
                 type: _ReminderType.homework,
                 courseId: c.id,
@@ -144,6 +161,14 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
         }
+
+        return list;
+      }).toList();
+
+      final nested = await Future.wait(futures);
+      final items = <_Reminder>[];
+      for (final sub in nested) {
+        items.addAll(sub);
       }
 
       // soonest first
@@ -163,7 +188,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Same parsing strategy you used in calendar:
   // date: "10 Mar 2025" OR "2025-03-10" OR "10.03.2025"
   // time: "09:05" OR "9:05" OR "9:05 AM"
   DateTime? _parseDateTime(String dateStr, String timeStr) {
@@ -185,19 +209,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (date == null) return null;
 
-    // Try "h:mm a"
     try {
       final parsed = DateFormat('h:mm a').parseStrict(t);
       return DateTime(date.year, date.month, date.day, parsed.hour, parsed.minute);
     } catch (_) {}
 
-    // Try "H:mm"
     try {
       final parsed = DateFormat('H:mm').parseStrict(t);
       return DateTime(date.year, date.month, date.day, parsed.hour, parsed.minute);
     } catch (_) {}
 
-    // fallback
     final parts = t.split(':');
     final h = parts.isNotEmpty ? int.tryParse(parts[0]) : null;
     final m = parts.length > 1 ? int.tryParse(parts[1]) : 0;
@@ -266,12 +287,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       IconButton(
-                        onPressed: _loadRemindersForThisMonth,
+                        onPressed: _refreshAll,
                         icon: const Icon(Icons.refresh),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
+                  const Divider(color: Colors.white24, height: 10),
+                  const SizedBox(height: 0),
 
                   SizedBox(
                     height: 170,
@@ -298,11 +321,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                           final isExam = r.type == _ReminderType.exam;
                           final icon = isExam ? Icons.assignment : Icons.description;
-                          final iconColor =
-                          isExam ? Colors.redAccent : Colors.blueAccent;
+                          final iconColor = isExam ? Colors.redAccent : Colors.blueAccent;
 
-                          final when =
-                          DateFormat('MMM d • h:mm a').format(r.dueDate);
+                          final when = DateFormat('MMM d • h:mm a').format(r.dueDate);
                           final typeLabel = isExam ? 'Exam' : 'Homework';
 
                           return Card(
@@ -313,16 +334,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               leading: Icon(icon, color: iconColor),
                               title: Text(
                                 '${r.courseCode} • ${r.title}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: const TextStyle(fontWeight: FontWeight.w600),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               subtitle: Text('$typeLabel • $when'),
                               trailing: const Icon(Icons.chevron_right),
-                              onTap: () => context.go(
-                                '/courses/detail/${r.courseId}',
-                              ),
+                              onTap: () => context.go('/courses/detail/${r.courseId}'),
                             ),
                           );
                         },
@@ -332,15 +349,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
-                  // YOUR COURSES
+                  // YOUR COURSES (UI FIX + faster fetch)
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.primaryBlue,
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
+                    // ✅ was top padding 60 -> makes title sit low. Now it's tight.
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -353,19 +371,25 @@ class _HomeScreenState extends State<HomeScreen> {
                             fontSize: 14,
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.gapSmall),
-                        const Divider(color: Colors.white24),
-                        const SizedBox(height: AppSpacing.gapSmall),
+                        const SizedBox(height: 6),
+                        const Divider(color: Colors.white24, height: 10),
+                        const SizedBox(height: 6),
+
                         FutureBuilder<List<Course>>(
-                          future: _coursesRepo.getCourses(),
+                          future: _coursesFuture,
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
                               return const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
+                                padding: EdgeInsets.all(12),
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
                                   ),
                                 ),
                               );
@@ -391,48 +415,41 @@ class _HomeScreenState extends State<HomeScreen> {
                               thumbVisibility: true,
                               thickness: 5,
                               radius: const Radius.circular(12),
-                              child: ListView(
+                              child: ListView.builder(
                                 controller: _coursesScroll,
                                 shrinkWrap: true,
+                                padding: EdgeInsets.zero, // ✅ THIS REMOVES THE GAP
                                 physics: const NeverScrollableScrollPhysics(),
-                                children: courses.map((course) {
+                                itemCount: courses.length,
+                                itemBuilder: (context, i) {
+                                  final course = courses[i];
                                   return _CourseRow(
                                     code: course.code,
-                                    onTap: () => context.go(
-                                      '/courses/detail/${course.id}',
-                                    ),
+                                    onTap: () => context.go('/courses/detail/${course.id}'),
                                     onDelete: () {
                                       showDialog(
                                         context: context,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            title: Text('Delete ${course.code}?'),
-                                            content: const Text(
-                                              'Are you sure you want to remove this course?',
+                                        builder: (context) => AlertDialog(
+                                          title: Text('Delete ${course.code}?'),
+                                          content: const Text('Are you sure you want to remove this course?'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: const Text('Cancel'),
                                             ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.pop(context),
-                                                child: const Text('Cancel'),
-                                              ),
-                                              TextButton(
-                                                onPressed: () async {
-                                                  Navigator.pop(context);
-                                                  await _deleteCourse(course.id);
-                                                },
-                                                child: const Text(
-                                                  'Delete',
-                                                  style: TextStyle(color: Colors.red),
-                                                ),
-                                              ),
-                                            ],
-                                          );
-                                        },
+                                            TextButton(
+                                              onPressed: () async {
+                                                Navigator.pop(context);
+                                                await _deleteCourse(course.id);
+                                              },
+                                              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                            ),
+                                          ],
+                                        ),
                                       );
                                     },
                                   );
-                                }).toList(),
+                                },
                               ),
                             );
                           },
@@ -465,21 +482,36 @@ class _CourseRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       dense: true,
+      minVerticalPadding: 0,                // ✅ remove extra vertical padding
       contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.star_border, color: AppColors.textOnPrimary),
+      visualDensity: const VisualDensity(   // ✅ tighter overall tile height
+        horizontal: 0,
+        vertical: -4,
+      ),
+      leading: const Icon(
+        Icons.star_border,
+        color: AppColors.textOnPrimary,
+        size: 22,                           // ✅ slightly smaller
+      ),
       title: Text(
         code,
         style: const TextStyle(
           color: AppColors.textOnPrimary,
           fontWeight: FontWeight.w500,
+          fontSize: 14,                     // ✅ slightly smaller to reduce height
         ),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.chevron_right, color: Colors.white70),
+          const Icon(Icons.chevron_right, color: Colors.white70, size: 20),
           IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.white70),
+            padding: EdgeInsets.zero,       // ✅ remove IconButton padding
+            constraints: const BoxConstraints(
+              minWidth: 36,
+              minHeight: 36,
+            ),
+            icon: const Icon(Icons.delete_outline, color: Colors.white70, size: 20),
             onPressed: onDelete,
           ),
         ],
