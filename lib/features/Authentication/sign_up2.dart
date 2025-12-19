@@ -1,11 +1,11 @@
-// This file makes up the components of the Sign Up Step 2 Screen,
-// which collects additional user information such as Major, Minor, and Department.
-// Uses of Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
+// lib/features/auth/sign_up_step2_screen.dart
+//
+// Forces LIGHT theme for this screen only (no dark mode), regardless of app theme.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
 import 'package:su_learning_companion/common/utils/app_colors.dart';
 import 'package:su_learning_companion/common/utils/app_spacing.dart';
 import 'package:su_learning_companion/common/utils/app_text_styles.dart';
@@ -54,7 +54,6 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
     );
   }
 
-  // ✅ UPDATED: now uses AuthProvider
   Future<void> _finishSignUp() async {
     if (!_formKey.currentState!.validate()) {
       _showDialog(
@@ -118,10 +117,7 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
       ),
       focusedBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(6)),
-        borderSide: BorderSide(
-          color: AppColors.primaryBlue,
-          width: 1.5,
-        ),
+        borderSide: BorderSide(color: AppColors.primaryBlue, width: 1.5),
       ),
       errorStyle: AppTextStyles.errorText,
     );
@@ -138,129 +134,142 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
       fontWeight: FontWeight.w500,
     );
 
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.primaryBlue,
-              Color(0xFF001F4F),
-            ],
-          ),
+    // ✅ Force light theme only for this screen subtree
+    return Theme(
+      data: ThemeData(
+        brightness: Brightness.light,
+        useMaterial3: true,
+      ).copyWith(
+        scaffoldBackgroundColor: AppColors.scaffoldBackground,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primaryBlue,
+          brightness: Brightness.light,
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  onPressed: _goBackToStep1,
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+      ),
+      child: Scaffold(
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.primaryBlue,
+                Color(0xFF001F4F),
+              ],
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    onPressed: _goBackToStep1,
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 40),
-              Image.asset(
-                'lib/common/assets/sabanci_logo.jpeg',
-                height: 80,
-                fit: BoxFit.contain,
-              ),
-              const SizedBox(height: 35),
-              Expanded(
-                child: Center(
-                  child: SingleChildScrollView(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 24),
-                      padding: AppSpacing.card,
-                      constraints: const BoxConstraints(maxWidth: 380),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardBackground,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.18),
-                            blurRadius: 12,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Major', style: labelStyle),
-                            const SizedBox(height: AppSpacing.gapSmall),
-                            TextFormField(
-                              controller: _majorController,
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Major is required';
-                                }
-                                return null;
-                              },
-                              decoration: _inputDecoration('Major'),
-                            ),
-                            const SizedBox(height: AppSpacing.gapMedium),
-                            Text('Minor', style: labelStyle),
-                            const SizedBox(height: AppSpacing.gapSmall),
-                            TextFormField(
-                              controller: _minorController,
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Minor is required';
-                                }
-                                return null;
-                              },
-                              decoration: _inputDecoration('Minor'),
-                            ),
-                            const SizedBox(height: AppSpacing.gapMedium),
-                            Text('Department', style: labelStyle),
-                            const SizedBox(height: AppSpacing.gapSmall),
-                            TextFormField(
-                              controller: _departmentController,
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Department is required';
-                                }
-                                return null;
-                              },
-                              decoration: _inputDecoration('Department'),
-                            ),
-                            const SizedBox(height: AppSpacing.gapMedium * 2),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 44,
-                              child: ElevatedButton(
-                                onPressed: isLoading ? null : _finishSignUp,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryBlue,
-                                  foregroundColor: AppColors.textOnPrimary,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                ),
-                                child: isLoading
-                                    ? const LoadingSpinner()
-                                    : const Text(
-                                        'Sign Up',
-                                        style: AppTextStyles.primaryButton,
-                                      ),
-                              ),
+                const SizedBox(height: 40),
+                Image.asset(
+                  'lib/common/assets/sabanci_logo.jpeg',
+                  height: 80,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 35),
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                        padding: AppSpacing.card,
+                        constraints: const BoxConstraints(maxWidth: 380),
+                        decoration: BoxDecoration(
+                          color: AppColors.cardBackground,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.18),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
                             ),
                           ],
+                        ),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Major', style: labelStyle),
+                              const SizedBox(height: AppSpacing.gapSmall),
+                              TextFormField(
+                                controller: _majorController,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Major is required';
+                                  }
+                                  return null;
+                                },
+                                decoration: _inputDecoration('Major'),
+                              ),
+                              const SizedBox(height: AppSpacing.gapMedium),
+                              Text('Minor', style: labelStyle),
+                              const SizedBox(height: AppSpacing.gapSmall),
+                              TextFormField(
+                                controller: _minorController,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Minor is required';
+                                  }
+                                  return null;
+                                },
+                                decoration: _inputDecoration('Minor'),
+                              ),
+                              const SizedBox(height: AppSpacing.gapMedium),
+                              Text('Department', style: labelStyle),
+                              const SizedBox(height: AppSpacing.gapSmall),
+                              TextFormField(
+                                controller: _departmentController,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Department is required';
+                                  }
+                                  return null;
+                                },
+                                decoration: _inputDecoration('Department'),
+                              ),
+                              const SizedBox(height: AppSpacing.gapMedium * 2),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 44,
+                                child: ElevatedButton(
+                                  onPressed: isLoading ? null : _finishSignUp,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryBlue,
+                                    foregroundColor: AppColors.textOnPrimary,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  child: isLoading
+                                      ? const LoadingSpinner()
+                                      : const Text(
+                                    'Sign Up',
+                                    style: AppTextStyles.primaryButton,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.gapMedium),
-            ],
+                const SizedBox(height: AppSpacing.gapMedium),
+              ],
+            ),
           ),
         ),
       ),

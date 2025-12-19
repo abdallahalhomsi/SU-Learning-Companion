@@ -1,4 +1,7 @@
 // lib/features/flashcards/flashcard_solution_screen.dart
+//
+// Dark-mode-safe solution text/background:
+// - Uses theme colors (so text stays readable in dark mode)
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -7,10 +10,6 @@ import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 
-/// A presentation screen that displays the "back" of a flashcard.
-///
-/// It shows the original question (title) at the top for context,
-/// followed by the detailed solution in a scrollable view.
 class FlashcardSolutionScreen extends StatelessWidget {
   final String cardTitle;
   final String solutionText;
@@ -23,6 +22,14 @@ class FlashcardSolutionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bg = Theme.of(context).colorScheme.surface;
+    final onBg = Theme.of(context).colorScheme.onSurface;
+
+    // A slightly different surface for the solution block in dark mode.
+    final solutionBg = isDark ? const Color(0xFF0B1220) : AppColors.scaffoldBackground;
+
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
@@ -34,16 +41,12 @@ class FlashcardSolutionScreen extends StatelessWidget {
           color: AppColors.textOnPrimary,
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Solution Card',
-          style: AppTextStyles.appBarTitle,
-        ),
+        title: const Text('Solution Card', style: AppTextStyles.appBarTitle),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Question / Title Section
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -71,26 +74,26 @@ class FlashcardSolutionScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
-            // Solution / Body Section
             Expanded(
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.scaffoldBackground,
+                  color: solutionBg,
                   borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE5EAF1),
+                  ),
                 ),
                 child: SingleChildScrollView(
                   child: Center(
                     child: Text(
                       solutionText,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: AppColors.textPrimary,
+                        color: onBg,
                         height: 1.5,
                       ),
                     ),
@@ -101,6 +104,8 @@ class FlashcardSolutionScreen extends StatelessWidget {
           ],
         ),
       ),
+      // keep scaffold background consistent if your AppScaffold uses Theme
+      // (bg is unused here but kept for clarity)
     );
   }
 }

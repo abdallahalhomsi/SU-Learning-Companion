@@ -1,4 +1,8 @@
 // lib/features/notes/add_note_screen.dart
+//
+// Dark-mode-safe: title field + body field text/hint/cursor adapt,
+// lined paper colors adapt, card bg adapts.
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -31,6 +35,16 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
 
   late final NotesRepo _notesRepo;
   bool _repoReady = false;
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _titleFill => _isDark ? const Color(0xFF111827) : AppColors.inputGrey.withValues(alpha: 0.25);
+  Color get _fieldText => _isDark ? Colors.white : Colors.black;
+  Color get _hintText => _isDark ? Colors.white70 : Colors.black54;
+
+  Color get _noteBg => _isDark ? const Color(0xFF0B1220) : AppColors.cardBackground;
+  Color get _border => _isDark ? const Color(0xFF1F2937) : const Color(0xFFE5EAF1);
+  Color get _lineColor => _isDark ? const Color(0xFF243244) : const Color(0xFFCBD5E1);
 
   @override
   void didChangeDependencies() {
@@ -71,9 +85,6 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
     }
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
-
-    // If your app guarantees this screen is only reachable when logged-in,
-    // uid should never be null. But we still guard to avoid crashes.
     if (uid == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -88,7 +99,7 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
       title: _title.text.trim(),
       content: _body.text,
       createdAt: DateTime.now(),
-      createdBy: uid, // ✅ Fix: provide required createdBy
+      createdBy: uid,
     );
 
     try {
@@ -109,16 +120,9 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
       currentIndex: 0,
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
-        title: Text(
-          'Add Note - ${widget.courseName}',
-          style: AppTextStyles.appBarTitle,
-        ),
+        title: Text('Add Note - ${widget.courseName}', style: AppTextStyles.appBarTitle),
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: AppColors.textOnPrimary,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -133,12 +137,14 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                 children: [
                   TextFormField(
                     controller: _title,
+                    style: TextStyle(color: _fieldText),
+                    cursorColor: _fieldText,
                     decoration: InputDecoration(
                       labelText: 'Title',
-                      labelStyle: const TextStyle(color: Colors.black87, fontSize: 14),
-                      // ✅ Fix: withOpacity deprecated -> withValues(alpha: ...)
-                      fillColor: AppColors.inputGrey.withValues(alpha: 0.25),
+                      labelStyle: TextStyle(color: _hintText, fontSize: 14),
+                      fillColor: _titleFill,
                       filled: true,
+                      hintStyle: TextStyle(color: _hintText),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide.none,
@@ -151,12 +157,11 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                   Container(
                     height: 420,
                     decoration: BoxDecoration(
-                      color: AppColors.cardBackground,
+                      color: _noteBg,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE5EAF1)),
+                      border: Border.all(color: _border),
                       boxShadow: [
                         BoxShadow(
-                          // ✅ Fix: withOpacity deprecated -> withValues(alpha: ...)
                           color: Colors.black.withValues(alpha: 0.03),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
@@ -167,7 +172,7 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                       children: [
                         CustomPaint(
                           painter: _LinedPaperPainter(
-                            lineColor: const Color(0xFFCBD5E1),
+                            lineColor: _lineColor,
                             spacing: 28,
                             topOffset: 32,
                           ),
@@ -178,15 +183,17 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                           maxLines: null,
                           keyboardType: TextInputType.multiline,
                           textAlignVertical: TextAlignVertical.top,
-                          style: const TextStyle(
+                          style: TextStyle(
                             height: 1.4,
                             fontSize: 14,
-                            color: AppColors.textPrimary,
+                            color: _fieldText,
                           ),
-                          decoration: const InputDecoration(
+                          cursorColor: _fieldText,
+                          decoration: InputDecoration(
                             hintText: 'Write your note...',
+                            hintStyle: TextStyle(color: _hintText),
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.fromLTRB(16, 10, 16, 16),
+                            contentPadding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
                           ),
                         ),
                       ],

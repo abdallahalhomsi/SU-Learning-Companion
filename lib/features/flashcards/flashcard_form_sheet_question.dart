@@ -1,4 +1,9 @@
 // lib/features/flashcards/flashcard_form_sheet_question.dart
+//
+// Dark-mode-safe inputs:
+// - Text + cursor color adapts (black on light, white on dark)
+// - Input background adapts
+// - Dropdown text/hint adapts for dark mode
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -10,8 +15,6 @@ import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 
-/// A form screen that allows users to add a specific Question & Answer card
-/// to an existing Flashcard Group.
 class FlashcardFormSheetQuestion extends StatefulWidget {
   final String courseId;
   final String groupId;
@@ -23,20 +26,24 @@ class FlashcardFormSheetQuestion extends StatefulWidget {
   });
 
   @override
-  State<FlashcardFormSheetQuestion> createState() =>
-      _FlashcardFormSheetQuestionState();
+  State<FlashcardFormSheetQuestion> createState() => _FlashcardFormSheetQuestionState();
 }
 
-class _FlashcardFormSheetQuestionState
-    extends State<FlashcardFormSheetQuestion> {
+class _FlashcardFormSheetQuestionState extends State<FlashcardFormSheetQuestion> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _questionController = TextEditingController();
   final TextEditingController _answerController = TextEditingController();
 
   String? _selectedDifficulty;
-
   late final FlashcardsRepo _repo;
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _fieldBg => _isDark ? const Color(0xFF111827) : AppColors.inputGrey;
+  Color get _fieldText => _isDark ? Colors.white : Colors.black;
+  Color get _hintText => _isDark ? Colors.white70 : Colors.black54;
+  Color get _borderColor => _isDark ? const Color(0xFF334155) : Colors.transparent;
 
   @override
   void didChangeDependencies() {
@@ -51,7 +58,6 @@ class _FlashcardFormSheetQuestionState
     super.dispose();
   }
 
-  /// Validates the form and persists the new Flashcard to Firestore.
   Future<void> _submit() async {
     final formValid = _formKey.currentState!.validate();
     final difficultyValid = _selectedDifficulty != null;
@@ -61,8 +67,6 @@ class _FlashcardFormSheetQuestionState
       return;
     }
 
-    // Create Flashcard Object
-    // ID and UserID are empty here; the Repository layer handles generation and security.
     final newCard = Flashcard(
       id: '',
       courseId: widget.courseId,
@@ -76,9 +80,8 @@ class _FlashcardFormSheetQuestionState
 
     try {
       await _repo.addFlashcard(newCard);
-
       if (!mounted) return;
-      context.pop(); // Close screen on success
+      context.pop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -106,8 +109,19 @@ class _FlashcardFormSheetQuestionState
     );
   }
 
+  InputDecoration _inputDecoration({required String hint}) {
+    return InputDecoration(
+      border: InputBorder.none,
+      hintText: hint,
+      hintStyle: TextStyle(color: _hintText),
+      errorStyle: AppTextStyles.errorText,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final dropdownTextStyle = TextStyle(color: _fieldText, fontSize: 14);
+
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
@@ -119,10 +133,7 @@ class _FlashcardFormSheetQuestionState
           color: AppColors.textOnPrimary,
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Create Flashcard',
-          style: AppTextStyles.appBarTitle,
-        ),
+        title: const Text('Create Flashcard', style: AppTextStyles.appBarTitle),
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -135,8 +146,7 @@ class _FlashcardFormSheetQuestionState
                   color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                 child: SingleChildScrollView(
                   child: Form(
                     key: _formKey,
@@ -148,11 +158,9 @@ class _FlashcardFormSheetQuestionState
                           child: TextFormField(
                             controller: _questionController,
                             maxLines: 3,
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'Question',
-                              errorStyle: AppTextStyles.errorText,
-                            ),
+                            style: TextStyle(color: _fieldText),
+                            cursorColor: _fieldText,
+                            decoration: _inputDecoration(hint: 'Question'),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Question is required';
@@ -162,41 +170,39 @@ class _FlashcardFormSheetQuestionState
                           ),
                         ),
                         const SizedBox(height: 12),
-
                         _buildFieldWrapper(
                           child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              isExpanded: true,
-                              hint: const Text('Select Difficulty'),
-                              value: _selectedDifficulty,
-                              items: const [
-                                DropdownMenuItem(
-                                    value: 'Easy', child: Text('Easy')),
-                                DropdownMenuItem(
-                                    value: 'Medium', child: Text('Medium')),
-                                DropdownMenuItem(
-                                    value: 'Hard', child: Text('Hard')),
-                              ],
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedDifficulty = value;
-                                });
-                              },
+                            child: Theme(
+                              data: Theme.of(context).copyWith(
+                                canvasColor: _isDark ? const Color(0xFF0B1220) : Colors.white,
+                              ),
+                              child: DropdownButton<String>(
+                                isExpanded: true,
+                                dropdownColor: _isDark ? const Color(0xFF0B1220) : Colors.white,
+                                hint: Text('Select Difficulty', style: TextStyle(color: _hintText)),
+                                value: _selectedDifficulty,
+                                style: dropdownTextStyle,
+                                items: const [
+                                  DropdownMenuItem(value: 'Easy', child: Text('Easy')),
+                                  DropdownMenuItem(value: 'Medium', child: Text('Medium')),
+                                  DropdownMenuItem(value: 'Hard', child: Text('Hard')),
+                                ],
+                                onChanged: (value) {
+                                  setState(() => _selectedDifficulty = value);
+                                },
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(height: 12),
-
                         _buildFieldWrapper(
                           height: 100,
                           child: TextFormField(
                             controller: _answerController,
                             maxLines: 4,
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'Answer...',
-                              errorStyle: AppTextStyles.errorText,
-                            ),
+                            style: TextStyle(color: _fieldText),
+                            cursorColor: _fieldText,
+                            decoration: _inputDecoration(hint: 'Answer...'),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Answer is required';
@@ -224,10 +230,7 @@ class _FlashcardFormSheetQuestionState
                     borderRadius: BorderRadius.circular(6),
                   ),
                 ),
-                child: const Text(
-                  'Submit',
-                  style: AppTextStyles.primaryButton,
-                ),
+                child: const Text('Submit', style: AppTextStyles.primaryButton),
               ),
             ),
           ],
@@ -241,8 +244,9 @@ class _FlashcardFormSheetQuestionState
       height: height,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.inputGrey,
+        color: _fieldBg,
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: _borderColor),
       ),
       alignment: Alignment.centerLeft,
       child: child,

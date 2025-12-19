@@ -1,4 +1,8 @@
 // lib/features/notes/notes_topic_screen.dart
+//
+// Dark-mode-safe: title/content text + hints + cursor adapt,
+// lined paper + overlay adapt,
+// removes hard-coded black title color.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -33,13 +37,21 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
   bool _isEditing = false;
   bool _isSaving = false;
 
-  // ✅ baseline of last-saved values
   late String _savedTitle;
   late String _savedContent;
 
   bool get _hasUnsavedChanges =>
       _titleController.text.trim() != _savedTitle ||
           _contentController.text.trim() != _savedContent;
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _paperBg => _isDark ? const Color(0xFF0B1220) : AppColors.cardBackground;
+  Color get _border => _isDark ? const Color(0xFF1F2937) : const Color(0xFFE5EAF1);
+  Color get _lineColor => _isDark ? const Color(0xFF243244) : const Color(0xFFCBD5E1);
+
+  Color get _text => _isDark ? Colors.white : Colors.black;
+  Color get _hint => _isDark ? Colors.white70 : Colors.black54;
 
   @override
   void didChangeDependencies() {
@@ -62,10 +74,7 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
   }
 
   void _onTextChanged() {
-    // ✅ Only care when editing; otherwise don't trigger rebuilds/pop logic
     if (!_isEditing) return;
-
-    // rebuild so PopScope/back button reflect the latest dirty state
     setState(() {});
   }
 
@@ -87,9 +96,7 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
             Text('Unsaved changes', style: TextStyle(color: Colors.red)),
           ],
         ),
-        content: const Text(
-          'You have unsaved changes.\nDo you want to discard them?',
-        ),
+        content: const Text('You have unsaved changes.\nDo you want to discard them?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -120,7 +127,6 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
 
     if (!mounted) return;
 
-    // ✅ Update baseline so it no longer counts as "unsaved"
     _savedTitle = newTitle;
     _savedContent = newContent;
 
@@ -138,7 +144,6 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
   }
 
   Future<void> _handleBack() async {
-    // ✅ Do NOT show dialog if nothing is unsaved
     if (!_hasUnsavedChanges) {
       Navigator.pop(context);
       return;
@@ -155,16 +160,13 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
 
-        // Only block/ask if unsaved
         if (!_hasUnsavedChanges) {
           if (mounted) Navigator.pop(context, result);
           return;
         }
 
         final shouldPop = await _confirmDiscard();
-        if (shouldPop && mounted) {
-          Navigator.pop(context, result);
-        }
+        if (shouldPop && mounted) Navigator.pop(context, result);
       },
       child: AppScaffold(
         currentIndex: 0,
@@ -174,7 +176,7 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
           title: Text(widget.courseName, style: AppTextStyles.appBarTitle),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary),
-            onPressed: _handleBack, // ✅ fixed
+            onPressed: _handleBack,
           ),
         ),
         body: Stack(
@@ -183,15 +185,15 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
               padding: AppSpacing.screen,
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.cardBackground,
+                  color: _paperBg,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE5EAF1)),
+                  border: Border.all(color: _border),
                 ),
                 child: Stack(
                   children: [
                     CustomPaint(
                       painter: _LinedPaperPainter(
-                        lineColor: const Color(0xFFCBD5E1),
+                        lineColor: _lineColor,
                         spacing: 28,
                         topOffset: 60,
                       ),
@@ -204,13 +206,16 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
                           TextField(
                             controller: _titleController,
                             readOnly: !_isEditing,
-                            style: AppTextStyles.primaryButton.copyWith(
-                              color: Colors.black,
+                            style: TextStyle(
+                              color: _text,
                               fontSize: 16,
+                              fontWeight: FontWeight.w700,
                             ),
-                            decoration: const InputDecoration(
+                            cursorColor: _text,
+                            decoration: InputDecoration(
                               border: InputBorder.none,
                               hintText: 'Title',
+                              hintStyle: TextStyle(color: _hint),
                             ),
                           ),
                           Expanded(
@@ -219,9 +224,12 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
                               readOnly: !_isEditing,
                               maxLines: null,
                               keyboardType: TextInputType.multiline,
-                              decoration: const InputDecoration(
+                              style: TextStyle(color: _text, height: 1.4),
+                              cursorColor: _text,
+                              decoration: InputDecoration(
                                 border: InputBorder.none,
                                 hintText: 'Write your notes...',
+                                hintStyle: TextStyle(color: _hint),
                               ),
                             ),
                           ),

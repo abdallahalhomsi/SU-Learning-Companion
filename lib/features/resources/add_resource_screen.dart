@@ -1,3 +1,5 @@
+// lib/features/resources/add_resource_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -47,7 +49,6 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
     super.dispose();
   }
 
-  /// 🔗 URL validation
   bool _isValidUrl(String value) {
     final uri = Uri.tryParse(value.trim());
     return uri != null &&
@@ -107,8 +108,51 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
     );
   }
 
+  InputDecoration _decoration(BuildContext context, String label, {String? hint}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      floatingLabelBehavior: FloatingLabelBehavior.auto,
+
+      // ✅ Theme-aware label/hint colors
+      labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+      hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black45),
+
+      // ✅ Let Theme.inputDecorationTheme control fill color/borders
+      // (we keep borders here because you used rounded 12)
+      border: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(12)),
+        borderSide: BorderSide(
+          color: isDark ? Colors.white24 : Colors.grey,
+        ),
+      ),
+      focusedBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        borderSide: BorderSide(
+          color: AppColors.primaryBlue,
+          width: 2,
+        ),
+      ),
+      errorBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        borderSide: BorderSide(color: AppColors.errorRed),
+      ),
+      focusedErrorBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        borderSide: BorderSide(color: AppColors.errorRed, width: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
@@ -127,7 +171,6 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
         ),
         centerTitle: true,
       ),
-
       body: Column(
         children: [
           Expanded(
@@ -140,76 +183,30 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
                   children: [
                     TextFormField(
                       controller: _title,
-                      decoration: const InputDecoration(
-                        labelText: 'Title',
-                        floatingLabelBehavior: FloatingLabelBehavior.auto,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Colors.grey),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(
-                            color: AppColors.primaryBlue,
-                            width: 2,
-                          ),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(
-                            color: AppColors.errorRed,
-                          ),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(
-                            color: AppColors.errorRed,
-                            width: 2,
-                          ),
-                        ),
-                      ),
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                      decoration: _decoration(context, 'Title'),
                       validator: (v) =>
                       v == null || v.trim().isEmpty ? 'Enter title' : null,
                     ),
-
-
                     const SizedBox(height: AppSpacing.gapMedium),
-
                     TextFormField(
                       controller: _desc,
                       maxLines: 4,
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
-                        alignLabelWithHint: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                      ),
-                      validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Enter description' : null,
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                      decoration: _decoration(context, 'Description'),
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Enter description'
+                          : null,
                     ),
-
                     const SizedBox(height: AppSpacing.gapMedium),
-
                     TextFormField(
                       controller: _link,
                       keyboardType: TextInputType.url,
-                      decoration: const InputDecoration(
-                        labelText: 'Link',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                      ),
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                      decoration: _decoration(context, 'Link', hint: 'https://...'),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return 'Enter link';
-                        }
-                        if (!_isValidUrl(v)) {
-                          return 'Enter a valid link (https://...)';
-                        }
+                        if (v == null || v.trim().isEmpty) return 'Enter link';
+                        if (!_isValidUrl(v)) return 'Enter a valid link (https://...)';
                         return null;
                       },
                     ),
@@ -218,7 +215,6 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
               ),
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: SizedBox(

@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import 'package:su_learning_companion/common/models/resource.dart';
-import 'package:su_learning_companion/common/repos/resources_repo.dart';
-import 'package:su_learning_companion/common/utils/app_colors.dart';
-import 'package:su_learning_companion/common/utils/app_spacing.dart';
-import 'package:su_learning_companion/common/utils/app_text_styles.dart';
-import 'package:su_learning_companion/common/widgets/app_scaffold.dart';
+import '../../common/models/resource.dart';
+import '../../common/repos/resources_repo.dart';
+import '../../common/utils/app_colors.dart';
+import '../../common/utils/app_spacing.dart';
+import '../../common/utils/app_text_styles.dart';
+import '../../common/widgets/app_scaffold.dart';
 
 class ResourcesListScreen extends StatefulWidget {
   final String courseId;
@@ -71,9 +71,7 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
       extra: {'courseName': widget.courseName},
     );
 
-    if (added == true) {
-      await _load();
-    }
+    if (added == true) await _load();
   }
 
   Future<void> _openDetails(Resource r) async {
@@ -85,13 +83,13 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
       },
     );
 
-    if (changed == true) {
-      await _load();
-    }
+    if (changed == true) await _load();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
@@ -118,7 +116,6 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
       ),
       body: Column(
         children: [
-          // 📄 CONTENT
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
@@ -131,6 +128,9 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
                   Text(
                     'Failed to load resources:\n$_error',
                     textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   SizedBox(
@@ -151,7 +151,12 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
               ),
             )
                 : _resources.isEmpty
-                ? const Center(child: Text('No resources available'))
+                ? Text(
+              'No resources available',
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.black54,
+              ),
+            )
                 : ListView.builder(
               padding: AppSpacing.screen,
               itemCount: _resources.length,
@@ -164,8 +169,7 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryBlue,
-                      foregroundColor:
-                      AppColors.textOnPrimary,
+                      foregroundColor: AppColors.textOnPrimary,
                       padding: const EdgeInsets.symmetric(
                         vertical: 14,
                       ),
@@ -184,7 +188,6 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
               },
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: SizedBox(

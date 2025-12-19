@@ -1,4 +1,7 @@
 // lib/features/homeworks/homeworks_list_screen.dart
+//
+// Dark-mode-safe empty state text (was hard-coded black54).
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -88,22 +91,18 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final muted = onSurface.withValues(alpha: 0.65);
+
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: AppColors.textOnPrimary,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
           onPressed: () => context.go('/courses/detail/${widget.courseId}'),
         ),
-        title: Text(
-          'Homeworks: ${widget.courseName}',
-          style: AppTextStyles.appBarTitle,
-        ),
+        title: Text('Homeworks: ${widget.courseName}', style: AppTextStyles.appBarTitle),
         centerTitle: true,
       ),
       body: Padding(
@@ -119,7 +118,7 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 6,
                       offset: const Offset(0, 3),
                     ),
@@ -128,12 +127,12 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _homeworks.isEmpty
-                    ? const Center(
+                    ? Center(
                   child: Text(
                     'No homeworks yet',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.black54,
+                      color: muted,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -151,7 +150,7 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
                     DateTimeFormatter.formatRawTime(hw.time);
 
                     return InkWell(
-                      onTap: () => _openEdit(hw), // ✅ tap to edit
+                      onTap: () => _openEdit(hw),
                       child: Container(
                         height: 44,
                         decoration: BoxDecoration(
@@ -176,10 +175,7 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: AppColors.textOnPrimary,
-                              ),
+                              icon: const Icon(Icons.delete, color: AppColors.textOnPrimary),
                               onPressed: () => _removeHomework(hw.id),
                             ),
                           ],
@@ -197,9 +193,7 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                 ),
                 onPressed: () {
                   context.go(
@@ -207,10 +201,7 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
                     extra: {'courseName': widget.courseName},
                   );
                 },
-                child: const Text(
-                  '+ Add Homework',
-                  style: AppTextStyles.primaryButton,
-                ),
+                child: const Text('+ Add Homework', style: AppTextStyles.primaryButton),
               ),
             ),
           ],

@@ -1,4 +1,9 @@
 // lib/features/resources/resource_details_screen.dart
+//
+// Fix: In dark mode, TextFormField default text color becomes white,
+// but your field fillColor is white -> "white on white".
+// Solution: explicitly set TextStyle + label/hint styles + use readOnly
+// (instead of enabled) so it keeps the same visual style.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -13,7 +18,6 @@ import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
 
-/// Displays the details of a specific resource and allows the creator to edit or delete it.
 class ResourceDetailsScreen extends StatefulWidget {
   final Resource resource;
   final String courseId;
@@ -33,7 +37,6 @@ class ResourceDetailsScreen extends StatefulWidget {
 class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
   late final ResourcesRepo _repo;
 
-  // UI State
   bool _editing = false;
   bool _loading = false;
 
@@ -41,8 +44,6 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
   late TextEditingController _desc;
   late TextEditingController _link;
 
-  /// Verifies if the current logged-in user matches the resource's creator.
-  /// This determines visibility for 'Edit' and 'Delete' actions.
   bool get _isOwner {
     final currentUser = FirebaseAuth.instance.currentUser;
     return currentUser != null && currentUser.uid == widget.resource.createdBy;
@@ -70,8 +71,6 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
     super.dispose();
   }
 
-  /// Persists changes to Firestore.
-  /// Preserves the original [createdBy] field to maintain ownership.
   Future<void> _saveEdit() async {
     setState(() => _loading = true);
 
@@ -93,7 +92,7 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
         _loading = false;
         _editing = false;
       });
-      context.pop<bool>(true); // Return true to trigger a list refresh
+      context.pop<bool>(true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
@@ -109,14 +108,13 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
       if (!mounted) return;
       context.pop<bool>(true);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Delete failed: $e')),
       );
     }
   }
 
-  /// Launches the resource URL in an external browser.
-  /// Automatically prefixes 'https://' if the user omitted the protocol.
   Future<void> _openLink() async {
     String urlText = _link.text.trim();
     if (urlText.isEmpty) return;
@@ -135,7 +133,7 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
         throw Exception('Could not launch $uri');
       }
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       _showSnack('Could not open link');
     }
@@ -152,7 +150,8 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back_ios,
+              color: AppColors.textOnPrimary, size: 20),
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -178,7 +177,7 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -187,14 +186,14 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
           padding: const EdgeInsets.all(16),
           child: ListView(
             children: [
-              _field('Title', _title, enabled: _editing),
+              _field('Title', _title, readOnly: !_editing),
               const SizedBox(height: AppSpacing.gapMedium),
-              _field('Description', _desc, enabled: _editing, maxLines: 4),
+              _field('Description', _desc,
+                  readOnly: !_editing, maxLines: 4),
               const SizedBox(height: AppSpacing.gapMedium),
-              _field('Link', _link, enabled: _editing),
+              _field('Link', _link, readOnly: !_editing),
               const SizedBox(height: 20),
 
-              // Action Buttons
               SizedBox(
                 width: double.infinity,
                 height: 44,
@@ -207,7 +206,8 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text('Open Link', style: AppTextStyles.primaryButton),
+                  child: const Text('Open Link',
+                      style: AppTextStyles.primaryButton),
                 ),
               ),
               const SizedBox(height: 16),
@@ -219,7 +219,9 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
                   child: ElevatedButton(
                     onPressed: _editing ? _saveEdit : _delete,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _editing ? AppColors.primaryBlue : AppColors.errorRed,
+                      backgroundColor: _editing
+                          ? AppColors.primaryBlue
+                          : AppColors.errorRed,
                       foregroundColor: AppColors.textOnPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -238,18 +240,47 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
     );
   }
 
-  Widget _field(String label, TextEditingController c, {bool enabled = false, int maxLines = 1}) {
+  Widget _field(
+      String label,
+      TextEditingController c, {
+        required bool readOnly,
+        int maxLines = 1,
+      }) {
+    const textColor = AppColors.textPrimary; // explicit to avoid white-on-white
+    final fill = Colors.white;
+    final borderColor = const Color(0xFFE0E0E0);
+
     return TextFormField(
       controller: c,
-      enabled: enabled,
+      readOnly: readOnly,
       maxLines: maxLines,
+      style: const TextStyle(
+        color: textColor,
+        fontSize: 14,
+      ),
+      cursorColor: AppColors.primaryBlue,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Colors.black54),
+        floatingLabelStyle: const TextStyle(color: AppColors.primaryBlue),
+        hintStyle: const TextStyle(color: Colors.black45),
         filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        fillColor: fill,
+
+        contentPadding:
+        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: borderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
+        ),
+
+        // When readOnly, Flutter still uses enabledBorder; no disabled "fade"
+        // because we do NOT use enabled:false.
       ),
     );
   }

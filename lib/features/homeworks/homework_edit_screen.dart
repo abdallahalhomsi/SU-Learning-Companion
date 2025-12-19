@@ -1,3 +1,7 @@
+// lib/features/homeworks/homework_edit_screen.dart
+//
+// Dark-mode-safe: input bg + text/hint/cursor adapt to theme.
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -41,6 +45,13 @@ class _HomeworkEditScreenState extends State<HomeworkEditScreen> {
       _title.text.trim() != _savedTitle ||
           _date.text.trim() != _savedDate ||
           _time.text.trim() != _savedTime;
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _fieldBg => _isDark ? const Color(0xFF111827) : AppColors.inputGrey;
+  Color get _fieldText => _isDark ? Colors.white : Colors.black;
+  Color get _hintText => _isDark ? Colors.white70 : Colors.black54;
+  Color get _borderColor => _isDark ? const Color(0xFF334155) : Colors.transparent;
 
   @override
   void initState() {
@@ -211,16 +222,20 @@ class _HomeworkEditScreenState extends State<HomeworkEditScreen> {
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.inputGrey,
+        color: _fieldBg,
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: _borderColor),
       ),
       alignment: Alignment.centerLeft,
       child: TextField(
         controller: c,
         readOnly: !enabled,
+        style: TextStyle(color: _fieldText),
+        cursorColor: _fieldText,
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: hint,
+          hintStyle: TextStyle(color: _hintText),
         ),
       ),
     );

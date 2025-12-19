@@ -36,6 +36,11 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
   late final ExamsRepo _examsRepo;
   bool _repoReady = false;
 
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _fieldBg => _isDark ? const Color(0xFF111827) : AppColors.inputGrey;
+  Color get _fieldText => _isDark ? Colors.white : Colors.black;
+  Color get _hintText => _isDark ? Colors.white70 : Colors.black54;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -60,6 +65,18 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       initialDate: _selectedDate ?? now,
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 5),
+      builder: (context, child) {
+        // Keeps date picker readable in dark mode too
+        final theme = Theme.of(context);
+        return Theme(
+          data: theme.copyWith(
+            colorScheme: theme.colorScheme.copyWith(
+              primary: AppColors.primaryBlue,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
@@ -68,7 +85,8 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
         final months = [
           'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'
         ];
-        _dateController.text = '${picked.day} ${months[picked.month - 1]} ${picked.year}';
+        _dateController.text =
+        '${picked.day} ${months[picked.month - 1]} ${picked.year}';
       });
     }
   }
@@ -77,6 +95,17 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
     final picked = await showTimePicker(
       context: context,
       initialTime: _selectedTime ?? TimeOfDay.now(),
+      builder: (context, child) {
+        final theme = Theme.of(context);
+        return Theme(
+          data: theme.copyWith(
+            colorScheme: theme.colorScheme.copyWith(
+              primary: AppColors.primaryBlue,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
@@ -128,7 +157,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
         '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
 
     final exam = Exam(
-      id: '', // Firestore will generate the real doc id
+      id: '',
       courseId: widget.courseId,
       title: _titleController.text.trim(),
       date: storedDate,
@@ -178,7 +207,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                 width: double.infinity,
                 padding: AppSpacing.card,
                 decoration: BoxDecoration(
-                  color: AppColors.cardBackground,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Form(
@@ -189,9 +218,12 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                       _buildFieldWrapper(
                         child: TextFormField(
                           controller: _titleController,
-                          decoration: const InputDecoration(
+                          style: TextStyle(color: _fieldText),
+                          cursorColor: _fieldText,
+                          decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Title',
+                            hintStyle: TextStyle(color: _hintText),
                             errorStyle: AppTextStyles.errorText,
                           ),
                           validator: (value) =>
@@ -206,9 +238,12 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           controller: _dateController,
                           readOnly: true,
                           onTap: _pickDate,
-                          decoration: const InputDecoration(
+                          style: TextStyle(color: _fieldText),
+                          cursorColor: _fieldText,
+                          decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Date...',
+                            hintStyle: TextStyle(color: _hintText),
                             errorStyle: AppTextStyles.errorText,
                           ),
                           validator: (value) =>
@@ -223,9 +258,12 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                           controller: _timeController,
                           readOnly: true,
                           onTap: _pickTime,
-                          decoration: const InputDecoration(
+                          style: TextStyle(color: _fieldText),
+                          cursorColor: _fieldText,
+                          decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Time',
+                            hintStyle: TextStyle(color: _hintText),
                             errorStyle: AppTextStyles.errorText,
                           ),
                           validator: (value) =>
@@ -265,8 +303,11 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.inputGrey,
+        color: _fieldBg,
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
       ),
       alignment: Alignment.centerLeft,
       child: child,

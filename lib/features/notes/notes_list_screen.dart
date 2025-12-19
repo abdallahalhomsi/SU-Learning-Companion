@@ -1,4 +1,6 @@
 // lib/features/notes/notes_list_screen.dart
+//
+// Dark-mode-safe empty state text.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -27,26 +29,21 @@ class NotesListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final notesRepo = context.read<NotesRepo>();
+    final onSurface = Theme.of(context).colorScheme.onSurface;
 
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              color: AppColors.textOnPrimary, size: 20),
-          onPressed: () =>
-              context.go('/courses/detail/$courseId'),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
+          onPressed: () => context.go('/courses/detail/$courseId'),
         ),
-        title: Text(
-          'Notes: $courseName',
-          style: AppTextStyles.appBarTitle,
-        ),
+        title: Text('Notes: $courseName', style: AppTextStyles.appBarTitle),
         centerTitle: true,
       ),
       body: Column(
         children: [
-          // used stream builder for real time update, increases smooth experience
           Expanded(
             child: Padding(
               padding: AppSpacing.screen,
@@ -60,19 +57,22 @@ class NotesListScreen extends StatelessWidget {
                   stream: notesRepo.watchNotesForCourse(courseId),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
-                      return const Center(
-                          child: CircularProgressIndicator());
+                      return const Center(child: CircularProgressIndicator());
                     }
 
                     final notes = snapshot.data!;
                     if (notes.isEmpty) {
-                      return const Center(child: Text('No notes yet'));
+                      return Center(
+                        child: Text(
+                          'No notes yet',
+                          style: TextStyle(color: onSurface.withValues(alpha: 0.7)),
+                        ),
+                      );
                     }
 
                     return ListView.separated(
                       itemCount: notes.length,
-                      separatorBuilder: (_, __) =>
-                      const SizedBox(height: 8),
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
                       itemBuilder: (_, i) {
                         final note = notes[i];
                         return Container(
@@ -83,19 +83,16 @@ class NotesListScreen extends StatelessWidget {
                           child: ListTile(
                             title: Text(
                               note.title,
-                              style: const TextStyle(
-                                color: AppColors.textOnPrimary,
-                              ),
+                              style: const TextStyle(color: AppColors.textOnPrimary),
                             ),
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) =>
-                                      NotesTopicScreen(
-                                        courseName: courseName,
-                                        note: note,
-                                      ),
+                                  builder: (_) => NotesTopicScreen(
+                                    courseName: courseName,
+                                    note: note,
+                                  ),
                                 ),
                               );
                             },
@@ -108,8 +105,6 @@ class NotesListScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          /// ADD NOTE BUTTON
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: SizedBox(
@@ -124,17 +119,11 @@ class NotesListScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => AddNoteScreen(
-                        courseId: courseId,
-                        courseName: courseName,
-                      ),
+                      builder: (_) => AddNoteScreen(courseId: courseId, courseName: courseName),
                     ),
                   );
                 },
-                child: const Text(
-                  '+ Add Note',
-                  style: AppTextStyles.primaryButton,
-                ),
+                child: const Text('+ Add Note', style: AppTextStyles.primaryButton),
               ),
             ),
           ),

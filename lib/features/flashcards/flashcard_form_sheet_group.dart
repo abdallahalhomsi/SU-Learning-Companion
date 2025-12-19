@@ -1,4 +1,9 @@
 // lib/features/flashcards/flashcard_form_sheet_group.dart
+//
+// Dark-mode-safe inputs:
+// - Text + cursor color adapts (black on light, white on dark)
+// - Input background adapts (light grey vs dark grey)
+// - Dropdown text/hint adapts for dark mode
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -10,7 +15,6 @@ import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 
-/// A form screen that allows users to create a new Flashcard Topic (Group).
 class FlashcardFormSheetGroup extends StatefulWidget {
   final String courseId;
 
@@ -20,8 +24,7 @@ class FlashcardFormSheetGroup extends StatefulWidget {
   });
 
   @override
-  State<FlashcardFormSheetGroup> createState() =>
-      _FlashcardFormSheetGroupState();
+  State<FlashcardFormSheetGroup> createState() => _FlashcardFormSheetGroupState();
 }
 
 class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
@@ -30,6 +33,13 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
   String? _selectedDifficulty;
 
   late final FlashcardsRepo _repo;
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _fieldBg => _isDark ? const Color(0xFF111827) : AppColors.inputGrey;
+  Color get _fieldText => _isDark ? Colors.white : Colors.black;
+  Color get _hintText => _isDark ? Colors.white70 : Colors.black54;
+  Color get _borderColor => _isDark ? const Color(0xFF334155) : Colors.transparent;
 
   @override
   void didChangeDependencies() {
@@ -43,15 +53,12 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
     super.dispose();
   }
 
-  /// Validates input and saves the new group to Firestore.
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate() || _selectedDifficulty == null) {
       _showErrorDialog();
       return;
     }
 
-    // Create the Group object
-    // Note: ID and UserID are handled by the Repository layer.
     final newGroup = FlashcardGroup(
       id: '',
       courseId: widget.courseId,
@@ -63,9 +70,8 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
 
     try {
       await _repo.addFlashcardGroup(newGroup);
-
       if (!mounted) return;
-      context.pop(); // Return to previous screen on success
+      context.pop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -93,8 +99,19 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
     );
   }
 
+  InputDecoration _inputDecoration({required String hint}) {
+    return InputDecoration(
+      border: InputBorder.none,
+      hintText: hint,
+      hintStyle: TextStyle(color: _hintText),
+      errorStyle: AppTextStyles.errorText,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final dropdownTextStyle = TextStyle(color: _fieldText, fontSize: 14);
+
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
@@ -122,8 +139,7 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
                   color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                 child: Form(
                   key: _formKey,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -132,11 +148,9 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
                       _buildFieldWrapper(
                         child: TextFormField(
                           controller: _titleController,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Title',
-                            errorStyle: AppTextStyles.errorText,
-                          ),
+                          style: TextStyle(color: _fieldText),
+                          cursorColor: _fieldText,
+                          decoration: _inputDecoration(hint: 'Title'),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return 'Title is required';
@@ -148,29 +162,25 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
                       const SizedBox(height: 8),
                       _buildFieldWrapper(
                         child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            isExpanded: true,
-                            hint: const Text('Select Difficulty'),
-                            value: _selectedDifficulty,
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'Easy',
-                                child: Text('Easy'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'Medium',
-                                child: Text('Medium'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'Hard',
-                                child: Text('Hard'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedDifficulty = value;
-                              });
-                            },
+                          child: Theme(
+                            data: Theme.of(context).copyWith(
+                              canvasColor: _isDark ? const Color(0xFF0B1220) : Colors.white,
+                            ),
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              dropdownColor: _isDark ? const Color(0xFF0B1220) : Colors.white,
+                              hint: Text('Select Difficulty', style: TextStyle(color: _hintText)),
+                              value: _selectedDifficulty,
+                              style: dropdownTextStyle,
+                              items: const [
+                                DropdownMenuItem(value: 'Easy', child: Text('Easy')),
+                                DropdownMenuItem(value: 'Medium', child: Text('Medium')),
+                                DropdownMenuItem(value: 'Hard', child: Text('Hard')),
+                              ],
+                              onChanged: (value) {
+                                setState(() => _selectedDifficulty = value);
+                              },
+                            ),
                           ),
                         ),
                       ),
@@ -191,10 +201,7 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                 ),
-                child: const Text(
-                  'Submit',
-                  style: AppTextStyles.primaryButton,
-                ),
+                child: const Text('Submit', style: AppTextStyles.primaryButton),
               ),
             ),
           ],
@@ -208,8 +215,9 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.inputGrey,
+        color: _fieldBg,
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: _borderColor),
       ),
       alignment: Alignment.centerLeft,
       child: child,

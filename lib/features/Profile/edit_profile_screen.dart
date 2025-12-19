@@ -1,4 +1,7 @@
 // lib/features/Profile/edit_profile_screen.dart
+//
+// Dark-mode-safe: input + label colors adapt,
+// replaces hard-coded underline colors to work on dark backgrounds too.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -31,6 +34,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _majorCtrl;
   late TextEditingController _minorCtrl;
   late TextEditingController _deptCtrl;
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _text => Theme.of(context).colorScheme.onSurface;
+  Color get _idleLine => _isDark ? const Color(0xFF334155) : const Color(0xFFE0E0E0);
 
   @override
   void initState() {
@@ -96,9 +104,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           IconButton(
             icon: _isSaving
                 ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
             )
                 : const Icon(Icons.check, color: Colors.white),
             onPressed: _isSaving ? null : _save,
@@ -114,7 +122,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             borderRadius: BorderRadius.circular(32),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
+                color: Colors.black.withValues(alpha: 0.08),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
               ),
@@ -135,7 +143,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-
                 _buildInlineField(context, 'Name', _nameCtrl),
                 _buildInlineField(context, 'Student ID', _studentIdCtrl),
                 _buildInlineField(context, 'Major', _majorCtrl),
@@ -152,7 +159,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildInlineField(BuildContext context, String label, TextEditingController controller) {
     final baseStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
       height: 1.4,
-      color: AppColors.textPrimary,
+      color: _text,
     );
 
     return Padding(
@@ -160,7 +167,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Label
           Padding(
             padding: const EdgeInsets.only(top: 13),
             child: Text(
@@ -171,28 +177,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
           ),
-
-          // Input
           Expanded(
             child: TextFormField(
               controller: controller,
               style: baseStyle,
-              decoration: const InputDecoration(
+              cursorColor: _text,
+              decoration: InputDecoration(
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 0),
-
-                // Light Grey Line (Idle)
+                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 0),
                 enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFE0E0E0)),
+                  borderSide: BorderSide(color: _idleLine),
                 ),
-
-                // Blue Line (Focused)
-                focusedBorder: UnderlineInputBorder(
+                focusedBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.primaryBlue),
                 ),
-
                 border: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFE0E0E0)),
+                  borderSide: BorderSide(color: _idleLine),
                 ),
               ),
               validator: (v) => v != null && v.trim().isEmpty ? 'Required' : null,

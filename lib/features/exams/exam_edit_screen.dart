@@ -42,6 +42,12 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
           _date.text.trim() != _savedDate ||
           _time.text.trim() != _savedTime;
 
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _fieldBg => _isDark ? const Color(0xFF111827) : AppColors.inputGrey;
+  Color get _fieldText => _isDark ? Colors.white : Colors.black;
+  Color get _hintText => _isDark ? Colors.white70 : Colors.black54;
+
   @override
   void initState() {
     super.initState();
@@ -70,7 +76,7 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
 
   Future<bool> _confirmDiscard() async {
     if (!_dirty) return true;
-    return await showDialog<bool>(
+    return (await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Unsaved changes'),
@@ -82,11 +88,12 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Discard', style: TextStyle(color: Colors.red)),
+            child:
+            const Text('Discard', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
-    ) ??
+    )) ??
         false;
   }
 
@@ -113,7 +120,7 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
         _editing = false;
       });
 
-      context.pop(true); // ✅ tell list to reload
+      context.pop(true); // tell list to reload
     } catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
@@ -151,10 +158,12 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
         currentIndex: 0,
         appBar: AppBar(
           backgroundColor: AppColors.primaryBlue,
-          title: Text('Exam: ${widget.courseName}', style: AppTextStyles.appBarTitle),
+          title:
+          Text('Exam: ${widget.courseName}', style: AppTextStyles.appBarTitle),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
+            icon: const Icon(Icons.arrow_back_ios,
+                color: AppColors.textOnPrimary, size: 20),
             onPressed: () async {
               final ok = await _confirmDiscard();
               if (ok && mounted) Navigator.pop(context);
@@ -168,35 +177,46 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
               ),
           ],
         ),
-        body: _saving
-            ? const Center(child: CircularProgressIndicator())
-            : Padding(
-          padding: AppSpacing.screen,
-          child: Column(
-            children: [
-              _field(_title, hint: 'Title', enabled: _editing),
-              const SizedBox(height: AppSpacing.gapSmall),
-              _field(_date, hint: 'Date', enabled: _editing),
-              const SizedBox(height: AppSpacing.gapSmall),
-              _field(_time, hint: 'Time', enabled: _editing),
-              const SizedBox(height: AppSpacing.gapMedium),
-              SizedBox(
-                width: double.infinity,
-                height: 46,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _editing ? AppColors.primaryBlue : Colors.red,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        body: Stack(
+          children: [
+            Padding(
+              padding: AppSpacing.screen,
+              child: Column(
+                children: [
+                  _field(_title, hint: 'Title', enabled: _editing),
+                  const SizedBox(height: AppSpacing.gapSmall),
+                  _field(_date, hint: 'Date', enabled: _editing),
+                  const SizedBox(height: AppSpacing.gapSmall),
+                  _field(_time, hint: 'Time', enabled: _editing),
+                  const SizedBox(height: AppSpacing.gapMedium),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 46,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                        _editing ? AppColors.primaryBlue : Colors.red,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      onPressed: _saving ? null : (_editing ? _save : _delete),
+                      child: Text(
+                        _editing ? 'Save' : 'Delete Exam',
+                        style: AppTextStyles.primaryButton,
+                      ),
+                    ),
                   ),
-                  onPressed: _editing ? _save : _delete,
-                  child: Text(
-                    _editing ? 'Save' : 'Delete Exam',
-                    style: AppTextStyles.primaryButton,
-                  ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+            if (_saving)
+              Container(
+                color: Colors.black.withOpacity(0.2),
+                alignment: Alignment.center,
+                child: const CircularProgressIndicator(),
+              ),
+          ],
         ),
       ),
     );
@@ -211,16 +231,22 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.inputGrey,
+        color: _fieldBg,
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
       ),
       alignment: Alignment.centerLeft,
       child: TextField(
         controller: c,
         readOnly: !enabled,
+        style: TextStyle(color: _fieldText),
+        cursorColor: _fieldText,
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: hint,
+          hintStyle: TextStyle(color: _hintText),
         ),
       ),
     );

@@ -1,4 +1,3 @@
-// lib/features/exams/exams_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -88,6 +87,9 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = Theme.of(context).colorScheme.surface;
+
     return AppScaffold(
       currentIndex: 0,
       appBar: AppBar(
@@ -116,11 +118,11 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
                   width: double.infinity,
                   padding: AppSpacing.card,
                   decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withOpacity(isDark ? 0.15 : 0.05),
                         blurRadius: 6,
                         offset: const Offset(0, 3),
                       ),
@@ -129,7 +131,12 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : _exams.isEmpty
-                      ? const Center(child: Text('No exams yet'))
+                      ? Center(
+                    child: Text(
+                      'No exams yet',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  )
                       : ListView.separated(
                     itemCount: _exams.length,
                     itemBuilder: (context, index) {
@@ -141,7 +148,7 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
                       DateTimeFormatter.formatRawTime(exam.time);
 
                       return InkWell(
-                        onTap: () => _openEdit(exam), // ✅ tap to edit
+                        onTap: () => _openEdit(exam),
                         child: Container(
                           height: 44,
                           decoration: BoxDecoration(
@@ -149,11 +156,13 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
                                 child: Padding(
-                                  padding: const EdgeInsets.only(left: 12),
+                                  padding:
+                                  const EdgeInsets.only(left: 12),
                                   child: Text(
                                     '${exam.title}: $formattedDate, $formattedTime',
                                     overflow: TextOverflow.ellipsis,
