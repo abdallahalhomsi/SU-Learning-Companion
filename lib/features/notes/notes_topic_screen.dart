@@ -32,7 +32,14 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
 
   bool _isEditing = false;
   bool _isSaving = false;
-  bool _hasUnsavedChanges = false;
+
+  // ✅ baseline of last-saved values
+  late String _savedTitle;
+  late String _savedContent;
+
+  bool get _hasUnsavedChanges =>
+      _titleController.text.trim() != _savedTitle ||
+          _contentController.text.trim() != _savedContent;
 
   @override
   void didChangeDependencies() {
@@ -43,17 +50,23 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.note.title);
-    _contentController = TextEditingController(text: widget.note.content);
 
-    _titleController.addListener(_markDirty);
-    _contentController.addListener(_markDirty);
+    _savedTitle = widget.note.title.trim();
+    _savedContent = widget.note.content.trim();
+
+    _titleController = TextEditingController(text: _savedTitle);
+    _contentController = TextEditingController(text: _savedContent);
+
+    _titleController.addListener(_onTextChanged);
+    _contentController.addListener(_onTextChanged);
   }
 
-  void _markDirty() {
-    if (!_hasUnsavedChanges) {
-      setState(() => _hasUnsavedChanges = true);
-    }
+  void _onTextChanged() {
+    // ✅ Only care when editing; otherwise don't trigger rebuilds/pop logic
+    if (!_isEditing) return;
+
+    // rebuild so PopScope/back button reflect the latest dirty state
+    setState(() {});
   }
 
   @override
@@ -71,8 +84,7 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
           children: const [
             Icon(Icons.warning_amber_rounded, color: Colors.red),
             SizedBox(width: 8),
-            Text('Unsaved changes',
-                style: TextStyle(color: Colors.red)),
+            Text('Unsaved changes', style: TextStyle(color: Colors.red)),
           ],
         ),
         content: const Text(
@@ -85,10 +97,7 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Discard',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Discard', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -99,30 +108,44 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
   Future<void> _save() async {
     setState(() => _isSaving = true);
 
+    final newTitle = _titleController.text.trim();
+    final newContent = _contentController.text.trim();
+
     await _notesRepo.updateNote(
       courseId: widget.note.courseId,
       noteId: widget.note.id,
-      title: _titleController.text.trim(),
-      content: _contentController.text.trim(),
+      title: newTitle,
+      content: newContent,
     );
 
     if (!mounted) return;
 
+    // ✅ Update baseline so it no longer counts as "unsaved"
+    _savedTitle = newTitle;
+    _savedContent = newContent;
+
     setState(() {
       _isSaving = false;
       _isEditing = false;
-      _hasUnsavedChanges = false;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         backgroundColor: Colors.green,
-        content: Text(
-          'Note saved successfully',
-          style: TextStyle(color: Colors.white),
-        ),
+        content: Text('Note saved successfully', style: TextStyle(color: Colors.white)),
       ),
     );
+  }
+
+  Future<void> _handleBack() async {
+    // ✅ Do NOT show dialog if nothing is unsaved
+    if (!_hasUnsavedChanges) {
+      Navigator.pop(context);
+      return;
+    }
+
+    final shouldPop = await _confirmDiscard();
+    if (shouldPop && mounted) Navigator.pop(context);
   }
 
   @override
@@ -131,6 +154,13 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
       canPop: !_hasUnsavedChanges,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+
+        // Only block/ask if unsaved
+        if (!_hasUnsavedChanges) {
+          if (mounted) Navigator.pop(context, result);
+          return;
+        }
+
         final shouldPop = await _confirmDiscard();
         if (shouldPop && mounted) {
           Navigator.pop(context, result);
@@ -141,15 +171,10 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
         appBar: AppBar(
           backgroundColor: AppColors.primaryBlue,
           centerTitle: true,
-          title: Text(widget.courseName,
-              style: AppTextStyles.appBarTitle),
+          title: Text(widget.courseName, style: AppTextStyles.appBarTitle),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios,
-                color: AppColors.textOnPrimary),
-            onPressed: () async {
-              final shouldPop = await _confirmDiscard();
-              if (shouldPop && mounted) Navigator.pop(context);
-            },
+            icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary),
+            onPressed: _handleBack, // ✅ fixed
           ),
         ),
         body: Stack(
@@ -219,11 +244,14 @@ class _NotesTopicScreenState extends State<NotesTopicScreen> {
           backgroundColor: AppColors.primaryBlue,
           onPressed: _isSaving
               ? null
-              : () => _isEditing ? _save() : setState(() => _isEditing = true),
-          child: Icon(
-            _isEditing ? Icons.save : Icons.edit,
-            color: Colors.white,
-          ),
+              : () {
+            if (_isEditing) {
+              _save();
+            } else {
+              setState(() => _isEditing = true);
+            }
+          },
+          child: Icon(_isEditing ? Icons.save : Icons.edit, color: Colors.white),
         ),
       ),
     );
@@ -249,11 +277,7 @@ class _LinedPaperPainter extends CustomPainter {
 
     double y = topOffset;
     while (y < size.height) {
-      canvas.drawLine(
-        Offset(12, y),
-        Offset(size.width - 12, y),
-        paint,
-      );
+      canvas.drawLine(Offset(12, y), Offset(size.width - 12, y), paint);
       y += spacing;
     }
   }

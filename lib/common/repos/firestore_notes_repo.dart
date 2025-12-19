@@ -89,6 +89,7 @@ class FirestoreNotesRepo implements NotesRepo {
     required String content,
   }) async {
     await _notesCol(courseId).doc(noteId).update({
+      'title': title,
       'content': content,
       'updatedAt': FieldValue.serverTimestamp(),
     });
