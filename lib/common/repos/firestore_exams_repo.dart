@@ -1,3 +1,4 @@
+// lib/common/repos/firestore_exams_repo.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -38,7 +39,7 @@ class FirestoreExamsRepo implements ExamsRepo {
     );
   }
 
-  Map<String, dynamic> _toMap(Exam exam) {
+  Map<String, dynamic> _toMapForCreate(Exam exam) {
     return {
       'title': exam.title,
       'date': exam.date,
@@ -47,24 +48,41 @@ class FirestoreExamsRepo implements ExamsRepo {
     };
   }
 
+  Map<String, dynamic> _toMapForUpdate(Exam exam) {
+    return {
+      'title': exam.title,
+      'date': exam.date,
+      'time': exam.time,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+  }
+
   @override
   Future<List<Exam>> getExamsForCourse(String courseId) async {
     final snap = await _examsRef(courseId).get();
     final exams = snap.docs.map((d) => _fromDoc(courseId, d)).toList();
 
-    // Optional: basic client-side sort if date is like YYYY-MM-DD.
-    exams.sort((a, b) => (a.date).compareTo(b.date));
+    // Optional: sort by date string (works if consistent format)
+    exams.sort((a, b) => a.date.compareTo(b.date));
     return exams;
   }
 
   @override
   Future<void> addExam(Exam exam) async {
-    // exam.courseId determines where it goes
-    await _examsRef(exam.courseId).add(_toMap(exam));
+    await _examsRef(exam.courseId).add(_toMapForCreate(exam));
   }
 
   @override
   Future<void> removeExam(String courseId, String examId) async {
     await _examsRef(courseId).doc(examId).delete();
+  }
+
+  // ✅ ADD THIS
+  @override
+  Future<void> updateExam(Exam exam) async {
+    if (exam.id.trim().isEmpty) {
+      throw Exception('Exam id is missing (cannot update).');
+    }
+    await _examsRef(exam.courseId).doc(exam.id).update(_toMapForUpdate(exam));
   }
 }

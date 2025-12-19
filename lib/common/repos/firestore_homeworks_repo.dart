@@ -1,3 +1,4 @@
+// lib/common/repos/firestore_homeworks_repo.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -38,7 +39,7 @@ class FirestoreHomeworksRepo implements HomeworksRepo {
     );
   }
 
-  Map<String, dynamic> _toMap(Homework hw) {
+  Map<String, dynamic> _toMapForCreate(Homework hw) {
     return {
       'title': hw.title,
       'date': hw.date,
@@ -47,23 +48,40 @@ class FirestoreHomeworksRepo implements HomeworksRepo {
     };
   }
 
+  Map<String, dynamic> _toMapForUpdate(Homework hw) {
+    return {
+      'title': hw.title,
+      'date': hw.date,
+      'time': hw.time,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+  }
+
   @override
   Future<List<Homework>> getHomeworksForCourse(String courseId) async {
     final snap = await _hwRef(courseId).get();
     final hws = snap.docs.map((d) => _fromDoc(courseId, d)).toList();
 
-    // Optional: basic client-side sort if date is like YYYY-MM-DD.
-    hws.sort((a, b) => (a.date).compareTo(b.date));
+    hws.sort((a, b) => a.date.compareTo(b.date));
     return hws;
   }
 
   @override
   Future<void> addHomework(Homework homework) async {
-    await _hwRef(homework.courseId).add(_toMap(homework));
+    await _hwRef(homework.courseId).add(_toMapForCreate(homework));
   }
 
   @override
   Future<void> removeHomework(String courseId, String homeworkId) async {
     await _hwRef(courseId).doc(homeworkId).delete();
+  }
+
+  // ✅ ADD THIS
+  @override
+  Future<void> updateHomework(Homework homework) async {
+    if (homework.id.trim().isEmpty) {
+      throw Exception('Homework id is missing (cannot update).');
+    }
+    await _hwRef(homework.courseId).doc(homework.id).update(_toMapForUpdate(homework));
   }
 }

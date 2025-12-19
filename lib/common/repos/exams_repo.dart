@@ -9,4 +9,6 @@ abstract class ExamsRepo {
 
   /// Deletes: users/{uid}/courses/{courseId}/exams/{examId}
   Future<void> removeExam(String courseId, String examId);
+
+  Future<void> updateExam(Exam exam);
 }

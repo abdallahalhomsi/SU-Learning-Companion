@@ -9,4 +9,6 @@ abstract class HomeworksRepo {
 
   /// Deletes: users/{uid}/courses/{courseId}/homeworks/{homeworkId}
   Future<void> removeHomework(String courseId, String homeworkId);
+
+  Future<void> updateHomework(Homework homework);
 }

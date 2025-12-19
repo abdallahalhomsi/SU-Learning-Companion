@@ -1,4 +1,4 @@
-// Homeworks List Screen (Firestore via providers)
+// lib/features/homeworks/homeworks_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +10,7 @@ import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
+import 'homework_edit_screen.dart';
 
 class HomeworksListScreen extends StatefulWidget {
   final String courseId;
@@ -72,6 +73,19 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
     }
   }
 
+  Future<void> _openEdit(Homework hw) async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => HomeworkEditScreen(courseName: widget.courseName, homework: hw),
+      ),
+    );
+
+    if (changed == true) {
+      await _loadHomeworks();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
@@ -126,8 +140,8 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
                 )
                     : ListView.separated(
                   itemCount: _homeworks.length,
-                  separatorBuilder: (_, __) => const SizedBox(
-                      height: AppSpacing.gapSmall),
+                  separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.gapSmall),
                   itemBuilder: (context, index) {
                     final hw = _homeworks[index];
 
@@ -136,39 +150,40 @@ class _HomeworksListScreenState extends State<HomeworksListScreen> {
                     final formattedTime =
                     DateTimeFormatter.formatRawTime(hw.time);
 
-                    return Container(
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryBlue,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisAlignment:
-                        MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding:
-                              const EdgeInsets.only(left: 12),
-                              child: Text(
-                                '${hw.title}: $formattedDate, $formattedTime',
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: AppColors.textOnPrimary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                    return InkWell(
+                      onTap: () => _openEdit(hw), // ✅ tap to edit
+                      child: Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryBlue,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 12),
+                                child: Text(
+                                  '${hw.title}: $formattedDate, $formattedTime',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: AppColors.textOnPrimary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.delete,
-                              color: AppColors.textOnPrimary,
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                color: AppColors.textOnPrimary,
+                              ),
+                              onPressed: () => _removeHomework(hw.id),
                             ),
-                            onPressed: () => _removeHomework(hw.id),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },

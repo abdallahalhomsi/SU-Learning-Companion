@@ -1,4 +1,4 @@
-// Exams List Screen (Firestore via providers)
+// lib/features/exams/exams_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +10,7 @@ import '../../common/repos/exams_repo.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_spacing.dart';
 import '../../common/utils/app_text_styles.dart';
+import 'exam_edit_screen.dart';
 
 class ExamsListScreen extends StatefulWidget {
   final String courseId;
@@ -72,6 +73,19 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
     }
   }
 
+  Future<void> _openEdit(Exam exam) async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ExamEditScreen(courseName: widget.courseName, exam: exam),
+      ),
+    );
+
+    if (changed == true) {
+      await _loadExams();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
@@ -126,44 +140,45 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
                       final formattedTime =
                       DateTimeFormatter.formatRawTime(exam.time);
 
-                      return Container(
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryBlue,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Padding(
-                                padding:
-                                const EdgeInsets.only(left: 12),
-                                child: Text(
-                                  '${exam.title}: $formattedDate, $formattedTime',
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: AppColors.textOnPrimary,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
+                      return InkWell(
+                        onTap: () => _openEdit(exam), // ✅ tap to edit
+                        child: Container(
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryBlue,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 12),
+                                  child: Text(
+                                    '${exam.title}: $formattedDate, $formattedTime',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: AppColors.textOnPrimary,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: AppColors.textOnPrimary,
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: AppColors.textOnPrimary,
+                                ),
+                                onPressed: () => _removeExam(exam.id),
                               ),
-                              onPressed: () => _removeExam(exam.id),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },
-                    separatorBuilder: (_, __) => const SizedBox(
-                        height: AppSpacing.gapSmall),
+                    separatorBuilder: (_, __) =>
+                    const SizedBox(height: AppSpacing.gapSmall),
                   ),
                 ),
               ),
