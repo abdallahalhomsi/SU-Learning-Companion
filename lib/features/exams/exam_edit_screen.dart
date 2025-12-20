@@ -88,8 +88,8 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child:
-            const Text('Discard', style: TextStyle(color: Colors.red)),
+            child: const Text('Discard',
+                style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -106,6 +106,10 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
         title: _title.text.trim(),
         date: _date.text.trim(),
         time: _time.text.trim(),
+
+        // ✅ preserve ownership fields
+        createdBy: widget.exam.createdBy,
+        createdAt: widget.exam.createdAt,
       );
 
       await _repo.updateExam(updated);
@@ -120,7 +124,7 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
         _editing = false;
       });
 
-      context.pop(true); // tell list to reload
+      context.pop(true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
@@ -158,8 +162,8 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
         currentIndex: 0,
         appBar: AppBar(
           backgroundColor: AppColors.primaryBlue,
-          title:
-          Text('Exam: ${widget.courseName}', style: AppTextStyles.appBarTitle),
+          title: Text('Exam: ${widget.courseName}',
+              style: AppTextStyles.appBarTitle),
           centerTitle: true,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios,

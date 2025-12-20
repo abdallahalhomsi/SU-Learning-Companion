@@ -30,13 +30,7 @@ class FirestoreHomeworksRepo implements HomeworksRepo {
 
   Homework _fromDoc(String courseId, DocumentSnapshot<Map<String, dynamic>> doc) {
     final d = doc.data() ?? {};
-    return Homework(
-      id: doc.id,
-      courseId: courseId,
-      title: (d['title'] ?? '').toString(),
-      date: (d['date'] ?? '').toString(),
-      time: (d['time'] ?? '').toString(),
-    );
+    return Homework.fromMap(doc.id, courseId, d);
   }
 
   Map<String, dynamic> _toMapForCreate(Homework hw) {
@@ -45,6 +39,8 @@ class FirestoreHomeworksRepo implements HomeworksRepo {
       'date': hw.date,
       'time': hw.time,
       'createdAt': FieldValue.serverTimestamp(),
+      // ✅ Added (required)
+      'createdBy': _uid,
     };
   }
 
@@ -66,6 +62,14 @@ class FirestoreHomeworksRepo implements HomeworksRepo {
     return hws;
   }
 
+  // ✅ Added (real-time updates requirement)
+  @override
+  Stream<List<Homework>> watchHomeworksForCourse(String courseId) {
+    return _hwRef(courseId)
+        .snapshots()
+        .map((snap) => snap.docs.map((d) => _fromDoc(courseId, d)).toList());
+  }
+
   @override
   Future<void> addHomework(Homework homework) async {
     await _hwRef(homework.courseId).add(_toMapForCreate(homework));
@@ -76,7 +80,6 @@ class FirestoreHomeworksRepo implements HomeworksRepo {
     await _hwRef(courseId).doc(homeworkId).delete();
   }
 
-  // ✅ ADD THIS
   @override
   Future<void> updateHomework(Homework homework) async {
     if (homework.id.trim().isEmpty) {

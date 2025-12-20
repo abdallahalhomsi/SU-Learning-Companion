@@ -1,4 +1,5 @@
 // lib/common/models/resource.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Resource {
@@ -35,8 +36,9 @@ class Resource {
   // Factory method to deserialize Firestore data
   static Resource fromMap(Map<String, dynamic> map, String id) {
     final ts = map['createdAt'];
-    // Handle Firestore Timestamp conversion safely
-    final createdAt = ts is Timestamp ? ts.toDate() : DateTime.now();
+    final createdAt = ts is Timestamp
+        ? ts.toDate()
+        : (ts is String ? DateTime.tryParse(ts) ?? DateTime.now() : DateTime.now());
 
     return Resource(
       id: id,

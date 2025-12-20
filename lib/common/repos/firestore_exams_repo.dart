@@ -30,13 +30,7 @@ class FirestoreExamsRepo implements ExamsRepo {
 
   Exam _fromDoc(String courseId, DocumentSnapshot<Map<String, dynamic>> doc) {
     final d = doc.data() ?? {};
-    return Exam(
-      id: doc.id,
-      courseId: courseId,
-      title: (d['title'] ?? '').toString(),
-      date: (d['date'] ?? '').toString(),
-      time: (d['time'] ?? '').toString(),
-    );
+    return Exam.fromMap(doc.id, courseId, d);
   }
 
   Map<String, dynamic> _toMapForCreate(Exam exam) {
@@ -45,6 +39,8 @@ class FirestoreExamsRepo implements ExamsRepo {
       'date': exam.date,
       'time': exam.time,
       'createdAt': FieldValue.serverTimestamp(),
+      // ✅ Added (required)
+      'createdBy': _uid,
     };
   }
 
@@ -62,9 +58,16 @@ class FirestoreExamsRepo implements ExamsRepo {
     final snap = await _examsRef(courseId).get();
     final exams = snap.docs.map((d) => _fromDoc(courseId, d)).toList();
 
-    // Optional: sort by date string (works if consistent format)
     exams.sort((a, b) => a.date.compareTo(b.date));
     return exams;
+  }
+
+  // ✅ Added (real-time updates requirement)
+  @override
+  Stream<List<Exam>> watchExamsForCourse(String courseId) {
+    return _examsRef(courseId)
+        .snapshots()
+        .map((snap) => snap.docs.map((d) => _fromDoc(courseId, d)).toList());
   }
 
   @override
@@ -77,7 +80,6 @@ class FirestoreExamsRepo implements ExamsRepo {
     await _examsRef(courseId).doc(examId).delete();
   }
 
-  // ✅ ADD THIS
   @override
   Future<void> updateExam(Exam exam) async {
     if (exam.id.trim().isEmpty) {

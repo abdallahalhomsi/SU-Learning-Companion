@@ -1,3 +1,5 @@
+// lib/common/repos/firestore_courses_repo.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -20,15 +22,23 @@ class FirestoreCoursesRepo implements CoursesRepo {
     return u.uid;
   }
 
+  DateTime _readDate(dynamic v) {
+    if (v is Timestamp) return v.toDate();
+    if (v is String) return DateTime.tryParse(v) ?? DateTime.now();
+    return DateTime.now();
+  }
+
   Course _courseFromCatalogDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final d = doc.data() ?? {};
     return Course(
-      id: doc.id, // courseId = docId ("0"..."n")
+      id: doc.id,
       code: (d['courseCode'] ?? '').toString(),
       name: (d['courseName'] ?? '').toString(),
       term: (d['semester'] ?? '').toString(),
-      instructor: (d['instructor'] ?? '').toString(),
-      createdAt: DateTime.now(), // model requires it
+      instructor: d['instructor']?.toString(),
+      // ✅ if catalog is “public”, still provide fields for model
+      createdBy: (d['createdBy'] ?? 'catalog').toString(),
+      createdAt: _readDate(d['createdAt']),
     );
   }
 
@@ -39,8 +49,9 @@ class FirestoreCoursesRepo implements CoursesRepo {
       code: (d['courseCode'] ?? '').toString(),
       name: (d['courseName'] ?? '').toString(),
       term: (d['semester'] ?? '').toString(),
-      instructor: (d['instructor'] ?? '').toString(),
-      createdAt: DateTime.now(),
+      instructor: d['instructor']?.toString(),
+      createdBy: (d['createdBy'] ?? _uid).toString(),
+      createdAt: _readDate(d['createdAt']),
     );
   }
 
@@ -64,7 +75,8 @@ class FirestoreCoursesRepo implements CoursesRepo {
 
   @override
   Future<void> addCourseToUser(Course course) async {
-    final ref = _db.collection('users').doc(_uid).collection('courses').doc(course.id);
+    final ref =
+    _db.collection('users').doc(_uid).collection('courses').doc(course.id);
 
     final existing = await ref.get();
     if (existing.exists) {
@@ -77,6 +89,8 @@ class FirestoreCoursesRepo implements CoursesRepo {
       'courseName': course.name,
       'semester': course.term,
       'instructor': course.instructor,
+      // ✅ required by rubric
+      'createdBy': _uid,
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
@@ -88,7 +102,6 @@ class FirestoreCoursesRepo implements CoursesRepo {
 
   @override
   Future<List<Course>> searchAllCourses(String query) async {
-    // simplest + reliable: fetch all and filter (small dataset)
     final all = await getAllCourses();
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return all;
@@ -100,9 +113,9 @@ class FirestoreCoursesRepo implements CoursesRepo {
       return code.contains(q) || name.contains(q) || instructor.contains(q);
     }).toList();
   }
+
   @override
   Future<List<Course>> getCourses() async {
-    // User’s added courses: users/{uid}/courses
     return getUserCourses();
   }
 
@@ -118,5 +131,14 @@ class FirestoreCoursesRepo implements CoursesRepo {
     if (!doc.exists) return null;
     return _courseFromUserDoc(doc);
   }
+  @override
+  Stream<List<Course>> watchUserCourses() {
+    return _db
+        .collection('users')
+        .doc(_uid)
+        .collection('courses')
+        .orderBy('courseCode')
+        .snapshots()
+        .map((snap) => snap.docs.map(_courseFromUserDoc).toList());
+  }
 }
-

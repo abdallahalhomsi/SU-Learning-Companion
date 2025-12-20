@@ -41,9 +41,23 @@ class FirestoreResourcesRepo implements ResourcesRepo {
     }).toList();
   }
 
+  // ✅ Added: real-time stream
+  @override
+  Stream<List<Resource>> watchResourcesByCourse(String courseId) {
+    return _resourcesRef(courseId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snap) {
+      return snap.docs
+          .map((d) => Resource.fromMap(d.data(), d.id))
+          .toList();
+    });
+  }
+
   @override
   Future<void> addResource(Resource r) async {
     final data = r.toMap();
+
     // Enforce server-side ownership by using the authenticated UID
     data['createdBy'] = _uid;
 

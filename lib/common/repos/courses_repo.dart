@@ -3,10 +3,14 @@ import '../models/course.dart';
 abstract class CoursesRepo {
   /// Global catalog (courses collection)
   Future<List<Course>> getAllCourses();
-  Future<List<Course>> getCourses();              // user’s added courses
-  Future<Course?> getCourseById(String courseId); // single user course
+
   /// User’s added courses (users/{uid}/courses)
+  Future<List<Course>> getCourses();
+  Future<Course?> getCourseById(String courseId);
   Future<List<Course>> getUserCourses();
+
+  /// ✅ Real-time: user’s courses
+  Stream<List<Course>> watchUserCourses();
 
   /// Add from catalog into user courses
   Future<void> addCourseToUser(Course course);

@@ -1,15 +1,20 @@
 // lib/common/models/flashcard_models.dart
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// Represents a topic/collection of flashcards (e.g., "Midterm Review").
 class FlashcardGroup {
   final String id;
   final String courseId;
   final String title;
   final String difficulty;
+
+  // ✅ Required by rubric
+  final String createdBy;
   final DateTime createdAt;
 
-  /// The UID of the creator.
-  /// Required to enforce "Delete as Main Writer" permissions.
+  /// Kept (DO NOT remove) for your existing “Main Writer” logic.
+  /// You can store it too, but it should match createdBy.
   final String userId;
 
   FlashcardGroup({
@@ -19,19 +24,28 @@ class FlashcardGroup {
     required this.difficulty,
     required this.createdAt,
     required this.userId,
+    required this.createdBy,
   });
 
   /// Factory to parse Firestore data, handling Timestamp conversions safely.
   factory FlashcardGroup.fromMap(Map<String, dynamic> data, String documentId) {
+    final createdAtRaw = data['createdAt'];
+    final createdAt = createdAtRaw is Timestamp
+        ? createdAtRaw.toDate()
+        : (createdAtRaw is String
+        ? DateTime.tryParse(createdAtRaw) ?? DateTime.now()
+        : DateTime.now());
+
+    final createdBy = (data['createdBy'] ?? data['userId'] ?? '').toString();
+
     return FlashcardGroup(
       id: documentId,
-      courseId: data['courseId'] ?? '',
-      title: data['title'] ?? '',
-      difficulty: data['difficulty'] ?? 'Medium',
-      createdAt: data['createdAt'] != null
-          ? DateTime.parse(data['createdAt'])
-          : DateTime.now(),
-      userId: data['userId'] ?? '',
+      courseId: (data['courseId'] ?? '').toString(),
+      title: (data['title'] ?? '').toString(),
+      difficulty: (data['difficulty'] ?? 'Medium').toString(),
+      createdAt: createdAt,
+      userId: (data['userId'] ?? createdBy).toString(),
+      createdBy: createdBy,
     );
   }
 
@@ -41,7 +55,10 @@ class FlashcardGroup {
       'courseId': courseId,
       'title': title,
       'difficulty': difficulty,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': Timestamp.fromDate(createdAt),
+      // ✅ rubric field
+      'createdBy': createdBy,
+      // ✅ kept for backwards compatibility
       'userId': userId,
     };
   }
@@ -55,10 +72,12 @@ class Flashcard {
   final String question;
   final String solution;
   final String difficulty;
+
+  // ✅ Required by rubric
+  final String createdBy;
   final DateTime createdAt;
 
-  /// The UID of the creator.
-  /// Required to enforce "Delete as Main Writer" permissions.
+  /// Kept (DO NOT remove) for your existing “Main Writer” logic.
   final String userId;
 
   Flashcard({
@@ -70,21 +89,30 @@ class Flashcard {
     required this.difficulty,
     required this.createdAt,
     required this.userId,
+    required this.createdBy,
   });
 
   /// Factory to parse Firestore data, handling Timestamp conversions safely.
   factory Flashcard.fromMap(Map<String, dynamic> data, String documentId) {
+    final createdAtRaw = data['createdAt'];
+    final createdAt = createdAtRaw is Timestamp
+        ? createdAtRaw.toDate()
+        : (createdAtRaw is String
+        ? DateTime.tryParse(createdAtRaw) ?? DateTime.now()
+        : DateTime.now());
+
+    final createdBy = (data['createdBy'] ?? data['userId'] ?? '').toString();
+
     return Flashcard(
       id: documentId,
-      courseId: data['courseId'] ?? '',
-      groupId: data['groupId'] ?? '',
-      question: data['question'] ?? '',
-      solution: data['solution'] ?? '',
-      difficulty: data['difficulty'] ?? 'Medium',
-      createdAt: data['createdAt'] != null
-          ? DateTime.parse(data['createdAt'])
-          : DateTime.now(),
-      userId: data['userId'] ?? '',
+      courseId: (data['courseId'] ?? '').toString(),
+      groupId: (data['groupId'] ?? '').toString(),
+      question: (data['question'] ?? '').toString(),
+      solution: (data['solution'] ?? '').toString(),
+      difficulty: (data['difficulty'] ?? 'Medium').toString(),
+      createdAt: createdAt,
+      userId: (data['userId'] ?? createdBy).toString(),
+      createdBy: createdBy,
     );
   }
 
@@ -95,7 +123,10 @@ class Flashcard {
       'question': question,
       'solution': solution,
       'difficulty': difficulty,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': Timestamp.fromDate(createdAt),
+      // ✅ rubric field
+      'createdBy': createdBy,
+      // ✅ kept for backwards compatibility
       'userId': userId,
     };
   }

@@ -110,6 +110,10 @@ class _HomeworkEditScreenState extends State<HomeworkEditScreen> {
         title: _title.text.trim(),
         date: _date.text.trim(),
         time: _time.text.trim(),
+
+        // ✅ preserve ownership fields
+        createdBy: widget.homework.createdBy,
+        createdAt: widget.homework.createdAt,
       );
 
       await _repo.updateHomework(updated);
@@ -162,10 +166,12 @@ class _HomeworkEditScreenState extends State<HomeworkEditScreen> {
         currentIndex: 0,
         appBar: AppBar(
           backgroundColor: AppColors.primaryBlue,
-          title: Text('Homework: ${widget.courseName}', style: AppTextStyles.appBarTitle),
+          title: Text('Homework: ${widget.courseName}',
+              style: AppTextStyles.appBarTitle),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
+            icon: const Icon(Icons.arrow_back_ios,
+                color: AppColors.textOnPrimary, size: 20),
             onPressed: () async {
               final ok = await _confirmDiscard();
               if (ok && mounted) Navigator.pop(context);
@@ -196,8 +202,10 @@ class _HomeworkEditScreenState extends State<HomeworkEditScreen> {
                 height: 46,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _editing ? AppColors.primaryBlue : Colors.red,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    backgroundColor:
+                    _editing ? AppColors.primaryBlue : Colors.red,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6)),
                   ),
                   onPressed: _editing ? _save : _delete,
                   child: Text(

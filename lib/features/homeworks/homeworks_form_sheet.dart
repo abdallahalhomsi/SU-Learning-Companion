@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/homework.dart';
@@ -80,7 +81,8 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
           'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
         ];
-        _dateController.text = '${picked.day} ${months[picked.month - 1]} ${picked.year}';
+        _dateController.text =
+        '${picked.day} ${months[picked.month - 1]} ${picked.year}';
       });
     }
   }
@@ -133,6 +135,14 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
       return;
     }
 
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You must login first.')),
+      );
+      return;
+    }
+
     final storedDate = _dateController.text.trim();
     final storedTime =
         '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
@@ -143,6 +153,10 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
       title: _titleController.text.trim(),
       date: storedDate,
       time: storedTime,
+
+      // ✅ required fields
+      createdBy: user.uid,
+      createdAt: DateTime.now(),
     );
 
     try {
@@ -176,7 +190,8 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back_ios,
+              color: AppColors.textOnPrimary, size: 20),
           onPressed: () {
             context.go(
               '/courses/${widget.courseId}/homeworks',
@@ -210,8 +225,9 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           style: TextStyle(color: _fieldText),
                           cursorColor: _fieldText,
                           decoration: _inputDecoration('Title'),
-                          validator: (value) =>
-                          (value == null || value.trim().isEmpty) ? 'Title is required' : null,
+                          validator: (value) => (value == null || value.trim().isEmpty)
+                              ? 'Title is required'
+                              : null,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.gapSmall),
@@ -223,8 +239,9 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           style: TextStyle(color: _fieldText),
                           cursorColor: _fieldText,
                           decoration: _inputDecoration('Date...'),
-                          validator: (value) =>
-                          (value == null || value.trim().isEmpty) ? 'Date is required' : null,
+                          validator: (value) => (value == null || value.trim().isEmpty)
+                              ? 'Date is required'
+                              : null,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.gapSmall),
@@ -236,8 +253,9 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           style: TextStyle(color: _fieldText),
                           cursorColor: _fieldText,
                           decoration: _inputDecoration('Time'),
-                          validator: (value) =>
-                          (value == null || value.trim().isEmpty) ? 'Time is required' : null,
+                          validator: (value) => (value == null || value.trim().isEmpty)
+                              ? 'Time is required'
+                              : null,
                         ),
                       ),
                     ],
@@ -252,7 +270,8 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6)),
                 ),
                 onPressed: _submit,
                 child: const Text('Submit', style: AppTextStyles.primaryButton),

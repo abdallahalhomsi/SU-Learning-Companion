@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/exam.dart';
@@ -66,13 +67,10 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 5),
       builder: (context, child) {
-        // Keeps date picker readable in dark mode too
         final theme = Theme.of(context);
         return Theme(
           data: theme.copyWith(
-            colorScheme: theme.colorScheme.copyWith(
-              primary: AppColors.primaryBlue,
-            ),
+            colorScheme: theme.colorScheme.copyWith(primary: AppColors.primaryBlue),
           ),
           child: child!,
         );
@@ -99,9 +97,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
         final theme = Theme.of(context);
         return Theme(
           data: theme.copyWith(
-            colorScheme: theme.colorScheme.copyWith(
-              primary: AppColors.primaryBlue,
-            ),
+            colorScheme: theme.colorScheme.copyWith(primary: AppColors.primaryBlue),
           ),
           child: child!,
         );
@@ -152,6 +148,14 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       return;
     }
 
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You must login first.')),
+      );
+      return;
+    }
+
     final storedDate = _dateController.text.trim();
     final storedTime =
         '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
@@ -162,6 +166,10 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       title: _titleController.text.trim(),
       date: storedDate,
       time: storedTime,
+
+      // ✅ required fields
+      createdBy: user.uid,
+      createdAt: DateTime.now(),
     );
 
     try {

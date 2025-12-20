@@ -4,6 +4,9 @@ abstract class ExamsRepo {
   /// Reads: users/{uid}/courses/{courseId}/exams
   Future<List<Exam>> getExamsForCourse(String courseId);
 
+  // ✅ Added (real-time updates requirement)
+  Stream<List<Exam>> watchExamsForCourse(String courseId);
+
   /// Writes: users/{uid}/courses/{courseId}/exams/{autoId}
   Future<void> addExam(Exam exam);
 

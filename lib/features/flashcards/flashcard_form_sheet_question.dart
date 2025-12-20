@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../common/models/flashcard.dart';
 import '../../common/repos/flashcards_repo.dart';
@@ -67,6 +68,15 @@ class _FlashcardFormSheetQuestionState extends State<FlashcardFormSheetQuestion>
       return;
     }
 
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You must login first.')),
+      );
+      return;
+    }
+
     final newCard = Flashcard(
       id: '',
       courseId: widget.courseId,
@@ -75,6 +85,11 @@ class _FlashcardFormSheetQuestionState extends State<FlashcardFormSheetQuestion>
       solution: _answerController.text.trim(),
       difficulty: _selectedDifficulty!,
       createdAt: DateTime.now(),
+
+      // ✅ required: createdBy
+      createdBy: user.uid,
+
+      // keep your existing field (repo may also set userId)
       userId: '',
     );
 

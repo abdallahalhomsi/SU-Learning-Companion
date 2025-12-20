@@ -30,12 +30,11 @@ class Note {
 
     return Note(
       id: doc.id,
-      courseId: courseId, // ✅ FIX
+      courseId: courseId,
       title: (data['title'] ?? '').toString(),
       content: (data['content'] ?? '').toString(),
       createdBy: (data['createdBy'] ?? '').toString(),
-      createdAt:
-      (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
@@ -57,7 +56,7 @@ class Note {
   }) {
     return Note(
       id: id,
-      courseId: courseId, // ✅ FIX
+      courseId: courseId,
       title: title ?? this.title,
       content: content ?? this.content,
       createdBy: createdBy,

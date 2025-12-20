@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../common/models/flashcard.dart';
 import '../../common/repos/flashcards_repo.dart';
@@ -59,12 +60,26 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
       return;
     }
 
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You must login first.')),
+      );
+      return;
+    }
+
     final newGroup = FlashcardGroup(
       id: '',
       courseId: widget.courseId,
       title: _titleController.text.trim(),
       difficulty: _selectedDifficulty!,
       createdAt: DateTime.now(),
+
+      // ✅ required: createdBy
+      createdBy: user.uid,
+
+      // keep your existing field (repo may also set userId depending on your code)
       userId: '',
     );
 

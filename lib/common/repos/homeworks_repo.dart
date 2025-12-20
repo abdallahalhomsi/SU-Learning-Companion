@@ -4,6 +4,9 @@ abstract class HomeworksRepo {
   /// Reads: users/{uid}/courses/{courseId}/homeworks
   Future<List<Homework>> getHomeworksForCourse(String courseId);
 
+  // ✅ Added (real-time updates requirement)
+  Stream<List<Homework>> watchHomeworksForCourse(String courseId);
+
   /// Writes: users/{uid}/courses/{courseId}/homeworks/{autoId}
   Future<void> addHomework(Homework homework);
 

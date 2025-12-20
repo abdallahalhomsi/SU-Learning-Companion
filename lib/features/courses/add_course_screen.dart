@@ -62,8 +62,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         final term = (data['semester'] ?? '').toString();
         final instructor = (data['instructor'] ?? '').toString();
 
-        // createdAt is required by your Course model.
-        // For global courses, we can set it to now (or use a stored timestamp if you added one).
+        // createdAt required by Course model
         DateTime createdAt = DateTime.now();
         final rawCreatedAt = data['createdAt'];
         if (rawCreatedAt is Timestamp) {
@@ -77,6 +76,9 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
           term: term,
           instructor: instructor.isEmpty ? null : instructor,
           createdAt: createdAt,
+          // ✅ If your Course model has createdBy required, add it here.
+          // If it doesn't, remove this line.
+          createdBy: (data['createdBy'] ?? '').toString(),
         );
       }).toList();
 
@@ -126,8 +128,6 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       final uid = user.uid;
       final courseId = course.id;
 
-      // Store the course under the user.
-      // You can add more fields later (credits, section, etc.)
       await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
@@ -139,6 +139,12 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         'courseName': course.name,
         'semester': course.term,
         'instructor': course.instructor,
+
+        // ✅ required fields for user-owned documents
+        'createdBy': uid,
+        'createdAt': FieldValue.serverTimestamp(),
+
+        // keep your existing field too if you want
         'addedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 

@@ -1,4 +1,5 @@
 // lib/common/repos/firestore_notes_repo.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -37,7 +38,6 @@ class FirestoreNotesRepo implements NotesRepo {
     DateTime createdAt = DateTime.now();
     if (ts is Timestamp) createdAt = ts.toDate();
 
-    // Read createdBy from Firestore; if missing (older notes), fall back to current uid.
     final createdBy = (d['createdBy'] ?? _uid).toString();
 
     return Note(
@@ -46,43 +46,40 @@ class FirestoreNotesRepo implements NotesRepo {
       title: (d['title'] ?? '').toString(),
       content: (d['content'] ?? '').toString(),
       createdAt: createdAt,
-      createdBy: createdBy, // ✅ Fix: required param
+      createdBy: createdBy,
     );
   }
-// single fetch of notes for cources
+
   @override
   Future<List<Note>> getNotesForCourse(String courseId) async {
-    final snap = await _notesCol(courseId)
-        .orderBy('createdAt', descending: true)
-        .get();
-
+    final snap =
+    await _notesCol(courseId).orderBy('createdAt', descending: true).get();
     return snap.docs.map((d) => _fromDoc(courseId, d)).toList();
   }
 
-  // realtime stream, fetches updated notes
   @override
   Stream<List<Note>> watchNotesForCourse(String courseId) {
     return _notesCol(courseId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map(
-          (snapshot) =>
-          snapshot.docs.map((d) => _fromDoc(courseId, d)).toList(),
-    );
+        .map((snapshot) => snapshot.docs.map((d) => _fromDoc(courseId, d)).toList());
   }
 
   @override
   Future<void> addNote(Note note) async {
+    // If your UI passes an empty id, you can switch to add().
+    // Keeping your original behavior: doc(note.id).set(...)
     await _notesCol(note.courseId).doc(note.id).set({
       'title': note.title,
       'content': note.content,
+      // ✅ required by rubric
+      'createdBy': _uid,
       'createdAt': FieldValue.serverTimestamp(),
-      'createdBy': note.createdBy, // ✅ Fix: persist owner
     });
   }
 
   @override
-  Future<void> updateNote({ // allows user to edit notes
+  Future<void> updateNote({
     required String courseId,
     required String noteId,
     required String title,
