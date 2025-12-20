@@ -1,14 +1,7 @@
-// lib/features/flashcards/flashcard_form_sheet_group.dart
-//
-// Dark-mode-safe inputs:
-// - Text + cursor color adapts (black on light, white on dark)
-// - Input background adapts (light grey vs dark grey)
-// - Dropdown text/hint adapts for dark mode
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../common/models/flashcard.dart';
 import '../../common/repos/flashcards_repo.dart';
@@ -62,7 +55,6 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('You must login first.')),
       );
@@ -76,11 +68,11 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
       difficulty: _selectedDifficulty!,
       createdAt: DateTime.now(),
 
-      // ✅ required: createdBy
+      // ✅ REQUIRED
       createdBy: user.uid,
 
-      // keep your existing field (repo may also set userId depending on your code)
-      userId: '',
+      // keep if your model still has it
+      userId: user.uid,
     );
 
     try {

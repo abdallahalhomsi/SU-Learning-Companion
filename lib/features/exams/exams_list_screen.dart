@@ -5,10 +5,11 @@ import 'package:provider/provider.dart';
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/utils/date_time_formatter.dart';
 import '../../common/models/exam.dart';
-import '../../common/repos/exams_repo.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_spacing.dart';
 import '../../common/utils/app_text_styles.dart';
+import '../../common/providers/exams_provider.dart';
+
 import 'exam_edit_screen.dart';
 
 class ExamsListScreen extends StatefulWidget {
@@ -26,44 +27,21 @@ class ExamsListScreen extends StatefulWidget {
 }
 
 class _ExamsListScreenState extends State<ExamsListScreen> {
-  late final ExamsRepo _examsRepo;
-  bool _repoReady = false;
-
-  List<Exam> _exams = [];
-  bool _isLoading = true;
+  bool _bound = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_repoReady) {
-      _examsRepo = context.read<ExamsRepo>();
-      _repoReady = true;
-      _loadExams();
-    }
-  }
-
-  Future<void> _loadExams() async {
-    setState(() => _isLoading = true);
-    try {
-      final items = await _examsRepo.getExamsForCourse(widget.courseId);
-      if (!mounted) return;
-      setState(() {
-        _exams = items;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load exams: $e')),
-      );
+    if (!_bound) {
+      _bound = true;
+      context.read<ExamsProvider>().bindCourse(widget.courseId);
     }
   }
 
   Future<void> _removeExam(String examId) async {
     try {
-      await _examsRepo.removeExam(widget.courseId, examId);
-      await _loadExams();
+      await context.read<ExamsProvider>().remove(widget.courseId, examId);
+      // ✅ No manual reload; stream updates list automatically.
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -73,20 +51,22 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
   }
 
   Future<void> _openEdit(Exam exam) async {
-    final changed = await Navigator.push<bool>(
+    await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (_) => ExamEditScreen(courseName: widget.courseName, exam: exam),
       ),
     );
-
-    if (changed == true) {
-      await _loadExams();
-    }
+    // ✅ No manual reload; stream updates list automatically.
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<ExamsProvider>();
+    final exams = provider.items;
+    final isLoading = provider.isLoading;
+    final error = provider.error;
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = Theme.of(context).colorScheme.surface;
 
@@ -95,17 +75,10 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: AppColors.textOnPrimary,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
           onPressed: () => context.go('/courses/detail/${widget.courseId}'),
         ),
-        title: Text(
-          'Exams: ${widget.courseName}',
-          style: AppTextStyles.appBarTitle,
-        ),
+        title: Text('Exams: ${widget.courseName}', style: AppTextStyles.appBarTitle),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -128,9 +101,11 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
                       ),
                     ],
                   ),
-                  child: _isLoading
+                  child: isLoading
                       ? const Center(child: CircularProgressIndicator())
-                      : _exams.isEmpty
+                      : (error != null)
+                      ? Center(child: Text('Error: $error'))
+                      : exams.isEmpty
                       ? Center(
                     child: Text(
                       'No exams yet',
@@ -138,10 +113,9 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
                     ),
                   )
                       : ListView.separated(
-                    itemCount: _exams.length,
+                    itemCount: exams.length,
                     itemBuilder: (context, index) {
-                      final exam = _exams[index];
-
+                      final exam = exams[index];
                       final formattedDate =
                       DateTimeFormatter.formatRawDate(exam.date);
                       final formattedTime =
@@ -156,13 +130,11 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
                                 child: Padding(
-                                  padding:
-                                  const EdgeInsets.only(left: 12),
+                                  padding: const EdgeInsets.only(left: 12),
                                   child: Text(
                                     '${exam.title}: $formattedDate, $formattedTime',
                                     overflow: TextOverflow.ellipsis,
@@ -175,10 +147,8 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: AppColors.textOnPrimary,
-                                ),
+                                icon: const Icon(Icons.delete,
+                                    color: AppColors.textOnPrimary),
                                 onPressed: () => _removeExam(exam.id),
                               ),
                             ],
@@ -208,10 +178,7 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
-                  child: const Text(
-                    '+ Add Exam',
-                    style: AppTextStyles.primaryButton,
-                  ),
+                  child: const Text('+ Add Exam', style: AppTextStyles.primaryButton),
                 ),
               ),
             ],

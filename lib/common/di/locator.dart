@@ -15,7 +15,9 @@ import '../repos/firestore_flashcards_repo.dart';
 import 'package:su_learning_companion/common/repos/resources_repo.dart';
 import 'package:su_learning_companion/common/repos/firestore_resources_repo.dart';
 import 'package:su_learning_companion/common/providers/auth_provider.dart';
-
+import '../providers/exams_provider.dart';
+import '../providers/homeworks_provider.dart';
+import '../providers/resources_provider.dart';
 
 List<SingleChildWidget> buildProviders() => [
   Provider<CoursesRepo>(create: (_) => FirestoreCoursesRepo()),
@@ -25,5 +27,17 @@ List<SingleChildWidget> buildProviders() => [
   Provider<ResourcesRepo>(create: (_) => FirestoreResourcesRepo()),
   Provider<FlashcardsRepo>(create: (_) => FirestoreFlashcardsRepo()),
   ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
+  ChangeNotifierProxyProvider<ExamsRepo, ExamsProvider>(
+    create: (context) => ExamsProvider(context.read<ExamsRepo>()),
+    update: (context, repo, prev) => prev ?? ExamsProvider(repo),
+  ),
+  ChangeNotifierProxyProvider<HomeworksRepo, HomeworksProvider>(
+    create: (context) => HomeworksProvider(context.read<HomeworksRepo>()),
+    update: (context, repo, prev) => prev ?? HomeworksProvider(repo),
+  ),
+  ChangeNotifierProxyProvider<ResourcesRepo, ResourcesProvider>(
+    create: (context) => ResourcesProvider(context.read<ResourcesRepo>()),
+    update: (context, repo, prev) => prev ?? ResourcesProvider(repo),
+  ),
 
 ];

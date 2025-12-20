@@ -1,14 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/exam.dart';
-import '../../common/repos/exams_repo.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_spacing.dart';
 import '../../common/utils/app_text_styles.dart';
+import '../../common/providers/exams_provider.dart';
 
 class ExamFormScreen extends StatefulWidget {
   final String courseId;
@@ -34,22 +34,10 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
-  late final ExamsRepo _examsRepo;
-  bool _repoReady = false;
-
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
   Color get _fieldBg => _isDark ? const Color(0xFF111827) : AppColors.inputGrey;
   Color get _fieldText => _isDark ? Colors.white : Colors.black;
   Color get _hintText => _isDark ? Colors.white70 : Colors.black54;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_repoReady) {
-      _examsRepo = context.read<ExamsRepo>();
-      _repoReady = true;
-    }
-  }
 
   @override
   void dispose() {
@@ -80,11 +68,8 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
-        final months = [
-          'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'
-        ];
-        _dateController.text =
-        '${picked.day} ${months[picked.month - 1]} ${picked.year}';
+        final months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        _dateController.text = '${picked.day} ${months[picked.month - 1]} ${picked.year}';
       });
     }
   }
@@ -167,13 +152,13 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       date: storedDate,
       time: storedTime,
 
-      // ✅ required fields
+      // ✅ REQUIRED FIELDS
       createdBy: user.uid,
       createdAt: DateTime.now(),
     );
 
     try {
-      await _examsRepo.addExam(exam);
+      await context.read<ExamsProvider>().add(exam);
       if (!mounted) return;
       context.go(
         '/courses/${widget.courseId}/exams',
@@ -194,8 +179,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              color: AppColors.textOnPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
           onPressed: () {
             context.go(
               '/courses/${widget.courseId}/exams',
@@ -223,61 +207,40 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: Column(
                     children: [
-                      _buildFieldWrapper(
+                      _wrap(
                         child: TextFormField(
                           controller: _titleController,
                           style: TextStyle(color: _fieldText),
                           cursorColor: _fieldText,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Title',
-                            hintStyle: TextStyle(color: _hintText),
-                            errorStyle: AppTextStyles.errorText,
-                          ),
+                          decoration: _decoration(hint: 'Title'),
                           validator: (value) =>
-                          (value == null || value.trim().isEmpty)
-                              ? 'Title is required'
-                              : null,
+                          (value == null || value.trim().isEmpty) ? 'Title is required' : null,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.gapSmall),
-                      _buildFieldWrapper(
+                      _wrap(
                         child: TextFormField(
                           controller: _dateController,
                           readOnly: true,
                           onTap: _pickDate,
                           style: TextStyle(color: _fieldText),
                           cursorColor: _fieldText,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Date...',
-                            hintStyle: TextStyle(color: _hintText),
-                            errorStyle: AppTextStyles.errorText,
-                          ),
+                          decoration: _decoration(hint: 'Date...'),
                           validator: (value) =>
-                          (value == null || value.trim().isEmpty)
-                              ? 'Date is required'
-                              : null,
+                          (value == null || value.trim().isEmpty) ? 'Date is required' : null,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.gapSmall),
-                      _buildFieldWrapper(
+                      _wrap(
                         child: TextFormField(
                           controller: _timeController,
                           readOnly: true,
                           onTap: _pickTime,
                           style: TextStyle(color: _fieldText),
                           cursorColor: _fieldText,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Time',
-                            hintStyle: TextStyle(color: _hintText),
-                            errorStyle: AppTextStyles.errorText,
-                          ),
+                          decoration: _decoration(hint: 'Time'),
                           validator: (value) =>
-                          (value == null || value.trim().isEmpty)
-                              ? 'Time is required'
-                              : null,
+                          (value == null || value.trim().isEmpty) ? 'Time is required' : null,
                         ),
                       ),
                     ],
@@ -292,9 +255,7 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                 ),
                 onPressed: _submit,
                 child: const Text('Submit', style: AppTextStyles.primaryButton),
@@ -306,7 +267,16 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
     );
   }
 
-  Widget _buildFieldWrapper({required Widget child}) {
+  InputDecoration _decoration({required String hint}) {
+    return InputDecoration(
+      border: InputBorder.none,
+      hintText: hint,
+      hintStyle: TextStyle(color: _hintText),
+      errorStyle: AppTextStyles.errorText,
+    );
+  }
+
+  Widget _wrap({required Widget child}) {
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),

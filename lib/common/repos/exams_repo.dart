@@ -1,10 +1,10 @@
 import '../models/exam.dart';
 
 abstract class ExamsRepo {
-  /// Reads: users/{uid}/courses/{courseId}/exams
+  /// Reads (one-time): users/{uid}/courses/{courseId}/exams
   Future<List<Exam>> getExamsForCourse(String courseId);
 
-  // ✅ Added (real-time updates requirement)
+  /// Real-time stream
   Stream<List<Exam>> watchExamsForCourse(String courseId);
 
   /// Writes: users/{uid}/courses/{courseId}/exams/{autoId}
@@ -13,5 +13,6 @@ abstract class ExamsRepo {
   /// Deletes: users/{uid}/courses/{courseId}/exams/{examId}
   Future<void> removeExam(String courseId, String examId);
 
+  /// Updates
   Future<void> updateExam(Exam exam);
 }

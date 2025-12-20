@@ -1,18 +1,14 @@
-// lib/features/homeworks/homework_form_screen.dart
-//
-// Dark-mode-safe: form fields use adaptive bg + text/hint/cursor.
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../common/widgets/app_scaffold.dart';
 import '../../common/models/homework.dart';
-import '../../common/repos/homeworks_repo.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/app_spacing.dart';
+import '../../common/providers/homeworks_provider.dart';
 
 class HomeworkFormScreen extends StatefulWidget {
   final String courseId;
@@ -38,24 +34,12 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
-  late final HomeworksRepo _homeworksRepo;
-  bool _repoReady = false;
-
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
 
   Color get _fieldBg => _isDark ? const Color(0xFF111827) : AppColors.inputGrey;
   Color get _fieldText => _isDark ? Colors.white : Colors.black;
   Color get _hintText => _isDark ? Colors.white70 : Colors.black54;
   Color get _borderColor => _isDark ? const Color(0xFF334155) : Colors.transparent;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_repoReady) {
-      _homeworksRepo = context.read<HomeworksRepo>();
-      _repoReady = true;
-    }
-  }
 
   @override
   void dispose() {
@@ -81,8 +65,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
           'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
         ];
-        _dateController.text =
-        '${picked.day} ${months[picked.month - 1]} ${picked.year}';
+        _dateController.text = '${picked.day} ${months[picked.month - 1]} ${picked.year}';
       });
     }
   }
@@ -154,13 +137,13 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
       date: storedDate,
       time: storedTime,
 
-      // ✅ required fields
+      // ✅ REQUIRED FIELDS
       createdBy: user.uid,
       createdAt: DateTime.now(),
     );
 
     try {
-      await _homeworksRepo.addHomework(homework);
+      await context.read<HomeworksProvider>().add(homework);
       if (!mounted) return;
       context.go(
         '/courses/${widget.courseId}/homeworks',
@@ -190,8 +173,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              color: AppColors.textOnPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
           onPressed: () {
             context.go(
               '/courses/${widget.courseId}/homeworks',
@@ -225,9 +207,8 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           style: TextStyle(color: _fieldText),
                           cursorColor: _fieldText,
                           decoration: _inputDecoration('Title'),
-                          validator: (value) => (value == null || value.trim().isEmpty)
-                              ? 'Title is required'
-                              : null,
+                          validator: (value) =>
+                          (value == null || value.trim().isEmpty) ? 'Title is required' : null,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.gapSmall),
@@ -239,9 +220,8 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           style: TextStyle(color: _fieldText),
                           cursorColor: _fieldText,
                           decoration: _inputDecoration('Date...'),
-                          validator: (value) => (value == null || value.trim().isEmpty)
-                              ? 'Date is required'
-                              : null,
+                          validator: (value) =>
+                          (value == null || value.trim().isEmpty) ? 'Date is required' : null,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.gapSmall),
@@ -253,9 +233,8 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                           style: TextStyle(color: _fieldText),
                           cursorColor: _fieldText,
                           decoration: _inputDecoration('Time'),
-                          validator: (value) => (value == null || value.trim().isEmpty)
-                              ? 'Time is required'
-                              : null,
+                          validator: (value) =>
+                          (value == null || value.trim().isEmpty) ? 'Time is required' : null,
                         ),
                       ),
                     ],
@@ -270,8 +249,7 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                 ),
                 onPressed: _submit,
                 child: const Text('Submit', style: AppTextStyles.primaryButton),

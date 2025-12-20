@@ -1,13 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../common/models/exam.dart';
-import '../../common/repos/exams_repo.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_spacing.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/widgets/app_scaffold.dart';
+import '../../common/providers/exams_provider.dart';
 
 class ExamEditScreen extends StatefulWidget {
   final String courseName;
@@ -24,8 +25,6 @@ class ExamEditScreen extends StatefulWidget {
 }
 
 class _ExamEditScreenState extends State<ExamEditScreen> {
-  late final ExamsRepo _repo;
-
   late final TextEditingController _title;
   late final TextEditingController _date;
   late final TextEditingController _time;
@@ -61,12 +60,6 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _repo = context.read<ExamsRepo>();
-  }
-
-  @override
   void dispose() {
     _title.dispose();
     _date.dispose();
@@ -88,8 +81,7 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Discard',
-                style: TextStyle(color: Colors.red)),
+            child: const Text('Discard', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -100,19 +92,18 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
+      // Keep original ownership + creation time (do not overwrite)
       final updated = Exam(
         id: widget.exam.id,
         courseId: widget.exam.courseId,
         title: _title.text.trim(),
         date: _date.text.trim(),
         time: _time.text.trim(),
-
-        // ✅ preserve ownership fields
         createdBy: widget.exam.createdBy,
         createdAt: widget.exam.createdAt,
       );
 
-      await _repo.updateExam(updated);
+      await context.read<ExamsProvider>().update(updated);
 
       _savedTitle = updated.title.trim();
       _savedDate = updated.date.trim();
@@ -137,7 +128,7 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
   Future<void> _delete() async {
     setState(() => _saving = true);
     try {
-      await _repo.removeExam(widget.exam.courseId, widget.exam.id);
+      await context.read<ExamsProvider>().remove(widget.exam.courseId, widget.exam.id);
       if (!mounted) return;
       context.pop(true);
     } catch (e) {
@@ -162,12 +153,10 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
         currentIndex: 0,
         appBar: AppBar(
           backgroundColor: AppColors.primaryBlue,
-          title: Text('Exam: ${widget.courseName}',
-              style: AppTextStyles.appBarTitle),
+          title: Text('Exam: ${widget.courseName}', style: AppTextStyles.appBarTitle),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios,
-                color: AppColors.textOnPrimary, size: 20),
+            icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
             onPressed: () async {
               final ok = await _confirmDiscard();
               if (ok && mounted) Navigator.pop(context);
@@ -198,11 +187,8 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
                     height: 46,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                        _editing ? AppColors.primaryBlue : Colors.red,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
+                        backgroundColor: _editing ? AppColors.primaryBlue : Colors.red,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                       ),
                       onPressed: _saving ? null : (_editing ? _save : _delete),
                       child: Text(

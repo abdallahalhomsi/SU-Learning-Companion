@@ -1,10 +1,9 @@
-// lib/common/repos/resources_repo.dart
 import '../models/resource.dart';
 
 abstract class ResourcesRepo {
   Future<List<Resource>> getResourcesByCourse(String courseId);
 
-  // ✅ Added (real-time updates requirement)
+  /// Real-time stream
   Stream<List<Resource>> watchResourcesByCourse(String courseId);
 
   Future<void> addResource(Resource r);

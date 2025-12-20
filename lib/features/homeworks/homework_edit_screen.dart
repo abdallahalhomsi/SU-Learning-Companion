@@ -1,17 +1,13 @@
-// lib/features/homeworks/homework_edit_screen.dart
-//
-// Dark-mode-safe: input bg + text/hint/cursor adapt to theme.
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../common/models/homework.dart';
-import '../../common/repos/homeworks_repo.dart';
 import '../../common/utils/app_colors.dart';
 import '../../common/utils/app_spacing.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/widgets/app_scaffold.dart';
+import '../../common/providers/homeworks_provider.dart';
 
 class HomeworkEditScreen extends StatefulWidget {
   final String courseName;
@@ -28,8 +24,6 @@ class HomeworkEditScreen extends StatefulWidget {
 }
 
 class _HomeworkEditScreenState extends State<HomeworkEditScreen> {
-  late final HomeworksRepo _repo;
-
   late final TextEditingController _title;
   late final TextEditingController _date;
   late final TextEditingController _time;
@@ -66,12 +60,6 @@ class _HomeworkEditScreenState extends State<HomeworkEditScreen> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _repo = context.read<HomeworksRepo>();
-  }
-
-  @override
   void dispose() {
     _title.dispose();
     _date.dispose();
@@ -104,19 +92,18 @@ class _HomeworkEditScreenState extends State<HomeworkEditScreen> {
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
+      // Keep original ownership + creation time (do not overwrite)
       final updated = Homework(
         id: widget.homework.id,
         courseId: widget.homework.courseId,
         title: _title.text.trim(),
         date: _date.text.trim(),
         time: _time.text.trim(),
-
-        // ✅ preserve ownership fields
         createdBy: widget.homework.createdBy,
         createdAt: widget.homework.createdAt,
       );
 
-      await _repo.updateHomework(updated);
+      await context.read<HomeworksProvider>().update(updated);
 
       _savedTitle = updated.title.trim();
       _savedDate = updated.date.trim();
@@ -141,7 +128,10 @@ class _HomeworkEditScreenState extends State<HomeworkEditScreen> {
   Future<void> _delete() async {
     setState(() => _saving = true);
     try {
-      await _repo.removeHomework(widget.homework.courseId, widget.homework.id);
+      await context.read<HomeworksProvider>().remove(
+        widget.homework.courseId,
+        widget.homework.id,
+      );
       if (!mounted) return;
       context.pop(true);
     } catch (e) {
@@ -166,12 +156,10 @@ class _HomeworkEditScreenState extends State<HomeworkEditScreen> {
         currentIndex: 0,
         appBar: AppBar(
           backgroundColor: AppColors.primaryBlue,
-          title: Text('Homework: ${widget.courseName}',
-              style: AppTextStyles.appBarTitle),
+          title: Text('Homework: ${widget.courseName}', style: AppTextStyles.appBarTitle),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios,
-                color: AppColors.textOnPrimary, size: 20),
+            icon: const Icon(Icons.arrow_back_ios, color: AppColors.textOnPrimary, size: 20),
             onPressed: () async {
               final ok = await _confirmDiscard();
               if (ok && mounted) Navigator.pop(context);
@@ -202,10 +190,8 @@ class _HomeworkEditScreenState extends State<HomeworkEditScreen> {
                 height: 46,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    _editing ? AppColors.primaryBlue : Colors.red,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6)),
+                    backgroundColor: _editing ? AppColors.primaryBlue : Colors.red,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                   ),
                   onPressed: _editing ? _save : _delete,
                   child: Text(

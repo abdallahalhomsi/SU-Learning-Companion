@@ -1,15 +1,4 @@
 // lib/features/courses/add_course_screen.dart
-//
-// Add Course screen (Firestore):
-// - Reads ALL available courses from: /courses (global collection you seeded)
-// - Typing filters live (by course name, code, instructor)
-// - "Add" writes the selected course into the current user’s courses:
-//     /users/{uid}/courses/{courseId}
-//
-// Requirements:
-// - Firestore has collection: courses/{courseId} with fields:
-//   courseCode, courseName, semester, instructor
-// - User is logged in (FirebaseAuth.currentUser != null)
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -56,29 +45,28 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       final courses = snap.docs.map((doc) {
         final data = doc.data();
 
-        // global courses
         final code = (data['courseCode'] ?? '').toString();
         final name = (data['courseName'] ?? '').toString();
         final term = (data['semester'] ?? '').toString();
         final instructor = (data['instructor'] ?? '').toString();
 
-        // createdAt required by Course model
+        // ✅ createdAt (required)
         DateTime createdAt = DateTime.now();
         final rawCreatedAt = data['createdAt'];
-        if (rawCreatedAt is Timestamp) {
-          createdAt = rawCreatedAt.toDate();
-        }
+        if (rawCreatedAt is Timestamp) createdAt = rawCreatedAt.toDate();
+
+        // ✅ createdBy (required if your Course model requires it)
+        // If your global catalog doesn't store createdBy, use a safe fallback.
+        final createdBy = (data['createdBy'] ?? 'system').toString();
 
         return Course(
-          id: doc.id, // courseId "0..n"
+          id: doc.id,
           code: code,
           name: name,
           term: term,
           instructor: instructor.isEmpty ? null : instructor,
           createdAt: createdAt,
-          // ✅ If your Course model has createdBy required, add it here.
-          // If it doesn't, remove this line.
-          createdBy: (data['createdBy'] ?? '').toString(),
+          createdBy: createdBy, // ✅ ADDED
         );
       }).toList();
 
@@ -140,11 +128,11 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         'semester': course.term,
         'instructor': course.instructor,
 
-        // ✅ required fields for user-owned documents
+        // ✅ REQUIRED FIELDS (ownership + timestamp)
         'createdBy': uid,
         'createdAt': FieldValue.serverTimestamp(),
 
-        // keep your existing field too if you want
+        // keep old field
         'addedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 

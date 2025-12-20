@@ -1,10 +1,10 @@
 import '../models/homework.dart';
 
 abstract class HomeworksRepo {
-  /// Reads: users/{uid}/courses/{courseId}/homeworks
+  /// Reads (one-time): users/{uid}/courses/{courseId}/homeworks
   Future<List<Homework>> getHomeworksForCourse(String courseId);
 
-  // ✅ Added (real-time updates requirement)
+  /// Real-time stream
   Stream<List<Homework>> watchHomeworksForCourse(String courseId);
 
   /// Writes: users/{uid}/courses/{courseId}/homeworks/{autoId}
@@ -13,5 +13,6 @@ abstract class HomeworksRepo {
   /// Deletes: users/{uid}/courses/{courseId}/homeworks/{homeworkId}
   Future<void> removeHomework(String courseId, String homeworkId);
 
+  /// Updates
   Future<void> updateHomework(Homework homework);
 }
