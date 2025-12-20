@@ -2,7 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Represents a topic/collection of flashcards (e.g., "Midterm Review").
+
 class FlashcardGroup {
   final String id;
   final String courseId;
@@ -13,8 +13,7 @@ class FlashcardGroup {
   final String createdBy;
   final DateTime createdAt;
 
-  /// Kept (DO NOT remove) for your existing “Main Writer” logic.
-  /// You can store it too, but it should match createdBy.
+
   final String userId;
 
   FlashcardGroup({
@@ -27,7 +26,7 @@ class FlashcardGroup {
     required this.createdBy,
   });
 
-  /// Factory to parse Firestore data, handling Timestamp conversions safely.
+
   factory FlashcardGroup.fromMap(Map<String, dynamic> data, String documentId) {
     final createdAtRaw = data['createdAt'];
     final createdAt = createdAtRaw is Timestamp
@@ -49,22 +48,20 @@ class FlashcardGroup {
     );
   }
 
-  /// Serializes data for Firestore storage.
+
   Map<String, dynamic> toMap() {
     return {
       'courseId': courseId,
       'title': title,
       'difficulty': difficulty,
       'createdAt': Timestamp.fromDate(createdAt),
-      // ✅ rubric field
       'createdBy': createdBy,
-      // ✅ kept for backwards compatibility
       'userId': userId,
     };
   }
 }
 
-/// Represents a specific Question and Answer pair within a group.
+
 class Flashcard {
   final String id;
   final String courseId;
@@ -72,12 +69,9 @@ class Flashcard {
   final String question;
   final String solution;
   final String difficulty;
-
-  // ✅ Required by rubric
   final String createdBy;
   final DateTime createdAt;
 
-  /// Kept (DO NOT remove) for your existing “Main Writer” logic.
   final String userId;
 
   Flashcard({
@@ -92,7 +86,6 @@ class Flashcard {
     required this.createdBy,
   });
 
-  /// Factory to parse Firestore data, handling Timestamp conversions safely.
   factory Flashcard.fromMap(Map<String, dynamic> data, String documentId) {
     final createdAtRaw = data['createdAt'];
     final createdAt = createdAtRaw is Timestamp
@@ -124,9 +117,7 @@ class Flashcard {
       'solution': solution,
       'difficulty': difficulty,
       'createdAt': Timestamp.fromDate(createdAt),
-      // ✅ rubric field
       'createdBy': createdBy,
-      // ✅ kept for backwards compatibility
       'userId': userId,
     };
   }

@@ -21,7 +21,7 @@ class Resource {
     required this.createdAt,
   });
 
-  // Serializes the object for Firestore storage
+
   Map<String, dynamic> toMap() {
     return {
       'courseId': courseId,
@@ -33,7 +33,7 @@ class Resource {
     };
   }
 
-  // Factory method to deserialize Firestore data
+
   static Resource fromMap(Map<String, dynamic> map, String id) {
     final ts = map['createdAt'];
     final createdAt = ts is Timestamp

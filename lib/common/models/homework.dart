@@ -7,8 +7,6 @@ class Homework {
   final String title;
   final String date;   // due date
   final String time;   // due time
-
-  // ✅ REQUIRED BY SPEC
   final String createdBy; // user uid
   final DateTime createdAt;
 
@@ -22,7 +20,6 @@ class Homework {
     required this.createdAt,
   });
 
-  /// Firestore → Model
   factory Homework.fromMap(String id, String courseId, Map<String, dynamic> d) {
     return Homework(
       id: id,
@@ -37,7 +34,6 @@ class Homework {
     );
   }
 
-  /// Model → Firestore
   Map<String, dynamic> toMap() {
     return {
       'title': title,

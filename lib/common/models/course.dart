@@ -7,8 +7,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Course {
   final String id, code, name, term;
   final String? instructor;
-
-  // ✅ Required by rubric
   final String createdBy;
   final DateTime createdAt;
 
@@ -22,7 +20,6 @@ class Course {
     required this.createdAt,
   });
 
-  /// Firestore write map (use Timestamp)
   Map<String, dynamic> toMap() => {
     'code': code,
     'name': name,
@@ -32,7 +29,6 @@ class Course {
     'createdAt': Timestamp.fromDate(createdAt),
   };
 
-  /// Firestore read map
   factory Course.fromMap(String id, Map<String, dynamic> m) {
     final createdAtRaw = m['createdAt'];
     final createdAt = createdAtRaw is Timestamp
@@ -61,8 +57,6 @@ class CourseEvent {
   final DateTime dueDate;
   final String? description;
 
-  // ✅ If this is stored in Firestore, include these.
-  // If it is ONLY a UI helper and never stored, you can keep them anyway harmlessly.
   final String createdBy;
   final DateTime createdAt;
 

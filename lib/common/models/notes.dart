@@ -21,7 +21,7 @@ class Note {
     required this.createdAt,
   });
 
-  /// Convert Firestore document → Note object
+
   factory Note.fromFirestore(
       DocumentSnapshot<Map<String, dynamic>> doc, {
         required String courseId,
@@ -38,7 +38,7 @@ class Note {
     );
   }
 
-  /// Convert Note → Firestore map (for create/update)
+
   Map<String, dynamic> toFirestore() {
     return {
       'title': title,
@@ -49,7 +49,7 @@ class Note {
     };
   }
 
-  /// Helper for updates
+
   Note copyWith({
     String? title,
     String? content,

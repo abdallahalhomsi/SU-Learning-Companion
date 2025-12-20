@@ -8,7 +8,7 @@ class Exam {
   final String date;      // e.g. "2025-03-10"
   final String time;      // e.g. "09:00"
 
-  // ✅ REQUIRED BY SPEC
+
   final String createdBy; // user uid
   final DateTime createdAt;
 
@@ -22,7 +22,7 @@ class Exam {
     required this.createdAt,
   });
 
-  /// Firestore → Model
+
   factory Exam.fromMap(String id, String courseId, Map<String, dynamic> d) {
     return Exam(
       id: id,
@@ -37,7 +37,7 @@ class Exam {
     );
   }
 
-  /// Model → Firestore
+
   Map<String, dynamic> toMap() {
     return {
       'title': title,
