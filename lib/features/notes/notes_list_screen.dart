@@ -1,6 +1,5 @@
 // lib/features/notes/notes_list_screen.dart
 
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +23,44 @@ class NotesListScreen extends StatelessWidget {
     required this.courseId,
     required this.courseName,
   });
+
+  Future<bool> _confirmDelete(BuildContext context, Note note) async {
+    return (await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete note?'),
+        content: Text('This will permanently delete:\n\n"${note.title}"'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    )) ??
+        false;
+  }
+
+  Future<void> _deleteNote(BuildContext context, NotesRepo notesRepo, Note note) async {
+
+    try {
+      await notesRepo.removeNote(courseId: courseId, noteId: note.id);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Note deleted')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete note: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +132,11 @@ class NotesListScreen extends StatelessWidget {
                                 ),
                               );
                             },
+                            // ✅ ADDED ONLY: DELETE BUTTON
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete, color: AppColors.textOnPrimary),
+                              onPressed: () => _deleteNote(context, notesRepo, note),
+                            ),
                           ),
                         );
                       },

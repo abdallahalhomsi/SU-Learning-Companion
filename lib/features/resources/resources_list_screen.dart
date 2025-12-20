@@ -151,12 +151,13 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
               ),
             )
                 : _resources.isEmpty
-                ? Text(
+                ? Center(
+                child: Text(
               'No resources available',
               style: TextStyle(
                 color: isDark ? Colors.white70 : Colors.black54,
               ),
-            )
+            ))
                 : ListView.builder(
               padding: AppSpacing.screen,
               itemCount: _resources.length,
