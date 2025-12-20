@@ -1,7 +1,5 @@
 // lib/features/notes/add_note_screen.dart
-//
-// Dark-mode-safe: title field + body field text/hint/cursor adapt,
-// lined paper colors adapt, card bg adapts.
+
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

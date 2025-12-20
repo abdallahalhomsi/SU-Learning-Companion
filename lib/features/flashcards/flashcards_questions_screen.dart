@@ -11,8 +11,6 @@ import '../../common/utils/app_text_styles.dart';
 import '../../common/models/flashcard.dart';
 import '../../common/repos/flashcards_repo.dart';
 
-/// Displays the list of individual flashcards (questions) within a specific topic (Group).
-/// Allows the user to view, add, or delete specific cards.
 class FlashcardsQuestionsScreen extends StatefulWidget {
   final String courseId;
   final String courseName;
@@ -54,7 +52,6 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
     });
   }
 
-  /// Deletes a specific card from Firestore and refreshes the list upon success.
   Future<void> _deleteCard(Flashcard card) async {
     try {
       await _repo.deleteFlashcard(
@@ -72,14 +69,14 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
     }
   }
 
-  /// Navigates to the form to create a new card, passing necessary IDs.
+
   Future<void> _addCard() async {
     await context.push('/flashcards/create', extra: {
       'courseId': widget.courseId,
       'groupId': widget.groupId,
     });
 
-    // Refresh the list when returning from the form
+
     if (!mounted) return;
     _loadData();
   }
@@ -141,7 +138,6 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
                         return _CardItem(
                           question: card.question,
                           onTap: () {
-                            // Navigate to Solution/Answer View
                             context.push(
                               '/flashcards/solution',
                               extra: {
@@ -183,7 +179,7 @@ class _FlashcardsQuestionsScreenState extends State<FlashcardsQuestionsScreen> {
   }
 }
 
-/// A helper widget to display a single flashcard row with a delete action.
+
 class _CardItem extends StatelessWidget {
   final String question;
   final VoidCallback onTap;

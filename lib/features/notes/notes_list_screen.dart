@@ -1,6 +1,5 @@
 // lib/features/notes/notes_list_screen.dart
-//
-// Dark-mode-safe empty state text.
+
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

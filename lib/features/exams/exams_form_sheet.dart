@@ -151,8 +151,6 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
       title: _titleController.text.trim(),
       date: storedDate,
       time: storedTime,
-
-      // ✅ REQUIRED FIELDS
       createdBy: user.uid,
       createdAt: DateTime.now(),
     );

@@ -1,6 +1,5 @@
 // lib/features/auth/sign_in_screen.dart
-//
-// Forces LIGHT theme for this screen only (no dark mode), regardless of app theme.
+
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -113,13 +112,11 @@ class _SignInScreenState extends State<SignInScreen> {
       fontWeight: FontWeight.w500,
     );
 
-    // ✅ Force light theme only for this screen subtree
     return Theme(
       data: ThemeData(
         brightness: Brightness.light,
         useMaterial3: true,
       ).copyWith(
-        // Keep your brand colors consistent
         scaffoldBackgroundColor: AppColors.scaffoldBackground,
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primaryBlue,

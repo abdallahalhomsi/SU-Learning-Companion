@@ -1,6 +1,5 @@
 // lib/features/auth/sign_up_step2_screen.dart
-//
-// Forces LIGHT theme for this screen only (no dark mode), regardless of app theme.
+
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -134,7 +133,6 @@ class _SignUpStep2ScreenState extends State<SignUpStep2Screen> {
       fontWeight: FontWeight.w500,
     );
 
-    // ✅ Force light theme only for this screen subtree
     return Theme(
       data: ThemeData(
         brightness: Brightness.light,

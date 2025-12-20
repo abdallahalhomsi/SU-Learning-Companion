@@ -12,8 +12,7 @@ import '../../common/utils/app_spacing.dart';
 import '../../common/models/flashcard.dart';
 import '../../common/repos/flashcards_repo.dart';
 
-/// Displays a list of Flashcard Topics (Groups) for a specific course.
-/// Allows users to navigate to specific questions or create new topics.
+
 class FlashcardsTopicsScreen extends StatefulWidget {
   final String courseId;
   final String courseName;
@@ -50,7 +49,7 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
     });
   }
 
-  /// Deletes a flashcard group and its contents, then refreshes the list.
+
   Future<void> _deleteGroup(FlashcardGroup group) async {
     try {
       await _repo.deleteFlashcardGroup(widget.courseId, group.id);
@@ -65,11 +64,11 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
     }
   }
 
-  /// Navigates to the form to add a new group.
+
   Future<void> _addGroup() async {
     await context.push('/flashcards/groups/add', extra: {'courseId': widget.courseId});
 
-    // Refresh the list when returning from the form
+
     if (!mounted) return;
     _loadData();
   }
@@ -172,7 +171,7 @@ class _FlashcardsTopicsScreenState extends State<FlashcardsTopicsScreen> {
   }
 }
 
-/// A helper widget to display a group button with a delete icon.
+
 class _GroupButton extends StatelessWidget {
   final String title;
   final VoidCallback onTap;

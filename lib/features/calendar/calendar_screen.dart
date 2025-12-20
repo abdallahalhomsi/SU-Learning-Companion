@@ -1,12 +1,5 @@
 // lib/features/calendar/calendar_screen.dart
-//
-// Calendar Screen (Firestore-backed via providers):
-// - Reads USER courses from CoursesRepo
-// - For each course, reads that user's Exams + Homeworks
-// - Builds a 6-month calendar, tapping a day shows that day's items
-//
-// IMPORTANT:
-// This file does NOT rely on CoursesRepo.getAllEvents() anymore.
+
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -41,7 +34,7 @@ class _CalendarItem {
   final String title;
   final DateTime dueDate;
 
-  // optional extra info
+
   final String? rawDate;
   final String? rawTime;
 
@@ -91,15 +84,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // USER courses
-      final courses = await _coursesRepo.getCourses(); // users/{uid}/courses
+
+      final courses = await _coursesRepo.getCourses();
       final courseCodeById = {for (final c in courses) c.id: c.code};
 
       final allItems = <_CalendarItem>[];
 
-      // Fetch per course (sequential is OK for small lists; can optimize later)
+
       for (final course in courses) {
-        // Exams
         final exams = await _examsRepo.getExamsForCourse(course.id);
         for (final e in exams) {
           final dt = _parseDateTime(e.date, e.time);
@@ -117,7 +109,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           );
         }
 
-        // Homeworks
+
         final hws = await _homeworksRepo.getHomeworksForCourse(course.id);
         for (final h in hws) {
           final dt = _parseDateTime(h.date, h.time);
@@ -136,7 +128,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         }
       }
 
-      // sort by datetime
+
       allItems.sort((a, b) => a.dueDate.compareTo(b.dueDate));
 
       if (!mounted) return;
@@ -153,9 +145,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
-  // Robust parsing for your string models:
-  // date examples: "10 Mar 2025" OR "2025-03-10" OR "10.03.2025"
-  // time examples: "9:05 AM" OR "09:05" OR "9:05"
+
   DateTime? _parseDateTime(String dateStr, String timeStr) {
     final d = dateStr.trim();
     final t = timeStr.trim();
@@ -175,11 +165,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
     if (date == null) return null;
 
-    // time
+
     int hour = 0;
     int minute = 0;
 
-    // Try "h:mm a"
+
     try {
       final parsed = DateFormat('h:mm a').parseStrict(t);
       hour = parsed.hour;
@@ -187,7 +177,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       return DateTime(date.year, date.month, date.day, hour, minute);
     } catch (_) {}
 
-    // Try "H:mm"
+
     try {
       final parsed = DateFormat('H:mm').parseStrict(t);
       hour = parsed.hour;
@@ -195,7 +185,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       return DateTime(date.year, date.month, date.day, hour, minute);
     } catch (_) {}
 
-    // Try "H" or "H:mm:ss" etc fallback by split
+
     final parts = t.split(':');
     if (parts.isNotEmpty) {
       final h = int.tryParse(parts[0]);

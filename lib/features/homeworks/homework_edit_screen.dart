@@ -92,7 +92,7 @@ class _HomeworkEditScreenState extends State<HomeworkEditScreen> {
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
-      // Keep original ownership + creation time (do not overwrite)
+
       final updated = Homework(
         id: widget.homework.id,
         courseId: widget.homework.courseId,

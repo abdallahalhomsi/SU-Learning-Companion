@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _reposReady = false;
 
-  // ✅ cache courses future so we don't refetch on every build
+
   Future<List<Course>>? _coursesFuture;
 
   bool _remindersLoading = true;
@@ -75,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _reposReady = true;
 
     _coursesFuture = _coursesRepo.getCourses();
-    _loadRemindersForThisMonth(); // will reuse courses
+    _loadRemindersForThisMonth();
   }
 
   @override
@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
       await _coursesRepo.removeUserCourse(courseId);
       if (!mounted) return;
 
-      // Refresh courses + reminders
+
       await _refreshAll();
     } catch (e) {
       if (!mounted) return;
@@ -114,11 +114,11 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final now = DateTime.now();
 
-      // ✅ reuse cached courses if available, otherwise fetch once
+
       final courses = await (_coursesFuture ?? _coursesRepo.getCourses());
       final codeById = {for (final c in courses) c.id: c.code};
 
-      // ✅ parallel fetch: for each course fetch exams + hws concurrently
+
       final futures = courses.map((c) async {
         final results = await Future.wait([
           _examsRepo.getExamsForCourse(c.id),
@@ -171,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
         items.addAll(sub);
       }
 
-      // soonest first
+
       items.sort((a, b) => a.dueDate.compareTo(b.dueDate));
 
       if (!mounted) return;
@@ -188,8 +188,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // date: "10 Mar 2025" OR "2025-03-10" OR "10.03.2025"
-  // time: "09:05" OR "9:05" OR "9:05 AM"
+
+
   DateTime? _parseDateTime(String dateStr, String timeStr) {
     final d = dateStr.trim();
     final t = timeStr.trim();
@@ -236,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Top bar
+
             Container(
               color: Theme.of(context).colorScheme.surface,
               padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
@@ -274,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // REMINDERS (this month)
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -351,13 +351,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   const SizedBox(height: 24),
 
-                  // YOUR COURSES (UI FIX + faster fetch)
+
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.primaryBlue,
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    // ✅ was top padding 60 -> makes title sit low. Now it's tight.
+
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -418,7 +418,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: ListView.builder(
                                 controller: _coursesScroll,
                                 shrinkWrap: true,
-                                padding: EdgeInsets.zero, // ✅ THIS REMOVES THE GAP
+                                padding: EdgeInsets.zero,
                                 physics: const NeverScrollableScrollPhysics(),
                                 itemCount: courses.length,
                                 itemBuilder: (context, i) {
@@ -482,23 +482,23 @@ class _CourseRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       dense: true,
-      minVerticalPadding: 0,                // ✅ remove extra vertical padding
+      minVerticalPadding: 0,
       contentPadding: EdgeInsets.zero,
-      visualDensity: const VisualDensity(   // ✅ tighter overall tile height
+      visualDensity: const VisualDensity(
         horizontal: 0,
         vertical: -4,
       ),
       leading: const Icon(
         Icons.star_border,
         color: AppColors.textOnPrimary,
-        size: 22,                           // ✅ slightly smaller
+        size: 22,
       ),
       title: Text(
         code,
         style: const TextStyle(
           color: AppColors.textOnPrimary,
           fontWeight: FontWeight.w500,
-          fontSize: 14,                     // ✅ slightly smaller to reduce height
+          fontSize: 14,
         ),
       ),
       trailing: Row(
@@ -506,7 +506,7 @@ class _CourseRow extends StatelessWidget {
         children: [
           const Icon(Icons.chevron_right, color: Colors.white70, size: 20),
           IconButton(
-            padding: EdgeInsets.zero,       // ✅ remove IconButton padding
+            padding: EdgeInsets.zero,
             constraints: const BoxConstraints(
               minWidth: 36,
               minHeight: 36,

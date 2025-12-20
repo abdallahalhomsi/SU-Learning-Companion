@@ -41,7 +41,6 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
   Future<void> _removeExam(String examId) async {
     try {
       await context.read<ExamsProvider>().remove(widget.courseId, examId);
-      // ✅ No manual reload; stream updates list automatically.
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -57,7 +56,6 @@ class _ExamsListScreenState extends State<ExamsListScreen> {
         builder: (_) => ExamEditScreen(courseName: widget.courseName, exam: exam),
       ),
     );
-    // ✅ No manual reload; stream updates list automatically.
   }
 
   @override

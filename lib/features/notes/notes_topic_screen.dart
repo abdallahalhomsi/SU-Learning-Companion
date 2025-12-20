@@ -1,8 +1,5 @@
 // lib/features/notes/notes_topic_screen.dart
-//
-// Dark-mode-safe: title/content text + hints + cursor adapt,
-// lined paper + overlay adapt,
-// removes hard-coded black title color.
+
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

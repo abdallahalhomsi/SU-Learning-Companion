@@ -67,11 +67,7 @@ class _FlashcardFormSheetGroupState extends State<FlashcardFormSheetGroup> {
       title: _titleController.text.trim(),
       difficulty: _selectedDifficulty!,
       createdAt: DateTime.now(),
-
-      // ✅ REQUIRED
       createdBy: user.uid,
-
-      // keep if your model still has it
       userId: user.uid,
     );
 

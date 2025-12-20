@@ -92,7 +92,7 @@ class _ExamEditScreenState extends State<ExamEditScreen> {
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
-      // Keep original ownership + creation time (do not overwrite)
+
       final updated = Exam(
         id: widget.exam.id,
         courseId: widget.exam.courseId,

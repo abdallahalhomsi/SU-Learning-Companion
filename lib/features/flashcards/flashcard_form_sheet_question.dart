@@ -77,11 +77,7 @@ class _FlashcardFormSheetQuestionState extends State<FlashcardFormSheetQuestion>
       solution: _answerController.text.trim(),
       difficulty: _selectedDifficulty!,
       createdAt: DateTime.now(),
-
-      // ✅ REQUIRED
       createdBy: user.uid,
-
-      // keep if your model still has it
       userId: user.uid,
     );
 

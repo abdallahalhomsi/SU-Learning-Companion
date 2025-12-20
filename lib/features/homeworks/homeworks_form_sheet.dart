@@ -136,8 +136,6 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
       title: _titleController.text.trim(),
       date: storedDate,
       time: storedTime,
-
-      // ✅ REQUIRED FIELDS
       createdBy: user.uid,
       createdAt: DateTime.now(),
     );

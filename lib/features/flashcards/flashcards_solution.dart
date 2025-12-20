@@ -1,7 +1,5 @@
 // lib/features/flashcards/flashcard_solution_screen.dart
-//
-// Dark-mode-safe solution text/background:
-// - Uses theme colors (so text stays readable in dark mode)
+
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -27,7 +25,7 @@ class FlashcardSolutionScreen extends StatelessWidget {
     final bg = Theme.of(context).colorScheme.surface;
     final onBg = Theme.of(context).colorScheme.onSurface;
 
-    // A slightly different surface for the solution block in dark mode.
+
     final solutionBg = isDark ? const Color(0xFF0B1220) : AppColors.scaffoldBackground;
 
     return AppScaffold(
@@ -104,8 +102,6 @@ class FlashcardSolutionScreen extends StatelessWidget {
           ],
         ),
       ),
-      // keep scaffold background consistent if your AppScaffold uses Theme
-      // (bg is unused here but kept for clarity)
     );
   }
 }

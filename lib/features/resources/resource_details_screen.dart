@@ -1,9 +1,5 @@
 // lib/features/resources/resource_details_screen.dart
-//
-// Fix: In dark mode, TextFormField default text color becomes white,
-// but your field fillColor is white -> "white on white".
-// Solution: explicitly set TextStyle + label/hint styles + use readOnly
-// (instead of enabled) so it keeps the same visual style.
+
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -279,8 +275,7 @@ class _ResourceDetailsScreenState extends State<ResourceDetailsScreen> {
           borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
         ),
 
-        // When readOnly, Flutter still uses enabledBorder; no disabled "fade"
-        // because we do NOT use enabled:false.
+
       ),
     );
   }

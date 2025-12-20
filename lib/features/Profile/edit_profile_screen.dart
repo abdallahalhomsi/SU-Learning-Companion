@@ -1,7 +1,5 @@
 // lib/features/Profile/edit_profile_screen.dart
-//
-// Dark-mode-safe: input + label colors adapt,
-// replaces hard-coded underline colors to work on dark backgrounds too.
+
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';

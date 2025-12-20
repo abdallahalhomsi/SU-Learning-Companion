@@ -34,7 +34,7 @@ class _DetailedCourseFeaturesScreenState
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_repoReady) {
-      _coursesRepo = context.read<CoursesRepo>(); // ✅ from providers
+      _coursesRepo = context.read<CoursesRepo>();
       _repoReady = true;
       _loadCourse();
     }

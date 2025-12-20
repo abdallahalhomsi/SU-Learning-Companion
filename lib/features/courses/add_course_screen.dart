@@ -50,13 +50,10 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         final term = (data['semester'] ?? '').toString();
         final instructor = (data['instructor'] ?? '').toString();
 
-        // ✅ createdAt (required)
         DateTime createdAt = DateTime.now();
         final rawCreatedAt = data['createdAt'];
         if (rawCreatedAt is Timestamp) createdAt = rawCreatedAt.toDate();
 
-        // ✅ createdBy (required if your Course model requires it)
-        // If your global catalog doesn't store createdBy, use a safe fallback.
         final createdBy = (data['createdBy'] ?? 'system').toString();
 
         return Course(
@@ -66,7 +63,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
           term: term,
           instructor: instructor.isEmpty ? null : instructor,
           createdAt: createdAt,
-          createdBy: createdBy, // ✅ ADDED
+          createdBy: createdBy,
         );
       }).toList();
 
@@ -127,12 +124,10 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         'courseName': course.name,
         'semester': course.term,
         'instructor': course.instructor,
-
-        // ✅ REQUIRED FIELDS (ownership + timestamp)
         'createdBy': uid,
         'createdAt': FieldValue.serverTimestamp(),
 
-        // keep old field
+
         'addedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 

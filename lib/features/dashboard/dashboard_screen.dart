@@ -1,8 +1,3 @@
-// This file makes up the components of the Dashboard Screen,
-// Which includes a bottom navigation bar to switch between different tabs.
-// Uses of Utility classes for consistent styling and spacing across the app.
-// Custom fonts are being used.
-
 import 'package:flutter/material.dart';
 import 'package:su_learning_companion/common/utils/app_colors.dart';
 import 'package:su_learning_companion/common/utils/app_spacing.dart';

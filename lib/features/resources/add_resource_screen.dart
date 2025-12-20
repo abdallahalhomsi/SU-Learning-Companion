@@ -116,12 +116,11 @@ class _AddResourceScreenState extends State<AddResourceScreen> {
       hintText: hint,
       floatingLabelBehavior: FloatingLabelBehavior.auto,
 
-      // ✅ Theme-aware label/hint colors
+
       labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
       hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black45),
 
-      // ✅ Let Theme.inputDecorationTheme control fill color/borders
-      // (we keep borders here because you used rounded 12)
+
       border: const OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
