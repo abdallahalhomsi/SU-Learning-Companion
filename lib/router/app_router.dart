@@ -1,8 +1,5 @@
 // lib/router/app_router.dart
-//
-// GoRouter navigation for the whole app with AUTH GUARD.
-// - Logged-out users can only access auth screens
-// - Logged-in users can only access main app screens
+
 
 import 'dart:async';
 
@@ -43,7 +40,6 @@ import 'package:su_learning_companion/features/flashcards/flashcard_form_sheet_g
 import 'package:su_learning_companion/features/flashcards/flashcard_form_sheet_question.dart';
 
 class AppRouter {
-  // Listen to Firebase auth state changes
   static final _authRefresh =
   GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges());
 
@@ -55,18 +51,15 @@ class AppRouter {
       final user = FirebaseAuth.instance.currentUser;
       final location = state.matchedLocation;
 
-      // Public routes (no authentication required)
       final isPublicRoute = location == '/welcome' ||
           location == '/login' ||
           location == '/signup' ||
           location == '/signup_2';
 
-      //  Not logged in → block protected routes
       if (user == null && !isPublicRoute) {
         return '/login';
       }
 
-      //  Logged in → block auth screens
       if (user != null && isPublicRoute) {
         return '/home';
       }
@@ -75,9 +68,6 @@ class AppRouter {
     },
 
     routes: [
-      // =====================
-      // AUTH / WELCOME
-      // =====================
       GoRoute(
         path: '/welcome',
         builder: (context, state) => const WelcomeScreen(),
@@ -103,9 +93,6 @@ class AppRouter {
         builder: (context, state) => const SignUpStep2Screen(),
       ),
 
-      // =====================
-      // HOME
-      // =====================
       GoRoute(
         path: '/home',
         builder: (context, state) => const HomeScreen(),
@@ -263,7 +250,6 @@ class AppRouter {
         },
       ),
 
-      // 1. Add Flashcard Group
       GoRoute(
         path: '/flashcards/groups/add',
         builder: (context, state) {
@@ -274,7 +260,6 @@ class AppRouter {
         },
       ),
 
-      // 2. Add Flashcard Question
       GoRoute(
         path: '/flashcards/create',
         builder: (context, state) {
@@ -289,7 +274,7 @@ class AppRouter {
   );
 }
 
-/// Listens to a stream and notifies GoRouter to re-evaluate redirects
+
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
     _subscription = stream.listen((_) => notifyListeners());

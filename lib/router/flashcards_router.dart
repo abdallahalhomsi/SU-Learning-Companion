@@ -12,18 +12,15 @@ import '../features/flashcards/flashcard_form_sheet_group.dart';
 import '../features/flashcards/flashcard_form_sheet_question.dart';
 
 class FlashcardsRouter {
-  // Course-scoped routes
   static const String topics = '/courses/:courseId/flashcards';
   static const String questions =
       '/courses/:courseId/flashcards/:groupId/questions';
 
-  // Global routes (no courseId needed in URL, passed via extra)
   static const String solution = '/flashcards/solution';
   static const String groupsAdd = '/flashcards/groups/add';
   static const String create = '/flashcards/create';
 
   static final List<GoRoute> routes = [
-    // TOPICS (Groups list) for a COURSE
     GoRoute(
       path: topics,
       builder: (context, state) {
@@ -39,7 +36,6 @@ class FlashcardsRouter {
       },
     ),
 
-    // QUESTIONS (Cards list) for a GROUP inside a COURSE
     GoRoute(
       path: questions,
       builder: (context, state) {
@@ -59,7 +55,6 @@ class FlashcardsRouter {
       },
     ),
 
-    // SOLUTION (Global)
     GoRoute(
       path: solution,
       builder: (context, state) {
@@ -75,11 +70,9 @@ class FlashcardsRouter {
       },
     ),
 
-    // ADD GROUP (Global form sheet)
     GoRoute(
       path: groupsAdd,
       builder: (context, state) {
-        // FIX: Extract courseId from extra
         final extra = state.extra as Map<String, dynamic>?;
         final courseId = extra?['courseId'] as String? ?? '';
 
@@ -89,11 +82,9 @@ class FlashcardsRouter {
       },
     ),
 
-    // CREATE CARD (Global form sheet)
     GoRoute(
       path: create,
       builder: (context, state) {
-        // FIX: Extract courseId and groupId from extra
         final extra = state.extra as Map<String, dynamic>?;
         final courseId = extra?['courseId'] as String? ?? '';
         final groupId = extra?['groupId'] as String? ?? '';
