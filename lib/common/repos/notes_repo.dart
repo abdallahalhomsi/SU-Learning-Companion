@@ -2,9 +2,9 @@
 import '../models/notes.dart';
 
 abstract class NotesRepo {
-  Future<List<Note>> getNotesForCourse(String courseId); // one time fetch
+  Future<List<Note>> getNotesForCourse(String courseId);
 
-  Stream<List<Note>> watchNotesForCourse(String courseId);// real time update stream for notes
+  Stream<List<Note>> watchNotesForCourse(String courseId);
 
   Future<void> addNote(Note note);
 
@@ -13,7 +13,7 @@ abstract class NotesRepo {
     required String noteId,
   });
 
-  Future<void> updateNote({ //  added editable notes and editable title
+  Future<void> updateNote({
     required String courseId,
     required String noteId,
     required String title,

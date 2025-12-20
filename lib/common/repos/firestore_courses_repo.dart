@@ -36,7 +36,6 @@ class FirestoreCoursesRepo implements CoursesRepo {
       name: (d['courseName'] ?? '').toString(),
       term: (d['semester'] ?? '').toString(),
       instructor: d['instructor']?.toString(),
-      // ✅ if catalog is “public”, still provide fields for model
       createdBy: (d['createdBy'] ?? 'catalog').toString(),
       createdAt: _readDate(d['createdAt']),
     );
@@ -89,7 +88,6 @@ class FirestoreCoursesRepo implements CoursesRepo {
       'courseName': course.name,
       'semester': course.term,
       'instructor': course.instructor,
-      // ✅ required by rubric
       'createdBy': _uid,
       'createdAt': FieldValue.serverTimestamp(),
     });

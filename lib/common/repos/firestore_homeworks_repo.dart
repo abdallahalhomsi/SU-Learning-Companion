@@ -39,7 +39,6 @@ class FirestoreHomeworksRepo implements HomeworksRepo {
       'date': hw.date,
       'time': hw.time,
       'createdAt': FieldValue.serverTimestamp(),
-      // ✅ Added (required)
       'createdBy': _uid,
     };
   }
@@ -62,7 +61,6 @@ class FirestoreHomeworksRepo implements HomeworksRepo {
     return hws;
   }
 
-  // ✅ Added (real-time updates requirement)
   @override
   Stream<List<Homework>> watchHomeworksForCourse(String courseId) {
     return _hwRef(courseId)

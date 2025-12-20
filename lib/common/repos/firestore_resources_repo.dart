@@ -41,7 +41,7 @@ class FirestoreResourcesRepo implements ResourcesRepo {
     }).toList();
   }
 
-  // ✅ Added: real-time stream
+
   @override
   Stream<List<Resource>> watchResourcesByCourse(String courseId) {
     return _resourcesRef(courseId)
@@ -58,11 +58,11 @@ class FirestoreResourcesRepo implements ResourcesRepo {
   Future<void> addResource(Resource r) async {
     final data = r.toMap();
 
-    // Enforce server-side ownership by using the authenticated UID
+
     data['createdBy'] = _uid;
 
     if (r.id.isEmpty) {
-      // Let Firestore generate a unique ID if none is provided
+
       await _resourcesRef(r.courseId).add(data);
     } else {
       await _resourcesRef(r.courseId).doc(r.id).set(data);

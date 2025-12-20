@@ -67,8 +67,6 @@ class FirestoreNotesRepo implements NotesRepo {
 
   @override
   Future<void> addNote(Note note) async {
-    // If your UI passes an empty id, you can switch to add().
-    // Keeping your original behavior: doc(note.id).set(...)
     await _notesCol(note.courseId).doc(note.id).set({
       'title': note.title,
       'content': note.content,

@@ -51,7 +51,7 @@ class FirestoreFlashcardsRepo implements FlashcardsRepo {
     }).toList();
   }
 
-  // ✅ Added (real-time updates requirement)
+
   @override
   Stream<List<FlashcardGroup>> watchFlashcardGroups(String courseId) {
     return _groupsCol(courseId)
@@ -69,12 +69,11 @@ class FirestoreFlashcardsRepo implements FlashcardsRepo {
   Future<void> addFlashcardGroup(FlashcardGroup group) async {
     final data = group.toMap();
 
-    // Keep your existing field
     data['userId'] = _uid;
-    // ✅ Added: createdBy alias to match requirement naming (without removing userId)
+
     data['createdBy'] = _uid;
 
-    // ✅ Minimal fix: doc(null) is invalid -> if empty, use add()
+
     if (group.id.trim().isEmpty) {
       await _groupsCol(group.courseId).add(data);
     } else {
@@ -109,7 +108,7 @@ class FirestoreFlashcardsRepo implements FlashcardsRepo {
     }).toList();
   }
 
-  // ✅ Added (real-time updates requirement)
+
   @override
   Stream<List<Flashcard>> watchFlashcards(String courseId, String groupId) {
     return _cardsCol(courseId: courseId, groupId: groupId)
@@ -127,12 +126,12 @@ class FirestoreFlashcardsRepo implements FlashcardsRepo {
   Future<void> addFlashcard(Flashcard card) async {
     final data = card.toMap();
 
-    // Keep your existing field
+
     data['userId'] = _uid;
-    // ✅ Added: createdBy alias to match requirement naming (without removing userId)
+
     data['createdBy'] = _uid;
 
-    // ✅ Minimal fix: doc(null) invalid -> add() when empty
+
     if (card.id.trim().isEmpty) {
       await _cardsCol(courseId: card.courseId, groupId: card.groupId).add(data);
     } else {

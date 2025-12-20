@@ -3,13 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-/// Manages app theme (light/dark) and persists it using SharedPreferences.
-///
-/// FIX:
-/// - Theme is stored PER-USER (key includes uid)
-/// - On auth changes (login/logout/register), we reset to LIGHT immediately,
-///   then load the saved preference for that user.
-/// - Logged-out users ALWAYS see LIGHT.
+
 class ThemeProvider extends ChangeNotifier {
   static const String _themeKeyPrefix = 'isDarkMode_';
 
@@ -31,24 +25,21 @@ class ThemeProvider extends ChangeNotifier {
   void _onAuthChanged(User? user) {
     final uid = user?.uid;
 
-    // If user changed (including logout), reset to LIGHT immediately.
     if (_activeUid != uid) {
       _activeUid = uid;
       _isDarkMode = false;
       notifyListeners();
     }
 
-    // Then load that user's saved theme (if any).
     loadTheme();
   }
 
-  /// Load saved theme preference on app start / auth change
+
   Future<void> loadTheme() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final user = FirebaseAuth.instance.currentUser;
 
-      // Logged out => always light
       if (user == null) {
         _isDarkMode = false;
         notifyListeners();
@@ -57,7 +48,6 @@ class ThemeProvider extends ChangeNotifier {
 
       final key = _keyFor(user.uid);
 
-      // New user => default to light and persist
       if (!prefs.containsKey(key)) {
         _isDarkMode = false;
         await prefs.setBool(key, false);
@@ -73,7 +63,7 @@ class ThemeProvider extends ChangeNotifier {
     }
   }
 
-  /// Toggle between light and dark theme (per-user)
+
   Future<void> toggleTheme() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -91,7 +81,7 @@ class ThemeProvider extends ChangeNotifier {
     } catch (_) {}
   }
 
-  /// Set specific theme (per-user)
+
   Future<void> setTheme(bool isDark) async {
     final user = FirebaseAuth.instance.currentUser;
 

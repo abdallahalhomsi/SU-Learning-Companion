@@ -39,7 +39,6 @@ class FirestoreExamsRepo implements ExamsRepo {
       'date': exam.date,
       'time': exam.time,
       'createdAt': FieldValue.serverTimestamp(),
-      // ✅ Added (required)
       'createdBy': _uid,
     };
   }
@@ -62,7 +61,6 @@ class FirestoreExamsRepo implements ExamsRepo {
     return exams;
   }
 
-  // ✅ Added (real-time updates requirement)
   @override
   Stream<List<Exam>> watchExamsForCourse(String courseId) {
     return _examsRef(courseId)

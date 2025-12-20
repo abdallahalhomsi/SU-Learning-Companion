@@ -5,14 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/notes.dart';
 import '../repos/notes_repo.dart';
 
-/// NotesProvider
-/// - Holds notes in memory
-/// - Loads notes per course using Future-based repo methods
-/// - Exposes loading + error states
-/// - Supports add + delete
-///
-/// NOTE: Your current NotesRepo/FirestoreNotesRepo is Future-based (not Stream-based),
-/// so this provider uses manual refresh (load) after mutations.
 class NotesProvider extends ChangeNotifier {
   final NotesRepo _repo;
 
@@ -29,7 +21,7 @@ class NotesProvider extends ChangeNotifier {
   String? get error => _error;
   String? get activeCourseId => _activeCourseId;
 
-  /// Load notes for a specific course
+
   Future<void> loadForCourse(String courseId) async {
     _activeCourseId = courseId;
     _loading = true;
@@ -47,7 +39,7 @@ class NotesProvider extends ChangeNotifier {
     }
   }
 
-  /// Clear cached notes (e.g., on logout or switching contexts)
+
   void clear() {
     _notes = [];
     _loading = false;
@@ -56,7 +48,6 @@ class NotesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Add a note (builds Note object correctly)
   Future<void> addNote({
     required String courseId,
     required String title,
@@ -83,7 +74,7 @@ class NotesProvider extends ChangeNotifier {
     try {
       await _repo.addNote(note);
 
-      // refresh list so UI updates
+
       await loadForCourse(courseId);
     } catch (e) {
       _error = e.toString();
@@ -91,7 +82,7 @@ class NotesProvider extends ChangeNotifier {
     }
   }
 
-  /// Delete a note by ID
+
   Future<void> deleteNote({
     required String courseId,
     required String noteId,
@@ -101,7 +92,7 @@ class NotesProvider extends ChangeNotifier {
     try {
       await _repo.removeNote(courseId: courseId, noteId: noteId);
 
-      // refresh list so UI updates
+
       await loadForCourse(courseId);
     } catch (e) {
       _error = e.toString();
