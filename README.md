@@ -10,49 +10,141 @@ SU Learning Companion solves this by bringing all essential academic tools into 
 Students often rely on multiple apps to manage tasks, deadlines, and study plans, which leads to confusion and missed work.  
 This app solves that problem by centralizing all academic tools and providing one organized, simple-to-use system.
 
+## Firebase Backend & State Management
+Step 3 transforms the Step 2 UI prototype into a **fully functional, data-driven application** by integrating **Firebase Authentication**, **Cloud Firestore**, **Provider-based state management**, and **local persistence**.
+
+The application now supports **multi-user authentication**, **secure real-time data synchronization**, **user-specific data isolation**, and **persistent preferences**, creating a fast and professional user experience.
+
 ## Team Contribution
 
-Each member contributed significantly, developing **more than 3–4 screens** and working across multiple features:
+All team members worked on **both frontend and backend aspects**, contributing beyond their primary feature areas.
 
-| Member | Main Feature Contributions |
-|--------|----------------------------|
-| **Abdallah Al Homsi** | Exams, Homeworks |
-| **Fowzi Hindi** | Flashcards, Profile |
-| **Syeda Manaal Amir** | Calendar, Detailed Course Page |
-| **Abdul Momin Alam** | Home Page, Notes |
-| **Salma Tubail** | Resources, Add Course Page |
-| **Rand M O Khaled** | Welcome / Splash Screen, Login, Sign Up |
+| Member | Frontend Contributions | Backend & Database Contributions |
+|------|------------------------|----------------------------------|
+| **Abdallah Al Homsi** | Exams UI, Homeworks UI, edit & form screens | Designed Firestore structure for exams & homeworks, implemented full CRUD, enforced `createdBy` & `createdAt`, integrated Provider for real-time updates |
+| **Fowzi Hindi** | Flashcards UI (groups & questions), navigation | Implemented Firestore subcollections for flashcards, ownership enforcement, delete restrictions, Provider integration |
+| **Syeda Manaal Amir** | Calendar UI, course feature integration | Connected calendar to Firestore-driven deadlines and ensured real-time updates |
+| **Abdul Momin Alam** | Notes UI, list & edit screens | Implemented Firestore streams for notes, Provider state handling (loading, error, success) |
+| **Salma Tubail** | Resources UI, Add Course screen | Designed global resources Firestore model, enforced read-only access for non-owners |
+| **Rand M O Khaled** | Welcome, Login, Signup UI | Implemented Firebase Authentication, auth guards, Provider-based auth state affecting the entire app |
 
-All contributions, code changes, and cross-feature collaboration **can be verified in the GitHub commit history**, showing that each member worked across multiple parts of the application — not only on their assigned screens. Meaning that the Main Feature Contribution is not the only thing each member contributed in as there are various parts of the project in which we all contributed to.
+All contributions, code changes, and cross-feature collaboration **can be verified in the GitHub commit history**, showing that each member worked across multiple parts of the application — not only on their assigned screens. Meaning that the Main Feature Contribution is not the only thing each member contributed in as there are various parts of the project in which we all contributed to. 
+All backend operations are implemented through **repository and provider layers**.  
+No UI widget accesses Firestore directly.
+
+## Firestore Architecture & Data Storage
+The app uses **Cloud Firestore** as its primary backend database.
+### Data Structure
+- Each authenticated user has a private document under `/users/{uid}`.
+- All personal academic data (courses, exams, homeworks, notes, flashcards) is stored **inside the user’s space**, ensuring users can only access their own data.
+- Course **resources are stored globally** under `/courses/{courseId}/resources` so all students can view shared materials.
+- Every Firestore document includes:
+  - a unique document ID (Firestore auto-generated)
+  - feature-specific fields (title, date, content, etc.)
+  - `createdBy` (user UID)
+  - `createdAt` timestamp
+
+### Firestore Document Requirements
+Every document includes:
+- **Unique document ID**
+- **Feature-specific fields** (title, date, content, difficulty, etc.)
+- **createdBy** → Firebase user UID
+- **createdAt** → Firestore timestamp
+
+### Real-Time Updates
+- Firestore **streams** are used for exams, homeworks, notes, flashcards, and resources.
+- Any create, update, or delete operation is reflected instantly in the UI.
+
+### Security
+- Users can only read/write their own data.
+- Resources are **globally readable** but **only editable/deletable by their creator**.
+- All access requires authentication.
 
 
-## How We Met the Key Requirements
+## How We Met the Requirements
 
-| Requirement | How We Fulfill It |
-|-------------|--------------------|
-| **Named Routes** | All screens use named/structured routes via `GoRouter`, defined in `AppRouter` and all features routers, etc.). Initial route is `/welcome`. |
-| **Utility Classes** | Centralized styling using utility files: `app_colors.dart`, `app_text_styles.dart`, `app_spacing.dart` , `data_formatters.dart` — used consistently across all features. |
-| **Images (Asset + Network)** | Used asset image (`sabanci_logo.jpeg`) in HomeScreen and network image in welcome screens. |
-| **Custom Font** | External fonts (Poppins, Orbitron) added via `pubspec.yaml` and applied globally using `fontFamily: 'AppFont'`. |
-| **Card & List + Delete** | `ExamsListScreen`, `HomeworksListScreen`, `ResourcesListScreen`, `NotesListScreen`, and `FlashcardsListScreen` use **Card widgets** linked to model classes, with delete functionality (dynamic list update). |
-| **Form Validation + AlertDialog** | Multiple forms (Exams, Homeworks, Notes, Flashcards, Resources, Signup, Login) use **Form + TextFormField validators**, show **inline error text**, and display **AlertDialog if invalid**. |
-| **Responsiveness** | Scrollable layouts using `SingleChildScrollView`, `Expanded`, and `Flexible` ensure proper behavior across device sizes and orientations. |
+| Requirement / Rubric Item | Implementation |
+|---------------------------|----------------|
+| Firebase setup & connection | Firebase initializes correctly and connects without runtime errors |
+| User authentication | Email/password signup, login, logout with user-friendly error handling |
+| Firestore data modeling | Structured collections per feature with ownership & timestamps |
+| Model classes | Dart models accurately reflect Firestore documents |
+| Repository layer | All Firestore operations go through repositories |
+| Provider state management | MultiProvider with ChangeNotifier for auth and core data |
+| Auth-based navigation | Logged-out users see auth screens; logged-in users see main app |
+| Real-time UI updates | Firestore streams update UI automatically |
+| Local persistence | Theme preference stored and restored via SharedPreferences |
+| Firestore security rules | Prevent unauthenticated access and enforce user ownership |
 
+### 1. Firebase Authentication
+- Implemented **email/password sign-up, login, and logout** using Firebase Authentication.
+- Navigation is protected with **authentication-based routing**:
+  - Logged-out users can only access login and signup screens.
+  - Logged-in users are redirected to the main app.
+- Authentication errors (invalid credentials, network issues) are handled and displayed with **user-friendly messages**.
 
-## Basic Navigation Flow
+---
 
-1. **Welcome Screen** → Login or Sign Up  
-2. After login → **Home Screen**  
-   - View courses, reminders, add a course  
-   - Bottom navigation: **Home – Calendar – Profile**  
-3. Open any course (click on any course) → **Course Details Screen**  
-   - Access features: Exams, Homeworks, Notes, Resources, Flashcards  
-4. Each feature supports:
-   - List view (Card/ListTile)
-   - Add new item (form with validation + AlertDialog)
-   - Delete/edit (where applicable)  
-5. **Calendar Screen** shows cross-course deadlines/events  
-6. **Profile Screen** shows user info + Logout
+### 2. Cloud Firestore Database
+- All dynamic app data is stored in **Cloud Firestore**.
+- Each feature supports **full CRUD operations** (create, read, update, delete).
+- Data is loaded using **Firestore streams**, enabling **real-time UI updates**.
+- Firestore security rules restrict users to **their own data**, while allowing controlled access to shared resources.
+
+---
+
+### 3. State Management (Provider)
+- The app uses **Provider with ChangeNotifier** to manage:
+  - Authentication state (logged in/out)
+  - Feature data (lists, loading states, errors)
+- The UI reacts automatically when:
+  - A user logs in or logs out
+  - Firestore data changes
+- Shared state is accessed via providers, avoiding deep constructor passing.
+
+---
+
+### 4. Local Persistence
+- The app persists the **theme preference (light/dark mode)** using SharedPreferences.
+- The selected theme is restored automatically when the app restarts.
+## Demo Video Script
+
+1. **User 1 – First-Time Signup**
+   - Open the app
+   - Sign up with email & password
+   - App redirects automatically to Home Screen
+
+2. **User 1 – Course Setup**
+   - Add a course
+   - Open the course
+   - For each feature:
+     - **Exams** → add, edit, delete
+     - **Homeworks** → add, edit, delete
+     - **Notes** → add, edit, delete
+     - **Flashcards** → add group, add question, delete
+     - **Resources** → add and edit (allowed only for the creator)
+
+3. **User 1 – Navigation**
+   - Open Calendar (shows aggregated deadlines)
+   - Return to Home Screen
+   - Edit profile information
+   - Log out
+
+4. **User 2 – Existing User**
+   - Log in
+   - Dark theme is automatically restored (SharedPreferences)
+
+5. **Data Isolation & Security**
+   - Open the same course
+   - Show that:
+     - Exams, homeworks, notes, and flashcards from User 1 are **not visible**
+     - Resources are visible but **cannot be edited or deleted** (not the owner)
+
+6. **Persistence Demo**
+   - Close the app
+   - Reopen the app
+   - User is still logged in
+   - App opens directly to Home Screen
     
 ### 1. First-time setup (cloning the repo)
 
