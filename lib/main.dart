@@ -18,7 +18,7 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ...buildProviders(), // your repos + AuthProvider
+        ...buildProviders(),
         ChangeNotifierProvider<ThemeProvider>(
           create: (_) => ThemeProvider()..loadTheme(),
         ),
