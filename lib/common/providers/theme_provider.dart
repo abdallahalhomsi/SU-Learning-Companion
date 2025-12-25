@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-
 class ThemeProvider extends ChangeNotifier {
   static const String _themeKeyPrefix = 'isDarkMode_';
 
-  bool _isDarkMode = false;
+  final FirebaseAuth _auth;
+  final Future<SharedPreferences> Function() _prefsFactory;
 
+  bool _isDarkMode = false;
   bool get isDarkMode => _isDarkMode;
 
   ThemeMode get themeMode => _isDarkMode ? ThemeMode.dark : ThemeMode.light;
@@ -16,8 +17,12 @@ class ThemeProvider extends ChangeNotifier {
   StreamSubscription<User?>? _authSub;
   String? _activeUid;
 
-  ThemeProvider() {
-    _authSub = FirebaseAuth.instance.authStateChanges().listen(_onAuthChanged);
+  ThemeProvider({
+    FirebaseAuth? auth,
+    Future<SharedPreferences> Function()? prefsFactory,
+  })  : _auth = auth ?? FirebaseAuth.instance,
+        _prefsFactory = prefsFactory ?? SharedPreferences.getInstance {
+    _authSub = _auth.authStateChanges().listen(_onAuthChanged);
   }
 
   String _keyFor(String uid) => '$_themeKeyPrefix$uid';
@@ -27,18 +32,17 @@ class ThemeProvider extends ChangeNotifier {
 
     if (_activeUid != uid) {
       _activeUid = uid;
-      _isDarkMode = false;
+      _isDarkMode = false; // Always reset for a new/changed user
       notifyListeners();
     }
 
     loadTheme();
   }
 
-
   Future<void> loadTheme() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final user = FirebaseAuth.instance.currentUser;
+      final prefs = await _prefsFactory();
+      final user = _auth.currentUser;
 
       if (user == null) {
         _isDarkMode = false;
@@ -63,9 +67,8 @@ class ThemeProvider extends ChangeNotifier {
     }
   }
 
-
   Future<void> toggleTheme() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       _isDarkMode = false;
       notifyListeners();
@@ -76,14 +79,13 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await _prefsFactory();
       await prefs.setBool(_keyFor(user.uid), _isDarkMode);
     } catch (_) {}
   }
 
-
   Future<void> setTheme(bool isDark) async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = _auth.currentUser;
 
     if (user == null) {
       if (_isDarkMode != false) {
@@ -99,7 +101,7 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await _prefsFactory();
       await prefs.setBool(_keyFor(user.uid), _isDarkMode);
     } catch (_) {}
   }
