@@ -2,13 +2,18 @@
 
 ### Description  
 SU Learning Companion is a mobile application built specifically for Sabancı University students to simplify their academic organization and study routines.
-University students often struggle to manage deadlines, track assignments, and keep up with study sessions across multiple platforms — using a mix of calendars, notes apps, messaging groups, and reminders. This constant switching between tools leads to disorganization, missed deadlines, and reduced study efficiency.
+University students often struggle to manage deadlines and track assignments— using a mix of calendars, notes apps, exams, flashcards, and reminders. This constant switching between tools leads to disorganization, missed deadlines, and reduced study efficiency.
 
 SU Learning Companion solves this by bringing all essential academic tools into one unified platform. The app combines a course dashboard, assignment tracking, study timers, flashcards, and note-taking features — giving students a centralized and structured way to manage their academic life.
 
 ### Main Purpose — Problem the App Solves  
 Students often rely on multiple apps to manage tasks, deadlines, and study plans, which leads to confusion and missed work.  
 This app solves that problem by centralizing all academic tools and providing one organized, simple-to-use system.
+
+### Motivation
+Our motivation behind **SU Learning Companion** was to create a meaningful improvement in the daily academic lives of Sabancı University students. We observed that students often rely on scattered tools—calendars, note apps, messaging platforms, and reminders—which leads to disorganization, missed deadlines, and inefficient study habits. We wanted to change that by designing a **single, mobile-first solution** that brings everything together in one place.  
+
+By centralizing courses, exams, homework, notes, resources, flashcards, and schedules into a unified application, our goal is to help students study more effectively, stay organized, and ultimately **perform better academically and achieve higher grades**. SU Learning Companion is built not just as an app, but as a practical academic assistant that supports students throughout their semester and helps them focus on what truly matters—learning and success.
 
 ## Firebase Backend & State Management
 Step 3 transforms the Step 2 UI prototype into a **fully functional, data-driven application** by integrating **Firebase Authentication**, **Cloud Firestore**, **Provider-based state management**, and **local persistence**.
@@ -60,7 +65,56 @@ Every document includes:
 - Resources are **globally readable** but **only editable/deletable by their creator**.
 - All access requires authentication.
 
+### Testing
+To ensure correctness and reliability, we added automated Flutter tests including **2 unit tests** and **1 widget test**.
 
+### How to Run Tests
+
+From the project root, run:
+
+```bash
+flutter test
+```
+### Implemented Tests
+
+### 1) Unit Test — ThemeProvider default is Light
+Type: Unit test
+File: test/unit/theme_provider_default_test.dart
+What it checks:
+The app theme defaults to Light Mode when a user is new / not logged in.
+ThemeProvider initializes correctly with the expected default state.
+
+### 2) Unit Test — ThemeProvider toggle + persistence (per-user)
+Type: Unit test
+File: test/unit/theme_provider_toggle_test.dart
+What it checks:
+Theme toggling works (Light ↔ Dark).
+The theme value is persisted using SharedPreferences.
+The theme is stored per authenticated user, so one user’s dark mode does not affect another user.
+When logged out, theme is forced back to Light Mode (in the Login but when user is logged in again it is still Dark).
+
+### 3) Widget Test — Notes screen renders essential UI
+Type: Widget test
+File: test/widget/notes_list_screen_empty_test.dart
+What it checks:
+The Notes screen builds correctly.
+Core UI elements exist.
+Prevents UI regressions that could block authentication flow.
+
+### Known Limitations / Bugs
+No known critical limitations or bugs at the time of submission.
+
+No known critical limitations or bugs at the time of submission.
+
+Core requirements were validated through manual testing + automated tests:
+
+Authentication (signup, login, logout)
+
+Firestore CRUD + real-time updates
+
+Provider-based state management
+
+SharedPreferences theme persistence
 ## How We Met the Requirements
 
 | Requirement / Rubric Item | Implementation |
