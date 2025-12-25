@@ -104,8 +104,6 @@ Prevents UI regressions that could block authentication flow.
 ### Known Limitations / Bugs
 No known critical limitations or bugs at the time of submission.
 
-No known critical limitations or bugs at the time of submission.
-
 Core requirements were validated through manual testing + automated tests:
 
 Authentication (signup, login, logout)
@@ -115,6 +113,7 @@ Firestore CRUD + real-time updates
 Provider-based state management
 
 SharedPreferences theme persistence
+
 ## How We Met the Requirements
 
 | Requirement / Rubric Item | Implementation |
